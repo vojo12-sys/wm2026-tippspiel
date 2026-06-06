@@ -29,9 +29,8 @@ DISPLAY_TIMEZONE = ZoneInfo("Europe/Berlin")
 
 # Deadline für die Langfrist-Tipps (Weltmeister, Torschützenkönig,
 # Gesamttore, Gruppen-Platzierungen): Anpfiff des Eröffnungsspiels.
-# Mexiko – Südafrika, 11.06.2026, 20:00 Uhr Ortszeit Mexiko-Stadt (CDT, UTC-5)
-# => 12.06.2026 01:00 UTC. In UTC speichern!
-TOURNAMENT_START_UTC = "2026-06-12T01:00:00+00:00"
+# Mexiko – Südafrika, 11.06.2026, 15:00 ET (EDT = UTC-4) = 19:00 UTC = 21:00 MESZ
+TOURNAMENT_START_UTC = "2026-06-11T19:00:00+00:00"
 
 # flagcdn-Bildgröße (laut Prompt: w320)
 FLAG_SIZE = "w320"
