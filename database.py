@@ -24,13 +24,19 @@ class Base(DeclarativeBase):
     pass
 
 
-# SQLite braucht ein Sonder-Argument für den Mehr-Thread-Betrieb (Streamlit).
+# Render liefert postgresql:// → auf psycopg3-Treiber umbiegen
+_db_url = DATABASE_URL
+if _db_url.startswith("postgresql://") or _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    _db_url = _db_url.replace("postgres://", "postgresql+psycopg://", 1)
+
+# SQLite braucht ein Sonder-Argument für den Mehr-Thread-Betrieb.
 _connect_args = {}
-if DATABASE_URL.startswith("sqlite"):
+if _db_url.startswith("sqlite"):
     _connect_args = {"check_same_thread": False}
 
 engine = create_engine(
-    DATABASE_URL,
+    _db_url,
     echo=False,
     future=True,
     pool_pre_ping=True,      # erkennt abgelaufene Verbindungen (wichtig bei Supabase)
