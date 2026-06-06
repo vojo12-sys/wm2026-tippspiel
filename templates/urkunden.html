@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Siegerurkunden – WM 2026 Tippspiel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+
+    /* ── Bildschirm-Ansicht ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hanken Grotesk', sans-serif;
+      background: #1a1a2e;
+      color: #fff;
+      padding: 2rem;
+    }
+
+    .screen-header {
+      max-width: 900px;
+      margin: 0 auto 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .screen-header h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+    }
+    .screen-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .btn-back {
+      background: rgba(255,255,255,.1); color: #fff;
+      border: 1px solid rgba(255,255,255,.2); border-radius: 10px;
+      padding: .5rem 1.2rem; font-size: .88rem; font-weight: 600;
+      text-decoration: none; cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-back:hover { background: rgba(255,255,255,.2); }
+    .btn-print {
+      background: #c08a12; color: #fff;
+      border: none; border-radius: 10px;
+      padding: .5rem 1.4rem; font-size: .88rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 3px 12px rgba(192,138,18,.35);
+      transition: background .15s;
+    }
+    .btn-print:hover { background: #a07510; }
+
+    .hint {
+      max-width: 900px; margin: 0 auto 1.5rem;
+      background: rgba(192,138,18,.12); border: 1px solid rgba(192,138,18,.3);
+      border-radius: 10px; padding: .7rem 1rem;
+      font-size: .82rem; color: #e8c060;
+    }
+
+    /* ── Urkunden-Vorschau ──────────────────────────────────────── */
+    .certificates { max-width: 900px; margin: 0 auto; }
+
+    /* ── Eine Urkunde ───────────────────────────────────────────── */
+    .cert {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 0.707;          /* A4 Hochformat */
+      margin-bottom: 2.5rem;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+      page-break-after: always;
+      break-after: page;
+    }
+
+    /* Hintergrundbild */
+    .cert-bg {
+      position: absolute; inset: 0;
+      background: url('/static/img/landing.jpg') center center / cover no-repeat;
+    }
+
+    /* Dunkles Overlay */
+    .cert-overlay {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to top, rgba(4,8,20,.92) 0%, rgba(4,8,20,.55) 45%, rgba(4,8,20,.45) 100%);
+    }
+
+    /* Goldener Rahmen */
+    .cert-border {
+      position: absolute; inset: 12px;
+      border: 2px solid rgba(192,138,18,.5);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+    .cert-border::before {
+      content: '';
+      position: absolute; inset: 4px;
+      border: 1px solid rgba(192,138,18,.25);
+      border-radius: 4px;
+    }
+
+    /* Inhalt */
+    .cert-content {
+      position: relative; z-index: 10;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6%;
+      text-align: center;
+    }
+
+    .cert-logo {
+      height: 4%;
+      min-height: 28px;
+      opacity: .85;
+      margin-bottom: 3%;
+      filter: brightness(0) invert(1);
+      clip-path: inset(10% 0 0 0);
+      margin-top: -10%;
+    }
+
+    .cert-tournament {
+      font-size: clamp(.55rem, 1.2vw, .78rem);
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: #e8c060;
+      margin-bottom: 1.5%;
+    }
+
+    .cert-title {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(.9rem, 2.5vw, 1.5rem);
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.75);
+      margin-bottom: 4%;
+    }
+
+    .cert-rank {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(2.5rem, 8vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 2%;
+    }
+    .rank-1 { color: #f0c040; text-shadow: 0 0 30px rgba(240,192,64,.4); }
+    .rank-2 { color: #d0d8e0; text-shadow: 0 0 20px rgba(200,215,225,.3); }
+    .rank-3 { color: #d4966a; text-shadow: 0 0 20px rgba(212,150,106,.3); }
+    .rank-other { color: rgba(255,255,255,.85); }
+
+    .cert-name {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(1.2rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4%;
+      letter-spacing: -.02em;
+    }
+
+    .cert-stats {
+      display: flex;
+      gap: clamp(.5rem, 2vw, 1.5rem);
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 4%;
+    }
+    .stat-box {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 10px;
+      padding: clamp(.4rem, 1.2vw, .8rem) clamp(.6rem, 1.5vw, 1.1rem);
+      min-width: clamp(60px, 10vw, 90px);
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(.9rem, 2.2vw, 1.5rem);
+      font-weight: 800;
+      display: block;
+      line-height: 1;
+      color: #fff;
+    }
+    .stat-num.gold { color: #f0c040; }
+    .stat-lbl {
+      font-size: clamp(.45rem, .9vw, .65rem);
+      color: rgba(255,255,255,.55);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-top: 3px;
+    }
+
+    .cert-divider {
+      width: 60%; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(192,138,18,.4), transparent);
+      margin-bottom: 3%;
+    }
+
+    .cert-footer {
+      font-size: clamp(.45rem, .9vw, .65rem);
+      color: rgba(255,255,255,.4);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    /* ── Druckmodus ─────────────────────────────────────────────── */
+    @media print {
+      body {
+        background: #000;
+        padding: 0;
+        margin: 0;
+      }
+
+      .screen-header,
+      .screen-actions,
+      .hint { display: none !important; }
+
+      .certificates { max-width: 100%; }
+
+      .cert {
+        width: 210mm;
+        height: 297mm;
+        aspect-ratio: unset;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+      }
+
+      /* Hintergrunddruck erzwingen */
+      .cert-bg {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: url('/static/img/landing.jpg') center center / cover no-repeat !important;
+      }
+      .cert-overlay {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cert-border {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Bildschirm-Header (wird beim Drucken ausgeblendet) -->
+<div class="screen-header">
+  <h1>🏆 Siegerurkunden</h1>
+  <div class="screen-actions">
+    <a href="/admin" class="btn-back">← Zurück zum Admin</a>
+    <button class="btn-print" onclick="window.print()">🖨 Als PDF drucken</button>
+  </div>
+</div>
+
+<div class="hint">
+  <strong>Tipp:</strong> Klicke auf „Als PDF drucken" → wähle im Druckdialog „Als PDF speichern" →
+  unter <em>Weitere Einstellungen</em> die Option <em>Hintergrundgrafiken</em> aktivieren.
+</div>
+
+<!-- Urkunden -->
+<div class="certificates">
+  {% for row in rows %}
+  <div class="cert">
+    <div class="cert-bg"></div>
+    <div class="cert-overlay"></div>
+    <div class="cert-border"></div>
+    <div class="cert-content">
+
+      <img src="/static/img/lew_logo.png" class="cert-logo" alt="LEW Automotive">
+
+      <div class="cert-tournament">FIFA Weltmeisterschaft 2026 · Tippspiel der LEW Automotive GmbH</div>
+
+      <div class="cert-title">Siegerurkunde</div>
+
+      <!-- Platzierung -->
+      <div class="cert-rank {% if row.rank == 1 %}rank-1{% elif row.rank == 2 %}rank-2{% elif row.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+        {{ row.rank }}.
+      </div>
+
+      <!-- Name -->
+      <div class="cert-name">{{ row.display_name }}</div>
+
+      <!-- Statistiken -->
+      <div class="cert-stats">
+        <div class="stat-box">
+          <span class="stat-num gold">{{ row.total_points }}</span>
+          <div class="stat-lbl">Punkte</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">{{ row.tips_total }} / {{ total_matches }}</span>
+          <div class="stat-lbl">Tipps</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">{{ row.exact_count }}</span>
+          <div class="stat-lbl">Exakt</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">{{ row.goal_diff_count }}</span>
+          <div class="stat-lbl">Tordiff.</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">{{ row.tendency_count }}</span>
+          <div class="stat-lbl">Tendenz</div>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num">{{ row.longterm_points }}</span>
+          <div class="stat-lbl">Langfrist</div>
+        </div>
+      </div>
+
+      <div class="cert-divider"></div>
+
+      <div class="cert-footer">
+        Kanada · Mexiko · USA &nbsp;·&nbsp; 11. Juni – 19. Juli 2026
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-1">Teams & Spielorte</h1>
+<p class="text-muted mb-4">48 Nationen · 16 Stadien · 3 Gastgeberländer</p>
+
+<style>
+.section-tabs .nav-link { font-weight:600; }
+.group-block { margin-bottom:1.5rem; }
+.group-label { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:.8rem;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem; }
+.team-card { background:#fff; border:1px solid var(--border); border-radius:12px;
+  padding:.7rem .9rem; display:flex; align-items:center; gap:.65rem;
+  transition:box-shadow .18s, border-color .18s; cursor:pointer; }
+.team-card:hover { box-shadow:0 4px 14px rgba(0,0,0,.08); border-color:var(--accent); }
+.team-flag { width:32px; height:22px; object-fit:cover; border-radius:4px;
+  box-shadow:0 1px 4px rgba(0,0,0,.18); flex-shrink:0; }
+.team-name { font-weight:600; font-size:.88rem; line-height:1.2; }
+.squad-pos-group { margin-bottom:.9rem; }
+.squad-pos-label { font-size:.65rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:.4rem; }
+.squad-row { display:flex; align-items:center; gap:.7rem; padding:.45rem .6rem;
+  border-radius:8px; transition:background .12s; }
+.squad-row:hover { background:#f4f7f9; }
+.squad-photo { width:36px; height:36px; border-radius:50%; object-fit:cover;
+  border:2px solid var(--border); flex-shrink:0; background:#e4e9ef; }
+.squad-photo-placeholder { width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,#e4e9ef,#cdd6de);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; color:#8a9ab0; font-size:.85rem; }
+.squad-name { font-weight:600; font-size:.88rem; flex:1; }
+.squad-club { font-size:.75rem; color:var(--muted); }
+.squad-pos-badge { font-size:.62rem; font-weight:700; padding:2px 6px; border-radius:4px;
+  background:rgba(126,200,227,.12); color:var(--accent-dk);
+  border:1px solid rgba(126,200,227,.25); white-space:nowrap; flex-shrink:0; }
+.venue-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+.venue-card { background:#fff; border:1px solid var(--border); border-radius:14px;
+  padding:1.1rem 1.2rem; transition:box-shadow .2s, border-color .2s; }
+.venue-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.09); border-color:var(--accent); }
+.venue-card.highlight { border-color:rgba(192,138,18,.4); background:linear-gradient(160deg,#fffef8,#fff); }
+.venue-head { display:flex; align-items:center; gap:.6rem; margin-bottom:.5rem; }
+.venue-flag { width:28px; height:19px; object-fit:cover; border-radius:3px;
+  box-shadow:0 1px 3px rgba(0,0,0,.2); flex-shrink:0; }
+.venue-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:.95rem; line-height:1.2; }
+.venue-city { color:var(--muted); font-size:.8rem; }
+.venue-cap { font-size:.78rem; color:var(--muted); margin-top:.3rem; }
+.venue-note { display:inline-block; font-size:.65rem; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; padding:2px 8px; border-radius:50px; margin-top:.4rem;
+  background:rgba(192,138,18,.12); color:#8a6208; border:1px solid rgba(192,138,18,.25); }
+.venue-actions { display:flex; gap:.5rem; margin-top:.75rem; }
+.venue-btn { font-size:.75rem; font-weight:600; padding:3px 10px; border-radius:6px;
+  text-decoration:none; border:1px solid var(--border); color:#16202b;
+  background:#fff; transition:all .15s; }
+.venue-btn:hover { border-color:var(--accent); color:var(--accent); }
+.venue-btn-map { border-color:rgba(66,133,244,.4); color:#3367d6; background:rgba(66,133,244,.05); }
+.venue-btn-map:hover { background:rgba(66,133,244,.1); border-color:#3367d6; }
+.country-section { margin-bottom:2rem; }
+.country-title { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:1.1rem;
+  margin-bottom:.9rem; display:flex; align-items:center; gap:.6rem; }
+.country-flag { width:28px; height:19px; object-fit:cover; border-radius:3px;
+  box-shadow:0 1px 4px rgba(0,0,0,.2); }
+.modal-team-flag { width:48px; height:32px; object-fit:cover; border-radius:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2); }
+</style>
+
+<!-- Section Tabs -->
+<ul class="nav nav-tabs mb-4 section-tabs">
+  <li class="nav-item"><button class="nav-link active" data-sec="teams">
+    <i class="bi bi-flag me-1"></i>Teams nach Gruppen
+  </button></li>
+  <li class="nav-item"><button class="nav-link" data-sec="venues">
+    <i class="bi bi-geo-alt me-1"></i>Spielorte
+  </button></li>
+</ul>
+
+<!-- ══ TEAMS ══ -->
+<div id="sec-teams" class="sec-panel">
+  <div class="row g-3">
+    {% for letter, teams in groups.items() %}
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="group-block">
+        <div class="group-label">Gruppe {{ letter }}</div>
+        <div class="d-flex flex-column gap-2">
+          {% for name_de, name_en, code in teams %}
+          <div class="team-card"
+               data-bs-toggle="modal" data-bs-target="#squadModal"
+               data-name="{{ name_de }}" data-code="{{ code }}" data-group="{{ letter }}">
+            <img class="team-flag" src="https://flagcdn.com/w80/{{ code }}.png" alt="{{ name_de }}">
+            <div style="flex:1;min-width:0">
+              <div class="team-name">{{ name_de }}</div>
+              <div style="font-size:.72rem;color:var(--muted)">{{ name_en }}</div>
+            </div>
+            <i class="bi bi-people me-1" style="font-size:1rem;color:#1E4E8C"></i>
+            <span style="font-size:.82rem;font-weight:600;color:#1E4E8C">Kader</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ══ VENUES ══ -->
+<div id="sec-venues" class="sec-panel d-none">
+  {% for country, vlist in venues_by_country.items() %}
+  <div class="country-section">
+    <div class="country-title">
+      <img class="country-flag" src="https://flagcdn.com/w80/{{ vlist[0].flag }}.png" alt="{{ country }}">
+      {{ country }}
+      <span class="text-muted fw-normal" style="font-size:.85rem">({{ vlist|length }} Stadion{{ 'en' if vlist|length > 1 else '' }})</span>
+    </div>
+    <div class="venue-grid">
+      {% for v in vlist %}
+      <div class="venue-card {% if v.highlight %}highlight{% endif %}">
+        <div class="venue-head">
+          <img class="venue-flag" src="https://flagcdn.com/w80/{{ v.flag }}.png" alt="{{ v.country }}">
+          <div>
+            <div class="venue-name">{{ v.name }}</div>
+            <div class="venue-city">{{ v.city }}{% if v.state %}, {{ v.state }}{% endif %}</div>
+          </div>
+        </div>
+        <div class="venue-cap">
+          <i class="bi bi-people me-1"></i>{{ "{:,}".format(v.capacity).replace(",", ".") }} Plätze
+        </div>
+        {% if v.note %}<div><span class="venue-note">{{ v.note }}</span></div>{% endif %}
+        <div class="venue-actions">
+          <a href="https://de.wikipedia.org/wiki/{{ v.name | replace(' ', '_') }}"
+             target="_blank" class="venue-btn" onclick="event.stopPropagation()">
+            <i class="bi bi-wikipedia me-1"></i>Wikipedia
+          </a>
+          <a href="https://www.google.com/maps/search/{{ v.name }}+{{ v.city }}"
+             target="_blank" class="venue-btn venue-btn-map" onclick="event.stopPropagation()">
+            <i class="bi bi-geo-alt me-1"></i>Google Maps
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ══ KADER-MODAL ══ -->
+<div class="modal fade" id="squadModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-3">
+          <img id="modalFlag" class="modal-team-flag" src="" alt="">
+          <div>
+            <h5 class="modal-title mb-0" id="modalTeamName">—</h5>
+            <div class="text-muted small" id="modalGroup"></div>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <p class="text-muted">Kein Kader verfügbar.</p>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <a id="modalWikiLink" href="#" target="_blank" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-wikipedia me-1"></i>Wikipedia
+        </a>
+        {% if not has_photos %}
+        <span class="text-muted small">
+          <i class="bi bi-info-circle me-1"></i>
+          Fotos verfügbar mit <code>SPORTSDB_API_KEY</code>
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Squad-Daten als JSON ins Template eingebettet -->
+<script>
+const SQUADS = {{ squad_map | tojson }};
+const HAS_PHOTOS = {{ 'true' if has_photos else 'false' }};
+
+const POS_ORDER = ['Torwart','Abwehr','Mittelfeld','Angriff'];
+
+document.querySelectorAll('[data-sec]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-sec]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.sec-panel').forEach(p => p.classList.add('d-none'));
+    btn.classList.add('active');
+    document.getElementById('sec-' + btn.dataset.sec).classList.remove('d-none');
+  });
+});
+
+const squadModal = document.getElementById('squadModal');
+squadModal.addEventListener('show.bs.modal', e => {
+  const card = e.relatedTarget;
+  const code = card.dataset.code;
+  const name = card.dataset.name;
+  const group = card.dataset.group;
+
+  document.getElementById('modalTeamName').textContent = name;
+  document.getElementById('modalGroup').textContent = 'Gruppe ' + group;
+  document.getElementById('modalFlag').src = `https://flagcdn.com/w80/${code}.png`;
+  document.getElementById('modalFlag').alt = name;
+  document.getElementById('modalWikiLink').href = `https://de.wikipedia.org/wiki/${encodeURIComponent(name.replace(/ /g,'_'))}`;
+
+  const squad = SQUADS[code];
+  const body = document.getElementById('modalBody');
+
+  if (!squad || Object.keys(squad).length === 0) {
+    body.innerHTML = '<p class="text-muted">Kein Kader verfügbar.</p>';
+    return;
+  }
+
+  let html = '';
+  for (const group of POS_ORDER) {
+    const players = squad[group];
+    if (!players || players.length === 0) continue;
+    html += `<div class="squad-pos-group">
+      <div class="squad-pos-label">${group}</div>`;
+    for (const p of players) {
+      const photo = HAS_PHOTOS && p.photo
+        ? `<img class="squad-photo" src="${p.photo}" alt="${p.name}">`
+        : `<div class="squad-photo-placeholder"><i class="bi bi-person"></i></div>`;
+      html += `<div class="squad-row">
+        ${photo}
+        <div style="flex:1;min-width:0">
+          <div class="squad-name">${p.name}</div>
+          <div class="squad-club">${p.club}</div>
+        </div>
+        <span class="squad-pos-badge">${p.pos}</span>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  body.innerHTML = html;
+});
+</script>
+{% endblock %}

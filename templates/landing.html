@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WM 2026 Tippspiel – LEW Automotive</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="icon" href="/static/img/lew_logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Hanken Grotesk', sans-serif;
+      background: #0a0f0a;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       HERO – full-screen cinematic
+    ══════════════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Background image */
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      background: url('/static/img/landing.jpg') center center / cover no-repeat;
+      z-index: 0;
+    }
+
+    /* Overlay: darkens bottom+left for text, keeps center open for ball & trophy */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to top,
+          rgba(4,8,20,.95) 0%,
+          rgba(4,8,20,.70) 20%,
+          rgba(4,8,20,.25) 50%,
+          transparent 75%),
+        linear-gradient(to right,
+          rgba(4,8,20,.55) 0%,
+          rgba(4,8,20,.15) 45%,
+          transparent 70%);
+      z-index: 1;
+    }
+
+    /* Teal glow accent bottom – matches the image's cyan light */
+    .hero-glow {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 35%;
+      background: linear-gradient(to top,
+        rgba(0,200,180,.07) 0%,
+        transparent 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: relative; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,.55), transparent);
+    }
+    .nav-logo img {
+      height: 64px;
+      filter: brightness(0) invert(1);
+      opacity: .92;
+      clip-path: inset(10% 0 0 0);
+      margin-top: -10%;
+    }
+    .nav-actions { display: flex; gap: .6rem; align-items: center; }
+
+    .btn-ghost {
+      background: rgba(255,255,255,.1);
+      backdrop-filter: blur(8px);
+      color: #fff; border: 1px solid rgba(255,255,255,.25);
+      border-radius: 50px; padding: .44rem 1.3rem;
+      font-size: .84rem; font-weight: 600; text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); }
+
+    .btn-cta-nav {
+      background: #7EC8E3; color: #fff;
+      border: none; border-radius: 50px; padding: .46rem 1.4rem;
+      font-size: .84rem; font-weight: 700; text-decoration: none;
+      transition: all .2s; box-shadow: 0 2px 14px rgba(126,200,227,.4);
+    }
+    .btn-cta-nav:hover { background: #4aaec8; transform: translateY(-1px); }
+
+    /* ── HERO CONTENT ── */
+    .hero-content {
+      position: relative; z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 3rem 4.5rem;
+      max-width: 1300px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Football goal SVG – bottom right overlay */
+    .goal-overlay {
+      position: absolute;
+      z-index: 5;
+      right: 2rem;
+      bottom: 3rem;
+      width: 420px;
+      opacity: .22;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(192,138,18,.18);
+      border: 1px solid rgba(192,138,18,.4);
+      backdrop-filter: blur(8px);
+      border-radius: 50px; padding: .3rem 1rem;
+      font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: #e8c060;
+      margin-bottom: 1.2rem;
+      width: fit-content;
+    }
+    .eyebrow-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #e8c060;
+      animation: pulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+    .eyebrow-large { font-size: 1rem; padding: .55rem 1.4rem; margin-top: .8rem; margin-bottom: 0; }
+    .eyebrow-large .eyebrow-dot { width: 9px; height: 9px; }
+
+    .hero-h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3.5rem, 7vw, 7.5rem);
+      line-height: .88;
+      letter-spacing: -.045em;
+      color: #fff;
+      margin-bottom: .15rem;
+      text-shadow: 0 2px 30px rgba(0,0,0,.4);
+    }
+    .hero-h1 .line2 {
+      color: #7EC8E3;
+      display: block;
+      font-size: clamp(2rem, 4vw, 4.5rem);
+      letter-spacing: -.03em;
+      margin-top: .05em;
+    }
+
+    .hero-lead {
+      font-size: clamp(.9rem, 1.4vw, 1.05rem);
+      color: rgba(255,255,255,.72);
+      line-height: 1.7;
+      max-width: 500px;
+      margin: 1.4rem 0 2rem;
+      font-weight: 300;
+    }
+
+    /* Countdown */
+    .countdown-row {
+      display: flex; align-items: center; gap: 1.2rem;
+      margin-bottom: 2.2rem; flex-wrap: wrap;
+    }
+    .countdown { display: flex; gap: .5rem; }
+    .cd-box {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      backdrop-filter: blur(12px);
+      border-radius: 12px; padding: .6rem .9rem;
+      min-width: 64px; text-align: center;
+    }
+    .cd-num {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800; font-size: clamp(1.5rem, 2.5vw, 2rem);
+      color: #fff; line-height: 1; display: block;
+    }
+    .cd-lbl { font-size: .55rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-top: 2px; }
+    .cd-sep { font-size: 1.4rem; color: rgba(255,255,255,.4); align-self: center; margin-bottom: .3rem; }
+    .cd-caption { font-size: .78rem; color: rgba(255,255,255,.55); }
+    .cd-caption strong { color: #e8c060; }
+
+    .cta-row { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; }
+    .btn-primary {
+      background: #7EC8E3; color: #fff;
+      border: none; border-radius: 14px;
+      padding: .88rem 2.2rem;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800; font-size: 1rem;
+      text-decoration: none; transition: all .22s;
+      box-shadow: 0 4px 24px rgba(126,200,227,.45);
+    }
+    .btn-primary:hover { background: #4aaec8; transform: translateY(-2px); box-shadow: 0 10px 32px rgba(126,200,227,.5); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,.1);
+      backdrop-filter: blur(8px);
+      color: #fff; border: 1px solid rgba(255,255,255,.25);
+      border-radius: 14px; padding: .88rem 2rem;
+      font-weight: 600; font-size: 1rem;
+      text-decoration: none; transition: all .22s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.5); }
+
+    /* ── STAT BAR ── */
+    .stat-bar {
+      position: relative; z-index: 20;
+      display: flex; justify-content: center;
+      background: #7EC8E3;
+      padding: .9rem 0;
+    }
+    .stat-inner { display: flex; max-width: 1000px; width: 100%; }
+    .stat-item {
+      flex: 1; text-align: center; color: #fff; padding: .1rem 0;
+      position: relative;
+    }
+    .stat-item:not(:last-child)::after {
+      content:''; position:absolute; right:0; top:10%; bottom:10%;
+      width:1px; background:rgba(255,255,255,.25);
+    }
+    .stat-n { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:1.55rem; line-height:1; display:block; }
+    .stat-l { font-size:.62rem; opacity:.7; text-transform:uppercase; letter-spacing:.08em; }
+
+    /* ══════════════════════════════════════
+       BELOW FOLD
+    ══════════════════════════════════════ */
+    .below { background: #f8f6f0; color: #0e1a0f; }
+
+    /* Features */
+    .features {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem;
+      padding: 5rem 3rem;
+      max-width: 1300px; margin: 0 auto;
+    }
+    .feat-card {
+      background: #fff; border: 1px solid #dde8de;
+      border-radius: 20px; padding: 1.8rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,.05);
+      transition: transform .25s, box-shadow .25s;
+    }
+    .feat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.1); }
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 13px;
+      background: #e6f5ed; border: 1px solid rgba(126,200,227,.2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.1rem;
+    }
+    .feat-icon svg { width:20px; height:20px; stroke:#7EC8E3; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .feat-h { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1.05rem; color:#0e1a0f; margin-bottom:.4rem; }
+    .feat-p { font-size:.85rem; color:#5c6e5f; line-height:1.6; }
+
+    /* Nations */
+    .nations-wrap {
+      padding: 0 3rem 5rem;
+      max-width: 1300px; margin: 0 auto;
+    }
+    .section-title {
+      font-family:'Bricolage Grotesque',sans-serif;
+      font-size:1.7rem; font-weight:800; letter-spacing:-.03em;
+      color:#0e1a0f; margin-bottom:1.4rem; text-align:center;
+    }
+    .nations-grid { display:flex; gap:1rem; }
+    .nation-card {
+      flex:1; background:#fff; border:1px solid #dde8de;
+      border-radius:20px; padding:1.6rem 1rem 1.3rem;
+      text-align:center; position:relative;
+      box-shadow:0 2px 14px rgba(0,0,0,.06);
+      transition:all .25s;
+    }
+    .nation-card:hover { transform:translateY(-5px); box-shadow:0 10px 28px rgba(0,0,0,.1); }
+    .nation-card.host-main {
+      border-color:rgba(192,138,18,.35);
+      background:linear-gradient(160deg,#fffef8,#fff);
+      box-shadow:0 4px 20px rgba(192,138,18,.14);
+    }
+    .nation-badge {
+      position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+      background:#c08a12; color:#fff;
+      font-size:.6rem; font-weight:800; letter-spacing:.07em;
+      text-transform:uppercase; padding:3px 12px; border-radius:50px;
+      white-space:nowrap;
+    }
+    .nation-flag { width:64px; height:43px; object-fit:cover; border-radius:8px; margin-bottom:.8rem; box-shadow:0 4px 14px rgba(0,0,0,.18); }
+    .nation-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:1rem; color:#0e1a0f; margin-bottom:.3rem; }
+    .nation-info { font-size:.73rem; color:#5c6e5f; line-height:1.5; }
+
+    /* Footer */
+    .footer {
+      border-top:1px solid #dde8de; padding:1.4rem 3rem;
+      display:flex; align-items:center; justify-content:space-between;
+      background:#fff;
+    }
+    .footer-left { display:flex; align-items:center; gap:.6rem; }
+    .footer-left img { height:22px; opacity:.65; }
+    .footer-txt { font-size:.74rem; color:#5c6e5f; }
+    .footer-links { display:flex; gap:1.4rem; }
+    .footer-links a { font-size:.74rem; color:#5c6e5f; text-decoration:none; }
+    .footer-links a:hover { color:#7EC8E3; }
+
+    /* Animations */
+    .fade-up { opacity:0; transform:translateY(20px); animation:fade-up .6s ease forwards; }
+    @keyframes fade-up { to { opacity:1; transform:translateY(0); } }
+    .d1{animation-delay:.08s} .d2{animation-delay:.18s} .d3{animation-delay:.3s}
+    .d4{animation-delay:.44s} .d5{animation-delay:.58s}
+
+    /* Responsive */
+    @media (max-width:960px) {
+      .nav { padding:.9rem 1.6rem; }
+      .hero-content { padding:0 1.6rem 3rem; }
+      .goal-overlay { display:none; }
+      .features { grid-template-columns:1fr; padding:3rem 1.6rem; }
+      .nations-wrap { padding:0 1.6rem 3rem; }
+      .nations-grid { flex-direction:column; }
+      .footer { flex-direction:column; gap:.8rem; padding:1.2rem 1.6rem; }
+      .stat-inner { flex-wrap:wrap; }
+      .stat-item { min-width:50%; padding:.3rem 0; }
+    }
+    @media (max-width:600px) {
+      .countdown-row { flex-direction:column; align-items:flex-start; gap:.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-img"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-glow"></div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="/" class="nav-logo"><img src="/static/img/lew_logo.png" alt="LEW Automotive"></a>
+    <div class="nav-actions">
+      <a href="/login" class="btn-ghost">Anmelden</a>
+      <a href="/register" class="btn-cta-nav">Mitmachen →</a>
+    </div>
+  </nav>
+
+  <!-- HERO TEXT -->
+  <div class="hero-content">
+
+    <h1 class="hero-h1 fade-up d1">
+      Dein Tipp.<br>Dein Tor.
+    </h1>
+
+    <div class="eyebrow eyebrow-large fade-up d2">
+      <span class="eyebrow-dot"></span>
+      FIFA Weltmeisterschaft 2026 · Tippspiel der LEW Automotive GmbH
+    </div>
+
+    <p class="hero-lead fade-up d3">
+      104 Spiele. 48 Nationen. Drei Gastgeberländer. Messe dich mit deinen Kolleginnen und Kollegen — von der Gruppenphase bis zum Finale in New York.
+    </p>
+
+    <div class="countdown-row fade-up d4">
+      <div class="countdown">
+        <div class="cd-box"><span class="cd-num" id="cd-d">—</span><span class="cd-lbl">Tage</span></div>
+        <span class="cd-sep">:</span>
+        <div class="cd-box"><span class="cd-num" id="cd-h">—</span><span class="cd-lbl">Std</span></div>
+        <span class="cd-sep">:</span>
+        <div class="cd-box"><span class="cd-num" id="cd-m">—</span><span class="cd-lbl">Min</span></div>
+        <span class="cd-sep">:</span>
+        <div class="cd-box"><span class="cd-num" id="cd-s">—</span><span class="cd-lbl">Sek</span></div>
+      </div>
+      <div class="cd-caption">bis zum Eröffnungsspiel<br><strong>Mexiko vs. Südafrika · 11. Juni 2026</strong></div>
+    </div>
+
+    <div class="cta-row fade-up d5">
+      <a href="/register" class="btn-primary">Jetzt kostenlos mitmachen →</a>
+      <a href="/login" class="btn-secondary">Ich habe ein Konto</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- STAT BAR -->
+<div class="stat-bar">
+  <div class="stat-inner">
+    <div class="stat-item"><span class="stat-n">48</span><span class="stat-l">Nationen</span></div>
+    <div class="stat-item"><span class="stat-n">104</span><span class="stat-l">Spiele</span></div>
+    <div class="stat-item"><span class="stat-n">16</span><span class="stat-l">Stadien</span></div>
+    <div class="stat-item"><span class="stat-n">3</span><span class="stat-l">Gastgeberländer</span></div>
+    <div class="stat-item"><span class="stat-n">39</span><span class="stat-l">Spieltage</span></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     BELOW FOLD
+══════════════════════════════════════ -->
+<div class="below">
+
+  <div class="features">
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      </div>
+      <div class="feat-h">104 Spiele tippen</div>
+      <div class="feat-p">Von der Gruppenphase bis zum Finale — gib deinen Tipp vor Anpfiff ab und sammle Punkte für exaktes Ergebnis, Tordifferenz und Tendenz.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><polyline points="18 20 22 16 18 12"/><line x1="2" y1="16" x2="22" y2="16"/><polyline points="6 4 2 8 6 12"/><line x1="22" y1="8" x2="2" y2="8"/></svg>
+      </div>
+      <div class="feat-h">Langfrist-Tipps & Boni</div>
+      <div class="feat-p">Tippe Weltmeister, Torschützenkönig und Gruppensieger — und sichere dir die entscheidenden Bonuspunkte für das Leaderboard.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <div class="feat-h">Kollegiales Kräftemessen</div>
+      <div class="feat-p">Live-Leaderboard und Formkurven nach jedem Spieltag — plus optionaler Pot für alle, die ihren Tipp mit echtem Einsatz untermauern wollen.</div>
+    </div>
+  </div>
+
+  <div class="nations-wrap">
+    <h2 class="section-title">Die drei Gastgeberländer</h2>
+    <div class="nations-grid">
+      <div class="nation-card">
+        <img src="https://flagcdn.com/w160/ca.png" class="nation-flag" alt="Kanada">
+        <div class="nation-name">Kanada</div>
+        <div class="nation-info">7 Stadien<br>Vancouver · Toronto<br>Edmonton u.a.</div>
+      </div>
+      <div class="nation-card host-main">
+        <div class="nation-badge">Eröffnungsspiel</div>
+        <img src="https://flagcdn.com/w160/mx.png" class="nation-flag" alt="Mexiko">
+        <div class="nation-name">Mexiko</div>
+        <div class="nation-info">3 Stadien<br>Mexiko-Stadt · Guadalajara<br>Monterrey</div>
+      </div>
+      <div class="nation-card">
+        <img src="https://flagcdn.com/w160/us.png" class="nation-flag" alt="USA">
+        <div class="nation-name">USA</div>
+        <div class="nation-info">11 Stadien · Finale MetLife<br>New York · Los Angeles<br>Dallas · Miami u.v.m.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <img src="/static/img/lew_logo.png" alt="LEW Automotive">
+      <span class="footer-txt">WM 2026 Tippspiel · LEW Automotive GmbH</span>
+    </div>
+    <div class="footer-links">
+      <a href="/login">Anmelden</a>
+      <a href="/register">Registrieren</a>
+    </div>
+  </footer>
+
+</div>
+
+
+<script>
+  const target = new Date('2026-06-12T01:00:00Z');
+  function tick() {
+    const diff = target - Date.now();
+    if (diff <= 0) return;
+    document.getElementById('cd-d').textContent = Math.floor(diff / 86400000);
+    document.getElementById('cd-h').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2,'0');
+  }
+  tick(); setInterval(tick, 1000);
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e,i) => {
+      if (e.isIntersecting) {
+        e.target.style.animationDelay = (i * .12) + 's';
+        e.target.classList.add('fade-up');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: .15 });
+  document.querySelectorAll('.feat-card, .nation-card').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

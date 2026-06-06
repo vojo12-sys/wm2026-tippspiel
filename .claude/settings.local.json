@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\routes\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\templates\")",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\static\\\\css\")",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\static\\\\img\")",
+      "Bash(Copy-Item \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\assets\\\\lew_logo.png\" \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\static\\\\img\\\\lew_logo.png\")",
+      "Bash(Write-Host \"Done\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\routes\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\templates\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\static\\\\css\")",
+      "PowerShell(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\static\\\\img\")",
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\assets\\\\lew_logo.png\" \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\\\\static\\\\img\\\\lew_logo.png\")",
+      "Bash(python3 -c \"import main; print\\('✓ main.py imports successfully'\\)\")",
+      "Bash(python3 -c \"import main; print\\('main.py imports successfully'\\)\")",
+      "Bash(python -c \"import main; print\\('OK'\\)\")",
+      "Bash(python -c \"import main; print\\('ALL OK'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -m uvicorn main:app --host 127.0.0.1 --port 8001)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8001/login)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(cd \"C:\\\\Users\\\\hegne\\\\Documents\\\\Claude\\\\WM 2026\\\\wm_tippspiel\"; python -m uvicorn main:app --port 8080 2>&1; Write-Host \"EXIT: $LASTEXITCODE\")",
+      "WebSearch",
+      "WebFetch(domain:fdp.fifa.org)",
+      "WebFetch(domain:www.aljazeera.com)",
+      "WebFetch(domain:www.fifa.com)",
+      "WebFetch(domain:www.skysports.com)",
+      "Bash(python -c \"from routes.tipps import router; print\\('OK'\\)\")",
+      "Bash(python -c \"from main import app; print\\('OK'\\)\")"
+    ]
+  }
+}

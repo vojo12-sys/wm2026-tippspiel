@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="de" class="dark scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Das WM 2026 Tippspiel der LEW Automotive GmbH – Technik trifft Leidenschaft. Tippe mit Kollegen, Kunden und Partnern und werde LEW WM-Champion.">
+<title>LEW Automotive · WM 2026 Tippspiel – Technik trifft Leidenschaft</title>
+
+<!-- ════════════════════════════════════════════════════════════
+     SCHRIFTEN  ·  Display (Headlines) + Body (Inter-ähnlich)
+     ════════════════════════════════════════════════════════════ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ════════════════════════════════════════════════════════════
+     TAILWIND  ·  via CDN, mit individueller LEW-Markenkonfiguration
+     ════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          // Night-Mode Untergründe – Tannengrün wie im bestehenden Projekt
+          night:  { 950:'#030d06', 900:'#050f08', 850:'#071e10', 800:'#0a2a17', 700:'#0d3a20' },
+          // Tiefes Tannengrün (Sekundärakzent – ersetzt das frühere LEW-Blau)
+          lew:    { 700:'#04261a', 600:'#063a26', 500:'#0a5c34', 400:'#0d7a46', 300:'#1aa566', 200:'#6fd9a6' },
+          // Fußball-Energie: leuchtendes Grün (Rasen) + Gold (Pokal)
+          turf:   { 600:'#0a9457', 500:'#0fa968', 400:'#13c477', 300:'#4ce0a0' },
+          gold:   { 600:'#c08a12', 500:'#e8b020', 400:'#f5c842', 300:'#fde88a' },
+        },
+        fontFamily: {
+          display: ['"Bricolage Grotesque"', 'sans-serif'],
+          sans:    ['Inter', 'system-ui', 'sans-serif'],
+        },
+        boxShadow: {
+          'glow-turf': '0 8px 40px -8px rgba(15,196,119,.45)',
+          'glow-gold': '0 8px 40px -8px rgba(245,200,66,.45)',
+          'glow-lew':  '0 8px 50px -10px rgba(13,122,70,.55)',
+        },
+        keyframes: {
+          floaty:   { '0%,100%':{transform:'translateY(0)'}, '50%':{transform:'translateY(-14px)'} },
+          blink:    { '0%,100%':{opacity:'1'}, '50%':{opacity:'.25'} },
+          shine:    { '0%':{backgroundPosition:'200% center'}, '100%':{backgroundPosition:'-200% center'} },
+        },
+        animation: {
+          floaty: 'floaty 6s ease-in-out infinite',
+          blink:  'blink 2s infinite',
+          shine:  'shine 6s linear infinite',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  /* ── Basis ──────────────────────────────────────────────────── */
+  html  { scroll-behavior: smooth; }
+  body  { font-family: 'Inter', sans-serif; background:#05070d; color:#e6edf6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  h1,h2,h3,h4 { font-family:'Bricolage Grotesque', sans-serif; }
+  ::selection { background:#0fa968; color:#05070d; }
+
+  /* ── Verlaufstext (Gold-Schein) ─────────────────────────────── */
+  .text-gradient-gold {
+    background:linear-gradient(120deg,#fde88a 0%,#f5c842 35%,#c08a12 70%,#f5c842 100%);
+    background-size:200% auto;
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:shine 6s linear infinite;
+  }
+  .text-gradient-turf {
+    background:linear-gradient(120deg,#4ce0a0,#13c477 50%,#0a9457);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+
+  /* ── Glas-Karten ────────────────────────────────────────────── */
+  .glass { background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(16px); }
+
+  /* ── Scroll-Reveal (GSAP-Style ohne Library) ────────────────── */
+  .reveal      { opacity:0; transform:translateY(34px); transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); will-change:opacity,transform; }
+  .reveal.in   { opacity:1; transform:none; }
+  .reveal-l    { opacity:0; transform:translateX(-40px); transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+  .reveal-l.in { opacity:1; transform:none; }
+  .reveal-r    { opacity:0; transform:translateX(40px);  transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+  .reveal-r.in { opacity:1; transform:none; }
+  [data-delay="1"]{transition-delay:.08s}[data-delay="2"]{transition-delay:.16s}
+  [data-delay="3"]{transition-delay:.24s}[data-delay="4"]{transition-delay:.32s}
+  [data-delay="5"]{transition-delay:.40s}[data-delay="6"]{transition-delay:.48s}
+
+  /* ── Hero-Hintergrund: Technik-Raster + Rasen-Glow ──────────── */
+  .grid-tech {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(15,196,119,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,196,119,.05) 1px, transparent 1px);
+    background-size:54px 54px;
+    -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 35%, #000 0%, transparent 75%);
+            mask-image:radial-gradient(ellipse 80% 60% at 50% 35%, #000 0%, transparent 75%);
+  }
+
+  /* Canvas-Partikel liegen unter dem Inhalt */
+  #fx { position:absolute; inset:0; pointer-events:none; z-index:1; }
+
+  /* Reduzierte Bewegung respektieren */
+  @media (prefers-reduced-motion: reduce){
+    .reveal,.reveal-l,.reveal-r{transition:none;opacity:1;transform:none}
+    .animate-floaty,.animate-shine,.animate-blink{animation:none}
+  }
+</style>
+</head>
+
+<body class="bg-night-950 text-slate-200 antialiased">
+
+<!-- ════════════════════════════════════════════════════════════════
+     NAVBAR  ·  sticky, Glas, Logo links – CTA rechts
+     ════════════════════════════════════════════════════════════════ -->
+<header id="nav" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+  <nav class="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="#top" class="flex items-center gap-3 group">
+      <img src="assets/lew_logo.png" alt="LEW Automotive GmbH"
+           class="h-7 w-auto brightness-0 invert opacity-90 group-hover:opacity-100 transition">
+      <span class="hidden sm:block text-xs font-semibold tracking-[.2em] text-slate-400 uppercase">WM&nbsp;2026 Tippspiel</span>
+    </a>
+
+    <!-- Desktop-Navigation -->
+    <ul class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+      <li><a href="#leaderboard" class="hover:text-white transition">Rangliste</a></li>
+      <li><a href="#warum"       class="hover:text-white transition">Warum mitmachen</a></li>
+      <li><a href="#ablauf"      class="hover:text-white transition">So funktioniert's</a></li>
+      <li><a href="#preise"      class="hover:text-white transition">Preise</a></li>
+    </ul>
+
+    <!-- Aktionen -->
+    <div class="flex items-center gap-2.5">
+      <a href="/login" class="hidden sm:inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
+                text-slate-200 border border-white/15 hover:border-white/30 hover:bg-white/5 transition">
+        Anmelden
+      </a>
+      <a href="/register" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold
+                text-night-950 bg-gradient-to-br from-turf-400 to-turf-600 shadow-glow-turf
+                hover:-translate-y-0.5 hover:shadow-[0_10px_44px_-8px_rgba(15,196,119,.65)] transition-all">
+        Zum Tippspiel
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </nav>
+</header>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     1 · HERO  ·  Full-Screen, kinematischer Verlauf + Partikel
+     ════════════════════════════════════════════════════════════════ -->
+<section id="top" class="relative min-h-screen flex items-center overflow-hidden
+          bg-[radial-gradient(ellipse_90%_80%_at_50%_-10%,#0d5c30_0%,#0a3d22_38%,#041a0e_72%,#030d06_100%)]">
+
+  <!-- Technik-Raster -->
+  <div class="grid-tech"></div>
+  <!-- Partikel (Tore / Funken) -->
+  <canvas id="fx"></canvas>
+
+  <!-- Rasen-Lichtkegel unten -->
+  <div class="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
+       style="background:radial-gradient(ellipse 60% 70% at 50% 120%, rgba(15,169,104,.22) 0%, transparent 60%)"></div>
+  <!-- Goldener Schein rechts (Pokal) -->
+  <div class="absolute -right-40 top-1/4 w-[36rem] h-[36rem] rounded-full pointer-events-none blur-3xl opacity-30 animate-floaty"
+       style="background:radial-gradient(circle, rgba(245,200,66,.35) 0%, transparent 65%)"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 w-full grid lg:grid-cols-12 gap-10 items-center pt-24 pb-16">
+
+    <!-- ── Linke Spalte: Claim ── -->
+    <div class="lg:col-span-7">
+      <!-- Live-Badge -->
+      <div class="reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full
+                  bg-turf-500/10 border border-turf-500/30 text-turf-300 text-xs font-semibold tracking-wider uppercase mb-7">
+        <span class="w-1.5 h-1.5 rounded-full bg-turf-400 animate-blink"></span>
+        11. Juni – 19. Juli 2026 · Kanada · Mexiko · USA
+      </div>
+
+      <!-- Headline -->
+      <h1 class="reveal font-display font-extrabold leading-[.92] tracking-tight
+                 text-[clamp(2.8rem,7vw,5.6rem)] text-white" data-delay="1">
+        WM 2026 Tippspiel
+        <span class="block text-gradient-gold mt-2">Technik trifft Leidenschaft</span>
+      </h1>
+
+      <!-- Subline -->
+      <p class="reveal mt-7 max-w-xl text-base sm:text-lg leading-relaxed text-slate-300/90" data-delay="2">
+        Tippe mit deinen Kollegen, Kunden und Partnern auf alle 104&nbsp;Spiele.
+        Beweise Ingenieurspräzision auch beim Fußball – und sichere dir den Titel
+        des <span class="text-white font-semibold">LEW WM-Champions</span>.
+      </p>
+
+      <!-- Countdown -->
+      <div class="reveal mt-9" data-delay="3">
+        <p class="text-xs uppercase tracking-[.18em] text-slate-500 mb-3">Countdown bis zum Eröffnungsspiel</p>
+        <div class="flex gap-3 flex-wrap" id="countdown">
+          <div class="glass rounded-2xl px-5 py-3 text-center min-w-[78px]">
+            <span id="cd-d" class="block font-display font-extrabold text-3xl sm:text-4xl text-gradient-gold leading-none">—</span>
+            <span class="block text-[.62rem] uppercase tracking-widest text-slate-500 mt-1.5">Tage</span>
+          </div>
+          <div class="glass rounded-2xl px-5 py-3 text-center min-w-[78px]">
+            <span id="cd-h" class="block font-display font-extrabold text-3xl sm:text-4xl text-gradient-gold leading-none">—</span>
+            <span class="block text-[.62rem] uppercase tracking-widest text-slate-500 mt-1.5">Std</span>
+          </div>
+          <div class="glass rounded-2xl px-5 py-3 text-center min-w-[78px]">
+            <span id="cd-m" class="block font-display font-extrabold text-3xl sm:text-4xl text-gradient-gold leading-none">—</span>
+            <span class="block text-[.62rem] uppercase tracking-widest text-slate-500 mt-1.5">Min</span>
+          </div>
+          <div class="glass rounded-2xl px-5 py-3 text-center min-w-[78px]">
+            <span id="cd-s" class="block font-display font-extrabold text-3xl sm:text-4xl text-gradient-gold leading-none">—</span>
+            <span class="block text-[.62rem] uppercase tracking-widest text-slate-500 mt-1.5">Sek</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div class="reveal mt-9 flex flex-wrap gap-3.5" data-delay="4">
+        <a href="/register" class="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-display font-extrabold
+                  text-night-950 bg-gradient-to-br from-turf-400 to-turf-600 shadow-glow-turf
+                  hover:-translate-y-0.5 hover:shadow-[0_14px_50px_-10px_rgba(15,196,119,.7)] transition-all">
+          Jetzt mitmachen
+          <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="/spielplan" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold
+                  text-slate-100 border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all backdrop-blur">
+          Zum aktuellen Spieltag
+        </a>
+      </div>
+
+      <!-- Vertrauens-Zeile -->
+      <p class="reveal mt-7 text-sm text-slate-500" data-delay="5">
+        <span class="text-turf-300 font-semibold">Kostenlos</span> für alle ·
+        Einsatz freiwillig · Made in Urbach 🇩🇪
+      </p>
+    </div>
+
+    <!-- ── Rechte Spalte: Pokal + Live-Mini-Tabelle ── -->
+    <div class="lg:col-span-5 relative">
+      <div class="reveal-r relative mx-auto max-w-sm" data-delay="2">
+
+        <!-- Schwebende Tipp-Karte -->
+        <div class="glass rounded-3xl p-6 shadow-glow-lew animate-floaty">
+          <div class="flex items-center justify-between mb-5">
+            <span class="text-xs uppercase tracking-widest text-slate-400">Dein Tipp</span>
+            <span class="text-[.65rem] px-2 py-0.5 rounded-full bg-gold-500/15 text-gold-400 border border-gold-500/30 font-bold uppercase tracking-wide">Joker&nbsp;×2</span>
+          </div>
+
+          <!-- Match-Zeile -->
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex-1 text-center">
+              <img src="https://flagcdn.com/w160/de.png" alt="Deutschland" class="w-14 h-9 object-cover rounded-md mx-auto shadow-lg">
+              <p class="mt-2 text-sm font-semibold text-white">GER</p>
+            </div>
+            <div class="flex items-center gap-2 font-display font-extrabold text-3xl text-white">
+              <span class="w-11 h-12 grid place-items-center rounded-lg bg-night-700 border border-white/10">2</span>
+              <span class="text-slate-500 text-xl">:</span>
+              <span class="w-11 h-12 grid place-items-center rounded-lg bg-night-700 border border-white/10">1</span>
+            </div>
+            <div class="flex-1 text-center">
+              <img src="https://flagcdn.com/w160/br.png" alt="Brasilien" class="w-14 h-9 object-cover rounded-md mx-auto shadow-lg">
+              <p class="mt-2 text-sm font-semibold text-white">BRA</p>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-sm">
+            <span class="text-slate-400">Möglicher Gewinn</span>
+            <span class="font-display font-bold text-turf-300">+8 Punkte</span>
+          </div>
+        </div>
+
+        <!-- Kleines Schwebe-Badge: Pokal -->
+        <div class="absolute -top-5 -right-3 glass rounded-2xl px-3.5 py-2.5 flex items-center gap-2 shadow-glow-gold animate-floaty" style="animation-delay:-3s">
+          <span class="text-2xl">🏆</span>
+          <div class="leading-tight">
+            <p class="text-[.6rem] uppercase tracking-wider text-slate-400">Champion</p>
+            <p class="text-sm font-bold text-gold-400">+15 Pkt</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll-Hinweis -->
+  <a href="#leaderboard" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 group">
+    <span class="text-[.6rem] uppercase tracking-[.2em] text-slate-500 group-hover:text-slate-300 transition">Scroll</span>
+    <span class="w-px h-9 bg-gradient-to-b from-slate-500/60 to-transparent"></span>
+  </a>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     2 · LEADERBOARD-TEASER  ·  Live-ähnliche Rangliste
+     ════════════════════════════════════════════════════════════════ -->
+<section id="leaderboard" class="relative py-24 px-5 sm:px-8 bg-night-900 border-t border-white/5">
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+    <!-- Text -->
+    <div>
+      <p class="reveal-l text-turf-400 text-xs font-bold tracking-[.16em] uppercase mb-3">Live-Rangliste</p>
+      <h2 class="reveal-l font-display font-extrabold text-4xl sm:text-5xl text-white leading-tight" data-delay="1">
+        Jeder&nbsp;Tipp zählt.<br>Jeder&nbsp;Platz wird hart umkämpft.
+      </h2>
+      <p class="reveal-l mt-5 text-slate-400 leading-relaxed max-w-md" data-delay="2">
+        Nach jedem abgepfiffenen Spiel aktualisiert sich die Tabelle automatisch.
+        Verfolge in Echtzeit, wer im Kollegenkreis die Nase vorn hat – und
+        wie viele Punkte dir zum Treppchen fehlen.
+      </p>
+
+      <!-- Deine Position -->
+      <div class="reveal-l mt-8 glass rounded-2xl p-5 flex items-center gap-4 border-turf-500/25" data-delay="3">
+        <div class="w-12 h-12 rounded-xl bg-turf-500/15 border border-turf-500/30 grid place-items-center font-display font-extrabold text-turf-300 text-lg">7</div>
+        <div class="flex-1">
+          <p class="text-sm text-slate-400">Deine Position</p>
+          <p class="font-semibold text-white">Nur <span class="text-turf-300">6&nbsp;Punkte</span> hinter den Top&nbsp;5</p>
+        </div>
+        <a href="/leaderboard" class="text-sm font-semibold text-turf-300 hover:text-turf-400 transition whitespace-nowrap">Aufholen →</a>
+      </div>
+    </div>
+
+    <!-- Tabelle -->
+    <div class="reveal-r" data-delay="1">
+      <div class="glass rounded-3xl p-2 sm:p-3 shadow-2xl">
+        <div class="flex items-center justify-between px-4 pt-3 pb-4">
+          <span class="text-sm font-semibold text-white">Top 5 · Gesamtwertung</span>
+          <span class="inline-flex items-center gap-1.5 text-[.65rem] uppercase tracking-wider text-turf-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-turf-400 animate-blink"></span> Live
+          </span>
+        </div>
+
+        <!-- Zeilen -->
+        <ul class="space-y-1.5">
+          <!-- 1 -->
+          <li class="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-gold-500/12 to-transparent border border-gold-500/20">
+            <span class="w-7 text-center font-display font-extrabold text-gold-400 text-lg">1</span>
+            <div class="w-9 h-9 rounded-full bg-gold-500/20 grid place-items-center text-sm font-bold text-gold-300">SM</div>
+            <span class="flex-1 font-medium text-white">Stefan Müller</span>
+            <span class="font-display font-bold text-white">312</span>
+          </li>
+          <!-- 2 -->
+          <li class="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white/[.03] border border-white/5">
+            <span class="w-7 text-center font-display font-extrabold text-slate-300 text-lg">2</span>
+            <div class="w-9 h-9 rounded-full bg-slate-500/20 grid place-items-center text-sm font-bold text-slate-300">AK</div>
+            <span class="flex-1 font-medium text-slate-100">Anna Krause</span>
+            <span class="font-display font-bold text-slate-200">305</span>
+          </li>
+          <!-- 3 -->
+          <li class="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white/[.03] border border-white/5">
+            <span class="w-7 text-center font-display font-extrabold text-[#ad6a34] text-lg">3</span>
+            <div class="w-9 h-9 rounded-full bg-[#ad6a34]/20 grid place-items-center text-sm font-bold text-[#cd8a54]">TW</div>
+            <span class="flex-1 font-medium text-slate-100">Thomas Wagner</span>
+            <span class="font-display font-bold text-slate-200">298</span>
+          </li>
+          <!-- 4 -->
+          <li class="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white/[.02] border border-white/5">
+            <span class="w-7 text-center font-display font-bold text-slate-500 text-base">4</span>
+            <div class="w-9 h-9 rounded-full bg-white/5 grid place-items-center text-sm font-bold text-slate-400">JB</div>
+            <span class="flex-1 font-medium text-slate-300">Julia Berger</span>
+            <span class="font-display font-bold text-slate-400">291</span>
+          </li>
+          <!-- 5 -->
+          <li class="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white/[.02] border border-white/5">
+            <span class="w-7 text-center font-display font-bold text-slate-500 text-base">5</span>
+            <div class="w-9 h-9 rounded-full bg-white/5 grid place-items-center text-sm font-bold text-slate-400">MH</div>
+            <span class="flex-1 font-medium text-slate-300">Michael Hoffmann</span>
+            <span class="font-display font-bold text-slate-400">287</span>
+          </li>
+        </ul>
+        <p class="text-center text-xs text-slate-500 py-3">Beispieldaten · echte Tabelle nach dem ersten Spieltag</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     3 · WARUM MITMACHEN  ·  4 Karten
+     ════════════════════════════════════════════════════════════════ -->
+<section id="warum" class="py-24 px-5 sm:px-8 bg-night-950">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="reveal text-turf-400 text-xs font-bold tracking-[.16em] uppercase mb-3">Warum mitmachen</p>
+      <h2 class="reveal font-display font-extrabold text-4xl sm:text-5xl text-white" data-delay="1">Mehr als nur Tippen</h2>
+      <p class="reveal mt-4 text-slate-400 leading-relaxed" data-delay="2">
+        Ein Turnier verbindet. Bei LEW Automotive wird aus 104&nbsp;Spielen ein
+        gemeinsames Erlebnis – über Abteilungen, Standorte und Kundengrenzen hinweg.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Karte 1 -->
+      <div class="reveal group glass rounded-3xl p-7 hover:border-turf-500/30 hover:-translate-y-1.5 transition-all duration-300">
+        <div class="w-12 h-12 rounded-2xl bg-turf-500/12 border border-turf-500/25 grid place-items-center mb-5 group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-turf-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-white mb-2">Pure Spielfreude</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Jeden Abend Spannung: Mitfiebern, kommentieren, jubeln. Auch ohne Fußball-Studium gewinnbar.</p>
+      </div>
+      <!-- Karte 2 -->
+      <div class="reveal group glass rounded-3xl p-7 hover:border-lew-300/30 hover:-translate-y-1.5 transition-all duration-300" data-delay="1">
+        <div class="w-12 h-12 rounded-2xl bg-lew-400/12 border border-lew-300/25 grid place-items-center mb-5 group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-lew-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-white mb-2">Teamgeist</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Gesprächsstoff für die Kaffeeküche. Bringt Werkstatt, Büro und Vertrieb an einen Tisch.</p>
+      </div>
+      <!-- Karte 3 -->
+      <div class="reveal group glass rounded-3xl p-7 hover:border-gold-500/30 hover:-translate-y-1.5 transition-all duration-300" data-delay="2">
+        <div class="w-12 h-12 rounded-2xl bg-gold-500/12 border border-gold-500/25 grid place-items-center mb-5 group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-gold-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 01-10 0V4zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-white mb-2">Echte Preise</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Ruhm, Ehre und der Pott für die Besten. Freiwilliger Einsatz – sportlich gewinnen alle mit.</p>
+      </div>
+      <!-- Karte 4 -->
+      <div class="reveal group glass rounded-3xl p-7 hover:border-turf-500/30 hover:-translate-y-1.5 transition-all duration-300" data-delay="3">
+        <div class="w-12 h-12 rounded-2xl bg-turf-500/12 border border-turf-500/25 grid place-items-center mb-5 group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-turf-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-lg text-white mb-2">Fachwissen zeigen</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Wer Prüfstände beherrscht, liest auch Spiele. Beweise deine analytische Präzision am Ball.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     4 · WIE FUNKTIONIERT'S  ·  4-Schritt-Prozess
+     ════════════════════════════════════════════════════════════════ -->
+<section id="ablauf" class="py-24 px-5 sm:px-8 bg-night-900 border-y border-white/5">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="reveal text-turf-400 text-xs font-bold tracking-[.16em] uppercase mb-3">So funktioniert's</p>
+      <h2 class="reveal font-display font-extrabold text-4xl sm:text-5xl text-white" data-delay="1">In vier Schritten dabei</h2>
+      <p class="reveal mt-4 text-slate-400" data-delay="2">Registriert, getippt, mitgefiebert – in unter zwei Minuten startklar.</p>
+    </div>
+
+    <div class="relative grid md:grid-cols-4 gap-6">
+      <!-- Verbindungslinie (Desktop) -->
+      <div class="hidden md:block absolute top-7 left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"></div>
+
+      <!-- Schritt 1 -->
+      <div class="reveal relative text-center">
+        <div class="relative z-10 w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-lew-400 to-lew-600 grid place-items-center font-display font-extrabold text-xl text-white shadow-glow-lew">1</div>
+        <h3 class="font-display font-bold text-white mt-5 mb-2">Registrieren</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Mit Namen anmelden – kostenlos, in Sekunden, ganz ohne Papierkram.</p>
+      </div>
+      <!-- Schritt 2 -->
+      <div class="reveal relative text-center" data-delay="1">
+        <div class="relative z-10 w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-lew-400 to-lew-600 grid place-items-center font-display font-extrabold text-xl text-white shadow-glow-lew">2</div>
+        <h3 class="font-display font-bold text-white mt-5 mb-2">Langfrist tippen</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Weltmeister, Torschützenkönig & Gruppensieger vor dem Anpfiff setzen.</p>
+      </div>
+      <!-- Schritt 3 -->
+      <div class="reveal relative text-center" data-delay="2">
+        <div class="relative z-10 w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-turf-400 to-turf-600 grid place-items-center font-display font-extrabold text-xl text-night-950 shadow-glow-turf">3</div>
+        <h3 class="font-display font-bold text-white mt-5 mb-2">Spiele tippen</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Jedes der 104 Spiele bis zum Anpfiff tippen – Joker für die doppelte Punktzahl.</p>
+      </div>
+      <!-- Schritt 4 -->
+      <div class="reveal relative text-center" data-delay="3">
+        <div class="relative z-10 w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 grid place-items-center font-display font-extrabold text-xl text-night-950 shadow-glow-gold">4</div>
+        <h3 class="font-display font-bold text-white mt-5 mb-2">Aufsteigen</h3>
+        <p class="text-sm text-slate-400 leading-relaxed">Punkte sammeln, in der Rangliste klettern und LEW WM-Champion werden.</p>
+      </div>
+    </div>
+
+    <!-- Punkte-Spickzettel -->
+    <div class="reveal mt-14 glass rounded-3xl p-6 sm:p-8" data-delay="2">
+      <p class="text-center text-xs uppercase tracking-[.16em] text-slate-500 mb-6">Punktesystem auf einen Blick</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-6 gap-x-4 text-center">
+        <div><span class="block font-display font-extrabold text-3xl text-turf-300">4</span><span class="text-xs text-slate-400">Exaktes Ergebnis</span></div>
+        <div><span class="block font-display font-extrabold text-3xl text-turf-300">3</span><span class="text-xs text-slate-400">Tordifferenz</span></div>
+        <div><span class="block font-display font-extrabold text-3xl text-turf-300">2</span><span class="text-xs text-slate-400">Tendenz</span></div>
+        <div><span class="block font-display font-extrabold text-3xl text-gold-400">15</span><span class="text-xs text-slate-400">Weltmeister</span></div>
+        <div><span class="block font-display font-extrabold text-3xl text-gold-400">10</span><span class="text-xs text-slate-400">Torschützenkönig</span></div>
+        <div><span class="block font-display font-extrabold text-3xl text-gold-400">×2</span><span class="text-xs text-slate-400">Joker</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     5 · PREISE  ·  Treppchen 1 / 2 / 3 + Sonderpreise
+     ════════════════════════════════════════════════════════════════ -->
+<section id="preise" class="py-24 px-5 sm:px-8 bg-night-950 relative overflow-hidden">
+  <!-- Goldener Glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full blur-3xl pointer-events-none opacity-20"
+       style="background:radial-gradient(circle, rgba(245,200,66,.3) 0%, transparent 60%)"></div>
+
+  <div class="relative max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="reveal text-gold-400 text-xs font-bold tracking-[.16em] uppercase mb-3">Der Pott</p>
+      <h2 class="reveal font-display font-extrabold text-4xl sm:text-5xl text-white" data-delay="1">Das gibt's zu gewinnen</h2>
+      <p class="reveal mt-4 text-slate-400 leading-relaxed" data-delay="2">
+        Freiwilliger Einsatz von <span class="text-gold-300 font-semibold">20&nbsp;€</span> – der gesamte Topf
+        wird unter den platzierten Einzahlern aufgeteilt. Plus Sonderpreise für besondere Leistungen.
+      </p>
+    </div>
+
+    <!-- Treppchen -->
+    <div class="grid md:grid-cols-3 gap-5 items-end max-w-4xl mx-auto">
+      <!-- 2. Platz -->
+      <div class="reveal order-2 md:order-1 glass rounded-3xl p-7 text-center border-slate-400/20" data-delay="1">
+        <div class="text-5xl mb-3">🥈</div>
+        <p class="font-display font-extrabold text-2xl text-slate-200">2. Platz</p>
+        <p class="text-4xl font-display font-extrabold text-slate-100 my-3">25&nbsp;%</p>
+        <p class="text-sm text-slate-400">des Gesamtpotts + Silber-Urkunde</p>
+      </div>
+
+      <!-- 1. Platz (hervorgehoben) -->
+      <div class="reveal order-1 md:order-2 relative rounded-3xl p-8 text-center
+                  bg-gradient-to-b from-gold-500/15 to-transparent border border-gold-500/35 shadow-glow-gold md:-mt-6">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-night-950 text-[.65rem] font-extrabold uppercase tracking-wider">LEW Champion</span>
+        <div class="text-6xl mb-3">🏆</div>
+        <p class="font-display font-extrabold text-3xl text-gradient-gold">1. Platz</p>
+        <p class="text-5xl font-display font-extrabold text-white my-3">40&nbsp;%</p>
+        <p class="text-sm text-slate-300">des Gesamtpotts + Wanderpokal & ewiger Ruhm</p>
+      </div>
+
+      <!-- 3. Platz -->
+      <div class="reveal order-3 glass rounded-3xl p-7 text-center border-[#ad6a34]/25" data-delay="2">
+        <div class="text-5xl mb-3">🥉</div>
+        <p class="font-display font-extrabold text-2xl text-[#cd8a54]">3. Platz</p>
+        <p class="text-4xl font-display font-extrabold text-slate-100 my-3">20&nbsp;%</p>
+        <p class="text-sm text-slate-400">des Gesamtpotts + Bronze-Urkunde</p>
+      </div>
+    </div>
+
+    <!-- Sonderpreise -->
+    <div class="grid sm:grid-cols-3 gap-4 mt-6 max-w-4xl mx-auto">
+      <div class="reveal glass rounded-2xl p-5 flex items-center gap-4">
+        <span class="text-3xl">🎯</span>
+        <div><p class="font-semibold text-white text-sm">Beste Trefferquote</p><p class="text-xs text-slate-400">Höchste exakte Trefferrate</p></div>
+      </div>
+      <div class="reveal glass rounded-2xl p-5 flex items-center gap-4" data-delay="1">
+        <span class="text-3xl">🔮</span>
+        <div><p class="font-semibold text-white text-sm">Hellseher-Preis</p><p class="text-xs text-slate-400">Bester Langfrist-Tipper</p></div>
+      </div>
+      <div class="reveal glass rounded-2xl p-5 flex items-center gap-4" data-delay="2">
+        <span class="text-3xl">📈</span>
+        <div><p class="font-semibold text-white text-sm">Aufholjagd</p><p class="text-xs text-slate-400">Größter Sprung im Finale</p></div>
+      </div>
+    </div>
+
+    <p class="reveal text-center text-xs text-slate-500 mt-8 max-w-xl mx-auto">
+      Die Teilnahme ist <span class="text-turf-300">immer kostenlos</span> – der Pott ist optional.
+      Auszahlungsschlüssel skaliert mit der Zahl der Einzahler und ist über die Admin-Ansicht anpassbar.
+    </p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     6 · TESTIMONIALS  ·  Stimmen aus dem Team
+     ════════════════════════════════════════════════════════════════ -->
+<section class="py-24 px-5 sm:px-8 bg-night-900 border-t border-white/5">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <p class="reveal text-turf-400 text-xs font-bold tracking-[.16em] uppercase mb-3">Stimmen aus dem Team</p>
+      <h2 class="reveal font-display font-extrabold text-4xl sm:text-5xl text-white" data-delay="1">Was die Kollegen sagen</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <!-- Zitat 1 -->
+      <figure class="reveal glass rounded-3xl p-7 flex flex-col">
+        <svg class="w-8 h-8 text-turf-500/40 mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 8C6.5 8 4 10.5 4 13.6 4 16.6 6.4 19 9.4 19c.2 0 .4 0 .6-.1-.6 1-1.6 1.8-2.9 2.3l1 1.8c3.1-1.3 5.5-4.5 5.5-8.4V13.6C13.6 10.5 12.7 8 9.6 8zm9 0C15.5 8 13 10.5 13 13.6c0 3 2.4 5.4 5.4 5.4.2 0 .4 0 .6-.1-.6 1-1.6 1.8-2.9 2.3l1 1.8c3.1-1.3 5.5-4.5 5.5-8.4V13.6C22.6 10.5 21.7 8 18.6 8z"/></svg>
+        <blockquote class="text-slate-300 leading-relaxed flex-1">„Endlich mal Gesprächsstoff, der nicht um Hydraulikdruck geht. Die Kaffeepausen sind seit dem Turnier viel lauter geworden.“</blockquote>
+        <figcaption class="mt-6 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-lew-400/20 grid place-items-center text-sm font-bold text-lew-200">MK</div>
+          <div><p class="text-sm font-semibold text-white">Markus K.</p><p class="text-xs text-slate-500">Konstruktion</p></div>
+        </figcaption>
+      </figure>
+      <!-- Zitat 2 -->
+      <figure class="reveal glass rounded-3xl p-7 flex flex-col" data-delay="1">
+        <svg class="w-8 h-8 text-turf-500/40 mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 8C6.5 8 4 10.5 4 13.6 4 16.6 6.4 19 9.4 19c.2 0 .4 0 .6-.1-.6 1-1.6 1.8-2.9 2.3l1 1.8c3.1-1.3 5.5-4.5 5.5-8.4V13.6C13.6 10.5 12.7 8 9.6 8zm9 0C15.5 8 13 10.5 13 13.6c0 3 2.4 5.4 5.4 5.4.2 0 .4 0 .6-.1-.6 1-1.6 1.8-2.9 2.3l1 1.8c3.1-1.3 5.5-4.5 5.5-8.4V13.6C22.6 10.5 21.7 8 18.6 8z"/></svg>
+        <blockquote class="text-slate-300 leading-relaxed flex-1">„Ich hatte von Fußball keine Ahnung – und lag nach der Gruppenphase auf Platz 3. Das System belohnt Mut zum Tipp.“</blockquote>
+        <figcaption class="mt-6 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-turf-500/20 grid place-items-center text-sm font-bold text-turf-300">SB</div>
+          <div><p class="text-sm font-semibold text-white">Sabine B.</p><p class="text-xs text-slate-500">Buchhaltung</p></div>
+        </figcaption>
+      </figure>
+      <!-- Zitat 3 -->
+      <figure class="reveal glass rounded-3xl p-7 flex flex-col" data-delay="2">
+        <svg class="w-8 h-8 text-turf-500/40 mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9.6 8C6.5 8 4 10.5 4 13.6 4 16.6 6.4 19 9.4 19c.2 0 .4 0 .6-.1-.6 1-1.6 1.8-2.9 2.3l1 1.8c3.1-1.3 5.5-4.5 5.5-8.4V13.6C13.6 10.5 12.7 8 9.6 8zm9 0C15.5 8 13 10.5 13 13.6c0 3 2.4 5.4 5.4 5.4.2 0 .4 0 .6-.1-.6 1-1.6 1.8-2.9 2.3l1 1.8c3.1-1.3 5.5-4.5 5.5-8.4V13.6C22.6 10.5 21.7 8 18.6 8z"/></svg>
+        <blockquote class="text-slate-300 leading-relaxed flex-1">„Wir haben sogar zwei Kunden eingeladen. Nichts verbindet so schnell wie ein gemeinsam vergeigter Achtelfinal-Tipp.“</blockquote>
+        <figcaption class="mt-6 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gold-500/20 grid place-items-center text-sm font-bold text-gold-300">DV</div>
+          <div><p class="text-sm font-semibold text-white">Daniel V.</p><p class="text-xs text-slate-500">Vertrieb</p></div>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="reveal text-center text-xs text-slate-600 mt-8">Beispielhafte Zitate · Platzhalter bis zu echten Teilnehmerstimmen</p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     7 · INTEGRATION / FINALE CTA  ·  weiter zum bestehenden Tippspiel
+     ════════════════════════════════════════════════════════════════ -->
+<section class="relative py-28 px-5 sm:px-8 overflow-hidden
+         bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(15,169,104,.14)_0%,transparent_68%),linear-gradient(160deg,#0d5230_0%,#071e10_55%,#030d06_100%)]">
+  <div class="grid-tech opacity-60"></div>
+
+  <div class="relative max-w-3xl mx-auto text-center">
+    <div class="reveal inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/15 text-xs font-medium text-slate-300 mb-7">
+      <span class="w-1.5 h-1.5 rounded-full bg-turf-400 animate-blink"></span>
+      Das Tippspiel ist startklar
+    </div>
+    <h2 class="reveal font-display font-extrabold text-[clamp(2.4rem,6vw,4.5rem)] leading-tight text-white" data-delay="1">
+      Wer wird <span class="text-gradient-gold">LEW&nbsp;Champion</span>?
+    </h2>
+    <p class="reveal mt-5 text-slate-300/90 text-lg max-w-xl mx-auto leading-relaxed" data-delay="2">
+      Registriere dich jetzt und gib deine Langfrist-Tipps ab –
+      bevor das Eröffnungsspiel am 11.&nbsp;Juni angepfiffen wird.
+    </p>
+
+    <div class="reveal mt-9 flex flex-wrap gap-4 justify-center" data-delay="3">
+      <a href="/register" class="group inline-flex items-center gap-2 px-8 py-4 rounded-xl font-display font-extrabold text-lg
+                text-night-950 bg-gradient-to-br from-turf-400 to-turf-600 shadow-glow-turf
+                hover:-translate-y-0.5 hover:shadow-[0_16px_55px_-10px_rgba(15,196,119,.7)] transition-all">
+        Kostenlos registrieren
+        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <a href="/login" class="inline-flex items-center px-8 py-4 rounded-xl font-semibold text-lg
+                text-slate-100 border border-white/20 hover:bg-white/5 transition-all backdrop-blur">
+        Schon dabei? Anmelden
+      </a>
+    </div>
+
+    <!-- Mini-Stats -->
+    <div class="reveal mt-14 flex flex-wrap justify-center gap-x-10 gap-y-4" data-delay="4">
+      <div class="text-center"><span class="block font-display font-extrabold text-3xl text-white" data-count="48">0</span><span class="text-xs uppercase tracking-wider text-slate-500">Nationen</span></div>
+      <div class="text-center"><span class="block font-display font-extrabold text-3xl text-white" data-count="104">0</span><span class="text-xs uppercase tracking-wider text-slate-500">Spiele</span></div>
+      <div class="text-center"><span class="block font-display font-extrabold text-3xl text-white" data-count="16">0</span><span class="text-xs uppercase tracking-wider text-slate-500">Stadien</span></div>
+      <div class="text-center"><span class="block font-display font-extrabold text-3xl text-white" data-count="39">0</span><span class="text-xs uppercase tracking-wider text-slate-500">Spieltage</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════════════════════════════ -->
+<footer class="bg-night-950 border-t border-white/5 pt-14 pb-8 px-5 sm:px-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+      <!-- Marke -->
+      <div class="lg:col-span-2">
+        <img src="assets/lew_logo.png" alt="LEW Automotive GmbH" class="h-8 w-auto brightness-0 invert opacity-80 mb-4">
+        <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
+          Prüfstandstechnik, Hydraulik-, Lüftungs- und Klimatechnik für Automotive-Teststände
+          sowie regenerative Energien. Ingenieursqualität aus Urbach – mit Leidenschaft und Teamgeist.
+        </p>
+      </div>
+      <!-- Tippspiel -->
+      <div>
+        <p class="text-xs uppercase tracking-widest text-slate-500 mb-4">Tippspiel</p>
+        <ul class="space-y-2.5 text-sm text-slate-400">
+          <li><a href="/register" class="hover:text-white transition">Registrieren</a></li>
+          <li><a href="/login" class="hover:text-white transition">Anmelden</a></li>
+          <li><a href="/spielplan" class="hover:text-white transition">Spielplan</a></li>
+          <li><a href="/leaderboard" class="hover:text-white transition">Rangliste</a></li>
+        </ul>
+      </div>
+      <!-- Rechtliches -->
+      <div>
+        <p class="text-xs uppercase tracking-widest text-slate-500 mb-4">Rechtliches</p>
+        <ul class="space-y-2.5 text-sm text-slate-400">
+          <li><a href="/impressum" class="hover:text-white transition">Impressum</a></li>
+          <li><a href="/datenschutz" class="hover:text-white transition">Datenschutz</a></li>
+          <li><a href="/regeln" class="hover:text-white transition">Spielregeln</a></li>
+          <li><a href="https://www.lew-automotive.de" target="_blank" rel="noopener" class="hover:text-white transition">lew-automotive.de ↗</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
+      <p class="text-xs text-slate-600">© 2026 LEW Automotive GmbH · WM 2026 Tippspiel · Nur für interne Nutzung</p>
+      <p class="text-xs text-slate-600">Technik trifft Leidenschaft · Made in Urbach 🇩🇪</p>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ════════════════════════════════════════════════════════════════
+     SCRIPTS
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Navbar: Glas-Effekt beim Scrollen ───────────────────────── */
+const nav = document.getElementById('nav');
+const onScroll = () => {
+  if (window.scrollY > 24) {
+    nav.classList.add('bg-night-950/80','backdrop-blur-xl','border-b','border-white/5','shadow-lg');
+  } else {
+    nav.classList.remove('bg-night-950/80','backdrop-blur-xl','border-b','border-white/5','shadow-lg');
+  }
+};
+onScroll(); window.addEventListener('scroll', onScroll, { passive:true });
+
+/* ── Countdown bis zum Eröffnungsspiel (12.06.2026 01:00 UTC) ── */
+const kickoff = new Date('2026-06-12T01:00:00Z').getTime();
+const pad = n => String(n).padStart(2,'0');
+function tick(){
+  const diff = kickoff - Date.now();
+  if (diff <= 0){
+    ['cd-d','cd-h','cd-m','cd-s'].forEach(id => document.getElementById(id).textContent = '00');
+    return;
+  }
+  document.getElementById('cd-d').textContent = Math.floor(diff/86400000);
+  document.getElementById('cd-h').textContent = pad(Math.floor(diff%86400000/3600000));
+  document.getElementById('cd-m').textContent = pad(Math.floor(diff%3600000/60000));
+  document.getElementById('cd-s').textContent = pad(Math.floor(diff%60000/1000));
+}
+tick(); setInterval(tick, 1000);
+
+/* ── Scroll-Reveal via IntersectionObserver (GSAP-Style) ─────── */
+const revObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting){ e.target.classList.add('in'); revObs.unobserve(e.target); } });
+}, { threshold: .12, rootMargin: '0px 0px -8% 0px' });
+document.querySelectorAll('.reveal, .reveal-l, .reveal-r').forEach(el => revObs.observe(el));
+
+/* ── Zahl-Hochzähler in der Schluss-Sektion ──────────────────── */
+const numObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target, target = +el.dataset.count;
+    let cur = 0; const step = Math.max(1, Math.ceil(target/45));
+    const t = setInterval(() => { cur = Math.min(cur+step, target); el.textContent = cur; if (cur>=target) clearInterval(t); }, 32);
+    numObs.unobserve(el);
+  });
+}, { threshold: .6 });
+document.querySelectorAll('[data-count]').forEach(el => numObs.observe(el));
+
+/* ── Hero-Partikel: schwebende Funken + gelegentliche „Tor"-Bursts ── */
+(function(){
+  const canvas = document.getElementById('fx');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W, H, dots = [];
+  const COLORS = ['rgba(15,196,119,', 'rgba(76,224,160,', 'rgba(245,200,66,'];
+
+  function resize(){
+    const hero = canvas.parentElement;
+    W = canvas.width  = hero.offsetWidth;
+    H = canvas.height = hero.offsetHeight;
+  }
+  function seed(){
+    const count = Math.min(70, Math.round(W/22));
+    dots = Array.from({length: count}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.8 + .4,
+      vx: (Math.random()-.5)*.25, vy: (Math.random()-.5)*.25 - .08,
+      a: Math.random()*.5 + .1,
+      c: COLORS[(Math.random()*COLORS.length)|0],
+    }));
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    for (const d of dots){
+      d.x += d.vx; d.y += d.vy;
+      if (d.y < -10) d.y = H+10;
+      if (d.x < -10) d.x = W+10; if (d.x > W+10) d.x = -10;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+      ctx.fillStyle = d.c + d.a + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  resize(); seed();
+  if (!reduce) frame();
+  window.addEventListener('resize', () => { resize(); seed(); }, { passive:true });
+})();
+</script>
+</body>
+</html>

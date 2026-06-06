@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+</style>
+
+<div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-2">
+
+  <h1 class="mb-0">Tipps abgeben</h1>
+
+  {% if next_kickoff %}
+
+  <div class="card border-0 shadow-sm px-3 py-2 text-center" style="min-width:160px">
+
+    <div class="text-muted" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em">Nächster Anpfiff</div>
+
+    <div id="countdown" class="fw-bold" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;color:var(--accent)">—</div>
+
+  </div>
+
+  {% endif %}
+
+</div>
+
+<p class="text-muted mb-2">{{ count }} / {{ total }} Spiele getippt · <i class="bi bi-clock me-1"></i>Tippschluss: 10 Minuten vor Anpfiff</p>
+
+<div class="progress mb-3">
+
+  <div class="progress-bar progress-bar-accent" role="progressbar"
+
+       style="width:{{ [(count / total * 100)|round, 100]|min }}%"></div>
+
+</div>
+
+{% if joker_match_id is none %}
+
+<div class="alert alert-danger py-2 mb-3" style="font-size:.88rem">
+
+  <i class="bi bi-suit-diamond-fill text-danger"></i> <strong>Joker verfügbar!</strong> Klicke bei einem offenen Spiel auf "Joker setzen" — deine Punkte dort werden verdoppelt. Einmalig und unwiderruflich!
+
+</div>
+
+{% endif %}
+
+
+
+<ul class="nav nav-tabs mb-4" id="phaseTabs" role="tablist">
+
+  {% set first_tab = namespace(done=false) %}
+
+  {% for phase_key, phase_label in phases.items() %}
+
+  {% if by_phase.get(phase_key) %}
+
+  <li class="nav-item" role="presentation">
+
+    <button class="nav-link {% if not first_tab.done %}active{% endif %}"
+
+            id="tab-{{ phase_key }}-btn"
+
+            data-bs-toggle="tab" data-bs-target="#tab-{{ phase_key }}"
+
+            type="button" role="tab">{{ phase_label }}</button>
+
+  </li>
+
+  {% set first_tab.done = true %}
+
+  {% endif %}
+
+  {% endfor %}
+
+</ul>
+
+
+
+{% macro match_card(m, joker_match_id=none) %}
+
+{% set ph = preds.get(m.id, (0, 0)) %}
+{% set tipped = m.id in preds %}
+
+{% set home_name = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+
+{% set away_name = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+
+{% set home_flag = m.home_team.flag_code if m.home_team else '' %}
+
+{% set away_flag = m.away_team.flag_code if m.away_team else '' %}
+
+{% set locked = m.is_locked %}
+
+<form method="post" action="/tipps">
+
+<div class="match-card {% if locked %}opacity-75{% endif %}">
+
+  <div class="match-meta d-flex justify-content-between align-items-center">
+
+    <span>{{ fmt(m.kickoff_utc) }}{% if m.venue %} · {{ m.venue }}{% endif %}</span>
+
+    <span>
+
+      {% set _live = get_live_scores().get(m.id) %}
+      {% if _live %}
+        <span class="badge" style="background:#dc3545;color:#fff;animation:livepulse 1.2s ease-in-out infinite">
+          ● LIVE{% if _live.minute %} {{ _live.minute }}'{% endif %}{% if _live.status == 'PAUSED' %} HZ{% endif %}
+        </span>
+        <strong class="ms-2" style="color:#dc3545">{{ _live.home }}:{{ _live.away }}</strong>
+      {% elif locked %}<span class="badge" style="background:#d64560;color:#fff;font-size:.8rem"><i class="bi bi-lock-fill me-1"></i>gesperrt</span>
+      {% else %}<span class="badge" style="background:#4aaec8;color:#fff;font-size:.8rem"><i class="bi bi-unlock-fill me-1"></i>offen</span>{% endif %}
+
+      {% if tipped %}
+        <span class="badge ms-1" style="background:#28a745;color:#fff;font-size:.8rem">
+          <i class="bi bi-check-lg"></i> {{ ph[0] }} : {{ ph[1] }}
+        </span>
+      {% elif not locked %}
+        <span class="badge ms-1" style="background:#ffc107;color:#000;font-size:.8rem">
+          <i class="bi bi-exclamation-triangle-fill"></i> Kein Tipp
+        </span>
+      {% endif %}
+
+      {% if m.result_home is not none and m.result_away is not none and not _live %}
+      <strong class="ms-2">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</strong>
+      {% endif %}
+
+    </span>
+
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:8px">
+
+    <div style="display:flex;align-items:center;gap:6px;min-width:0">
+
+      {% if home_flag %}<img src="https://flagcdn.com/20x15/{{ home_flag }}.png" alt="" style="flex-shrink:0">{% endif %}
+
+      <span class="fw-semibold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ home_name }}</span>
+
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px">
+
+      <input type="number" name="match_{{ m.id }}_home" value="{{ ph[0] }}"
+
+             class="score-input form-control" min="0" max="30"
+             style="{% if not locked %}border-color:{{ '#28a745' if tipped else '#ffc107' }};border-width:2px{% endif %}"
+
+             {% if locked %}disabled{% endif %}>
+
+      <span class="text-muted fw-bold">:</span>
+
+      <input type="number" name="match_{{ m.id }}_away" value="{{ ph[1] }}"
+
+             class="score-input form-control" min="0" max="30"
+             style="{% if not locked %}border-color:{{ '#28a745' if tipped else '#ffc107' }};border-width:2px{% endif %}"
+
+             {% if locked %}disabled{% endif %}>
+
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;min-width:0">
+
+      <span class="fw-semibold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ away_name }}</span>
+
+      {% if away_flag %}<img src="https://flagcdn.com/20x15/{{ away_flag }}.png" alt="" style="flex-shrink:0">{% endif %}
+
+    </div>
+
+  </div>
+
+  {% if not locked %}
+
+  <div class="mt-2 d-flex justify-content-center align-items-center gap-2">
+
+    <button type="submit" class="btn btn-accent btn-sm px-3">Speichern</button>
+
+    {# Joker-Button – NICHT verschachtelt: button referenziert externe Form via form-Attribut #}
+
+    {% if joker_match_id is none %}
+
+      <button type="submit" form="joker-form-{{ m.id }}"
+              class="btn btn-sm btn-outline-danger px-3"
+              onclick="return confirm('Joker auf dieses Spiel setzen? Das ist unwiderruflich!')">
+        <i class="bi bi-suit-diamond-fill text-danger"></i> Joker
+      </button>
+
+    {% elif joker_match_id == m.id %}
+
+    <span class="badge fs-6" style="background:rgba(220,53,69,.12);color:#dc3545;border:1px solid rgba(220,53,69,.35)"><i class="bi bi-suit-diamond-fill text-danger"></i> Joker aktiv</span>
+
+    {% endif %}
+
+  </div>
+
+  {% elif joker_match_id == m.id %}
+
+  <div class="mt-2 text-center">
+
+    <span class="badge fs-6" style="background:rgba(220,53,69,.12);color:#dc3545;border:1px solid rgba(220,53,69,.35)"><i class="bi bi-suit-diamond-fill text-danger"></i> Joker-Spiel</span>
+
+  </div>
+
+  {% endif %}
+
+</div>
+
+</form>
+
+{# Externe Joker-Form – unsichtbar, wird vom Button oben über form="joker-form-ID" referenziert #}
+{% if not m.is_locked and joker_match_id is none %}
+<form id="joker-form-{{ m.id }}" method="post" action="/tipps/joker/{{ m.id }}" style="display:none"></form>
+{% endif %}
+
+{% endmacro %}
+
+
+
+<div class="tab-content">
+
+  {% set first_pane = namespace(done=false) %}
+
+  {% for phase_key, phase_label in phases.items() %}
+
+  {% if by_phase.get(phase_key) %}
+
+  <div class="tab-pane fade {% if not first_pane.done %}show active{% endif %}"
+
+       id="tab-{{ phase_key }}" role="tabpanel">
+
+    {% set matches = by_phase[phase_key] %}
+
+
+
+    {% if phase_key == 'group' %}
+
+      <ul class="nav nav-pills nav-sm mb-3 gap-1" id="stTabs" role="tablist">
+        {% for st in [1, 2, 3] %}
+        {% if spieltage.get(st) %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if st == active_st %}active{% endif %} py-1 px-3"
+                  id="st-tab-{{ st }}"
+                  data-bs-toggle="tab" data-bs-target="#st-pane-{{ st }}"
+                  type="button" role="tab" style="font-size:.85rem">
+            Spieltag {{ st }}
+          </button>
+        </li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+
+      <div class="tab-content">
+        {% for st in [1, 2, 3] %}
+        {% if spieltage.get(st) %}
+        <div class="tab-pane fade {% if st == active_st %}show active{% endif %}"
+             id="st-pane-{{ st }}" role="tabpanel">
+          {% set seen_groups = [] %}
+          {% for m in spieltage[st] %}
+            {% if m.group_letter not in seen_groups %}
+              <h5 class="mt-3 mb-2">Gruppe {{ m.group_letter }}</h5>
+              {% set _ = seen_groups.append(m.group_letter) %}
+            {% endif %}
+            {{ match_card(m, joker_match_id) }}
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+    {% else %}
+
+      {% for m in matches %}
+
+        {{ match_card(m, joker_match_id) }}
+
+      {% endfor %}
+
+    {% endif %}
+
+    {% set first_pane.done = true %}
+
+  </div>
+
+  {% endif %}
+
+  {% endfor %}
+
+</div>
+
+
+
+<div class="mt-4 mb-5">
+
+  <p class="text-muted small">Jeder Tipp kann auch einzeln mit dem Speichern-Button gespeichert werden.</p>
+
+</div>
+
+
+
+{% if next_kickoff %}
+
+<script>
+
+(function() {
+
+  const target = new Date({{ next_kickoff | tojson }});
+
+  const el = document.getElementById('countdown');
+
+  if (!el) return;
+
+  function update() {
+
+    const diff = target - Date.now();
+
+    if (diff <= 0) { el.textContent = 'Läuft!'; el.style.color = '#d64560'; return; }
+
+    const d = Math.floor(diff / 86400000);
+
+    const h = Math.floor((diff % 86400000) / 3600000);
+
+    const m = Math.floor((diff % 3600000) / 60000);
+
+    const s = Math.floor((diff % 60000) / 1000);
+
+    el.textContent = d > 0
+
+      ? `${d}T ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+
+      : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  }
+
+  update();
+
+  setInterval(update, 1000);
+
+})();
+
+</script>
+
+{% endif %}
+
+{% endblock %}
+

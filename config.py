@@ -1,0 +1,172 @@
+"""
+config.py
+=========
+Zentrale Konfiguration für das WM-2026-Tippspiel.
+
+Alle Werte hier sind STANDARDWERTE. Zur Laufzeit können sie über die
+Settings-Tabelle in der Datenbank überschrieben werden (Admin-Ansicht),
+ohne dass Code angefasst werden muss. Siehe settings.py / get_setting().
+
+Punktesystem, Kassen-Modell und Auszahlungsschlüssel sind damit
+vollständig anpassbar – wie mit Wolfgang besprochen.
+"""
+
+from __future__ import annotations
+
+import os
+from zoneinfo import ZoneInfo
+
+# ---------------------------------------------------------------------------
+# Turnier-Eckdaten
+# ---------------------------------------------------------------------------
+
+TOURNAMENT_NAME = "FIFA WM 2026"
+TOTAL_MATCHES = 104
+
+# Anzeige-Zeitzone für die Teilnehmer (Kickoffs werden intern in UTC
+# gespeichert und nur für die Anzeige umgerechnet).
+DISPLAY_TIMEZONE = ZoneInfo("Europe/Berlin")
+
+# Deadline für die Langfrist-Tipps (Weltmeister, Torschützenkönig,
+# Gesamttore, Gruppen-Platzierungen): Anpfiff des Eröffnungsspiels.
+# Mexiko – Südafrika, 11.06.2026, 20:00 Uhr Ortszeit Mexiko-Stadt (CDT, UTC-5)
+# => 12.06.2026 01:00 UTC. In UTC speichern!
+TOURNAMENT_START_UTC = "2026-06-12T01:00:00+00:00"
+
+# flagcdn-Bildgröße (laut Prompt: w320)
+FLAG_SIZE = "w320"
+FLAG_BASE_URL = "https://flagcdn.com"  # -> {base}/{size}/{code}.png
+
+
+# ---------------------------------------------------------------------------
+# Punktesystem (Standardwerte – per Admin überschreibbar)
+# ---------------------------------------------------------------------------
+
+DEFAULT_SCORING = {
+    # --- Spiel-Tipps (Ergebnis) ---
+    "exact": 4,            # exaktes Ergebnis
+    "goal_diff": 3,        # richtige Tordifferenz (nicht exakt)
+    "tendency": 2,         # richtige Tendenz (Sieger / Unentschieden)
+    "ko_advance_bonus": 1, # K.-o.: richtiges weiterkommendes Team (Zusatzpunkt)
+
+    # --- Gruppen-Platzierungen (Langfrist) ---
+    "group_first": 3,      # richtiger Gruppensieger (je Gruppe)
+    "group_second": 2,     # richtiger Gruppenzweiter (je Gruppe)
+
+    # --- Sonder-Tipps (Langfrist) ---
+    "champion": 15,        # Weltmeister
+    "top_scorer": 10,      # Torschützenkönig
+    "total_goals": 5,      # Gesamttore-Tipp (innerhalb Toleranz)
+    "total_goals_tolerance": 5,  # +/- erlaubte Abweichung für die Punkte
+}
+
+
+# ---------------------------------------------------------------------------
+# Kasse / Geld-Pool (Standardwerte – per Admin überschreibbar)
+# ---------------------------------------------------------------------------
+#
+# Modell (mit Wolfgang abgestimmt):
+#  - Geld setzen ist FREIWILLIG (Opt-in pro Teilnehmer).
+#  - Alle spielen in der sportlichen Gesamtwertung mit, egal ob sie setzen.
+#  - Der Topf wird NUR unter den Einzahlern aufgeteilt, nach deren
+#    Platzierung innerhalb der Zahler-Gruppe.
+#  - Empfehlung: einheitlicher Buy-in (faire, eindeutige Aufteilung).
+#  - Die App VERBUCHT das Geld nur (wer hat gezahlt, wie groß ist der Topf,
+#    wer bekommt was) – das echte Geld fließt offline.
+
+DEFAULT_POOL = {
+    "enabled": True,
+    "buy_in": 20.0,
+    "currency": "EUR",
+    # Gestufte Auszahlung je nach Anzahl Einzahler:
+    #   bis 14 Einzahler  → Top 3  (60/30/10 %)
+    #   15–19 Einzahler   → Top 4  (50/25/15/10 %)
+    #   ab 20 Einzahler   → Top 5  (40/25/20/10/5 %)
+    "payout_tiers": {
+        "3": [0.60, 0.30, 0.10],
+        "4": [0.50, 0.25, 0.15, 0.10],
+        "5": [0.40, 0.25, 0.20, 0.10, 0.05],
+    },
+    # Schwellenwerte: ab X Einzahler gilt die nächste Stufe
+    "tier_thresholds": [15, 20],   # [ab_4_plätze, ab_5_plätze]
+}
+
+DEFAULT_RULES = """Willkommen beim WM 2026 Tippspiel der LEW Automotive!
+
+**Spielprinzip**
+Tippe auf die Ergebnisse aller 104 WM-Spiele. Je genauer dein Tipp, desto mehr Punkte bekommst du.
+
+**Tippsperre**
+Tipps werden 10 Minuten vor dem jeweiligen Anpfiff automatisch gesperrt. Danach ist keine Änderung mehr möglich. Bitte gib deinen Tipp rechtzeitig ab!
+
+**Punktesystem (Spiel-Tipps)**
+- Exaktes Ergebnis: {exact} Punkte
+- Richtige Tordifferenz: {goal_diff} Punkte
+- Richtige Tendenz (Sieg/Unentschieden/Niederlage): {tendency} Punkte
+- K.o.-Bonus (richtiges Team kommt weiter): {ko_advance_bonus} Punkt
+
+**Langfrist-Tipps (vor Turnierstart)**
+- Weltmeister: {champion} Punkte
+- Torschützenkönig: {top_scorer} Punkte
+- Gruppensieger: {group_first} Punkte je Gruppe
+- Gruppenzweiter: {group_second} Punkte je Gruppe
+- Gesamttore (±{total_goals_tolerance}): {total_goals} Punkte
+
+**Joker**
+Jeder Teilnehmer hat einen einmaligen Joker, den er auf genau ein Spiel setzen kann. Der Joker verdoppelt die Punkte für dieses Spiel – egal ob exaktes Ergebnis, Tordifferenz oder Tendenz.
+- Der Joker kann nur auf ein noch nicht gesperrtes Spiel gesetzt werden
+- Der Joker ist unwiderruflich – einmal gesetzt, nicht mehr änderbar
+- Der Joker gilt auch in der K.o.-Phase (der K.o.-Bonus wird ebenfalls verdoppelt)
+- Werden im Joker-Spiel 0 Punkte erzielt, bringt der Joker ebenfalls 0 Punkte
+
+**Verlängerung & Elfmeterschießen**
+Ab dem Sechzehntelfinale gilt bei Unentschieden nach 90 Minuten: zuerst 2 × 15 Minuten Verlängerung, danach bei Bedarf Elfmeterschießen. In der Gruppenphase gibt es weder Verlängerung noch Elfmeterschießen – ein Remis bleibt ein Remis.
+- Bei Elfmeterschießen zählt das Penalty-Ergebnis als offizielles Ergebnis (z. B. 5:3 n.E.) – wer genau diesen Stand tippt, bekommt das exakte Ergebnis
+- Das Ergebnis wird als "5:3 n.E." angezeigt und so auch in der Wertung geführt
+- Der K.o.-Bonus (richtiges Team kommt weiter) wird unabhängig vergeben – egal ob Sieg nach 90 Min., Verlängerung oder Elfmeterschießen
+- In der K.o.-Phase gibt es immer einen Sieger – wer auf Unentschieden tippt, bekommt 0 Punkte
+
+**Kasse**
+Die Teilnahme am Tippspiel ist kostenlos. Wer möchte, kann freiwillig {buy_in} € in den Pott einzahlen. Der Pott wird unter den zahlenden Tippern aufgeteilt – nach ihrer Platzierung untereinander. Nicht-Zahler können das Tippspiel sportlich gewinnen, erhalten aber kein Geld.
+
+**So zahlst du ein**
+1. Melde dich unter "Profil" für den Pott an (Toggle "Ich möchte am Pott teilnehmen")
+2. Gib {buy_in} € bar beim Organisator ab
+3. Der Admin bestätigt deine Einzahlung – danach erscheinst du in der Kassen-Übersicht
+
+Bei Fragen wende dich an den Organisator.
+"""
+
+
+# ---------------------------------------------------------------------------
+# Datenbank-Verbindung
+# ---------------------------------------------------------------------------
+#
+# Lokal (Entwicklung):  SQLite-Datei -> keine Einrichtung nötig.
+# Online (Produktion):  Postgres/Supabase -> DATABASE_URL als Umgebungs-
+#                       variable setzen (.env oder Streamlit-Secrets).
+#
+# Beispiel Supabase:
+#   DATABASE_URL=postgresql+psycopg://USER:PASS@HOST:6543/postgres
+#
+# Wird keine DATABASE_URL gefunden, wird automatisch SQLite verwendet.
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///wm2026.db")
+
+
+# ---------------------------------------------------------------------------
+# Phasen des Turniers (interne Schlüssel -> Anzeigename)
+# ---------------------------------------------------------------------------
+
+PHASES = {
+    "group": "Gruppenphase",
+    "round32": "Sechzehntelfinale",
+    "round16": "Achtelfinale",
+    "quarter": "Viertelfinale",
+    "semi": "Halbfinale",
+    "third_place": "Spiel um Platz 3",
+    "final": "Finale",
+}
+
+# Reihenfolge der K.-o.-Phasen (für das stufenweise Freischalten der Tipps)
+KO_PHASE_ORDER = ["round32", "round16", "quarter", "semi", "third_place", "final"]

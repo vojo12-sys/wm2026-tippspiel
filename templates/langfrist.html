@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-2">Langfrist-Tipps</h1>
+
+{% if locked %}
+<div class="alert alert-warning">Gesperrt seit Turnierstart ({{ deadline }}).</div>
+{% else %}
+<div class="alert alert-info">Editierbar bis <strong>{{ deadline }}</strong>. Danach gesperrt.</div>
+{% endif %}
+
+{% if flash %}
+<div class="alert alert-{{ flash.type }}">{{ flash.message }}</div>
+{% endif %}
+
+<form method="post" action="/langfrist">
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="mb-3">Titel-Tipps</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Weltmeister</label>
+          <select name="champion" class="form-select" {% if locked %}disabled{% endif %}>
+            <option value="">— auswählen —</option>
+            {% for t in teams %}
+            <option value="{{ t.id }}"
+              {% if special and special.champion_team_id == t.id %}selected{% endif %}>
+              {{ t.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Torschützenkönig</label>
+          <select name="scorer" class="form-select" {% if locked %}disabled{% endif %}>
+            <option value="">— auswählen —</option>
+            {% for opt in scorer_opts %}
+            <option value="{{ opt }}"
+              {% if special and special.top_scorer == opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Gesamttore im Turnier</label>
+          <input type="number" name="total_goals" class="form-control"
+                 value="{{ special.total_goals if special and special.total_goals else 0 }}"
+                 min="0" max="400" {% if locked %}disabled{% endif %}>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="mb-3">Gruppen-Platzierungen (1. und 2. Platz je Gruppe)</h5>
+      <div class="row g-3">
+        {% for letter in groups %}
+        {% set grp_teams = teams_by_group.get(letter, []) %}
+        {% set saved = gpreds.get(letter, (none, none)) %}
+        <div class="col-6 col-md-4 col-lg-3">
+          <strong>Gruppe {{ letter }}</strong>
+          <select name="g1_{{ letter }}" class="form-select form-select-sm mt-1 mb-1"
+                  {% if locked %}disabled{% endif %}>
+            <option value="">1. Platz</option>
+            {% for t in grp_teams %}
+            <option value="{{ t.id }}"
+              {% if saved[0] == t.id %}selected{% endif %}>{{ t.name }}</option>
+            {% endfor %}
+          </select>
+          <select name="g2_{{ letter }}" class="form-select form-select-sm"
+                  {% if locked %}disabled{% endif %}>
+            <option value="">2. Platz</option>
+            {% for t in grp_teams %}
+            <option value="{{ t.id }}"
+              {% if saved[1] == t.id %}selected{% endif %}>{{ t.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% if not locked %}
+  <div class="mb-5">
+    <button type="submit" class="btn btn-accent px-4">Langfrist-Tipps speichern</button>
+  </div>
+  {% endif %}
+</form>
+{% endblock %}

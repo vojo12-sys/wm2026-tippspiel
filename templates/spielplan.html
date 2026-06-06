@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Spielplan</h1>
+
+<ul class="nav nav-tabs mb-4" role="tablist">
+  <li class="nav-item">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#gruppenphase" type="button">Gruppenphase</button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ko" type="button">K.o.-Runde</button>
+  </li>
+</ul>
+
+<style>
+/* ── Gruppenphase ── */
+.group-block { max-width: 440px; }
+.group-row {
+  display: grid;
+  grid-template-columns: 16px 110px 1fr 44px 1fr;
+  align-items: center;
+  gap: 0 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+}
+.group-row .gr-num  { font-size: .68rem; color: var(--muted); text-align: right; }
+.group-row .gr-meta { font-size: .72rem; color: var(--muted); line-height: 1.3; }
+.group-row .gr-home {
+  display: flex; align-items: center; gap: 5px;
+  justify-content: flex-end; text-align: right;
+  min-width: 0; overflow: hidden;
+}
+.group-row .gr-home span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.group-row .gr-score { text-align: center; font-weight: 700; font-size: .95rem; white-space: nowrap; }
+.group-row .gr-away { display: flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; }
+.group-row .gr-away span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Gruppentabelle ── */
+.gtab { width: 100%; border-collapse: collapse; font-size: .78rem; margin-top: 10px; }
+.gtab thead th { color: var(--muted); font-weight: 600; font-size: .65rem; text-transform: uppercase;
+  letter-spacing: .06em; padding: 4px 4px; border-bottom: 1px solid var(--border); }
+.gtab tbody td { padding: 5px 4px; border-bottom: 1px solid #f0f4f0; }
+.gtab tbody tr:last-child td { border-bottom: none; }
+.gtab .gt-team { display: flex; align-items: center; gap: 5px; font-weight: 600; }
+.gtab .gt-pkt  { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; color: #1E4E8C; }
+.gtab .gt-qual { background: rgba(30,78,140,.08); }
+.gtab .gt-q3   { background: rgba(255,160,0,.06); }
+
+/* ── K.o.-Bracket ── */
+.bracket-wrap { overflow-x: auto; padding-bottom: 1rem; }
+.bracket { display: flex; align-items: flex-start; min-width: max-content; }
+
+.bracket-col { display: flex; flex-direction: column; }
+.bracket-col-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted);
+  text-align: center; padding-bottom: 8px;
+  width: 160px;
+}
+
+/* slot heights — each round doubles the previous */
+.bracket-slot {
+  display: flex;
+  align-items: center;
+}
+.bracket-col-r16   .bracket-slot { height: 130px; }
+.bracket-col-qf    .bracket-slot { height: 260px; }
+.bracket-col-sf    .bracket-slot { height: 520px; }
+.bracket-col-final .bracket-slot { height: 1040px; }
+
+/* match card inside slot */
+.bm-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  width: 160px;
+  font-size: .8rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.bm-meta { font-size: .67rem; color: var(--muted); margin-bottom: 3px; }
+.bm-team {
+  display: flex; align-items: center; gap: 4px;
+  font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bm-score { font-weight: 800; color: #16202b; font-size: .88rem; text-align: center; margin: 2px 0; }
+.bm-sep   { color: var(--muted); font-size: .72rem; text-align: center; }
+@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+
+{# ── SVG-Konnektor-Makro ──
+   Zeichnet die Verbindungslinien zwischen zwei Runden.
+   prev_h   = Slot-Höhe der vorherigen Runde (px)
+   count    = Anzahl Spiele der NÄCHSTEN Runde (= Paare)
+   Jede Verbindung: zwei horizontale Eingangslinien + vertikale Brücke + eine Ausgangslinie zur Mitte
+#}
+{% macro bracket_svg(prev_h, count) %}
+{% set total_h = prev_h * count * 2 %}
+<svg width="24" height="{{ total_h }}" style="flex-shrink:0;overflow:visible" xmlns="http://www.w3.org/2000/svg">
+  {% for i in range(count) %}
+  {% set s1y = prev_h * (i * 2) + prev_h // 2 %}
+  {% set s2y = prev_h * (i * 2 + 1) + prev_h // 2 %}
+  {% set midy = (s1y + s2y) // 2 %}
+  <line x1="0"  y1="{{ s1y  }}" x2="12" y2="{{ s1y  }}" stroke="#e4e9ef" stroke-width="2"/>
+  <line x1="0"  y1="{{ s2y  }}" x2="12" y2="{{ s2y  }}" stroke="#e4e9ef" stroke-width="2"/>
+  <line x1="12" y1="{{ s1y  }}" x2="12" y2="{{ s2y  }}" stroke="#e4e9ef" stroke-width="2"/>
+  <line x1="12" y1="{{ midy }}" x2="24" y2="{{ midy }}" stroke="#e4e9ef" stroke-width="2"/>
+  {% endfor %}
+</svg>
+{% endmacro %}
+
+{# ── Match-Karten-Makro für den Bracket ── #}
+{% macro bm(m) %}
+{% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+{% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+{% set hf = m.home_team.flag_code if m.home_team else '' %}
+{% set af = m.away_team.flag_code if m.away_team else '' %}
+{% set _live = get_live_scores().get(m.id) %}
+<div class="bm-card {% if m.has_result %}border-success-subtle{% elif _live %}border-danger{% endif %}">
+  <div class="bm-meta">
+    Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}
+    {% if _live %}<span style="color:#dc3545;font-weight:700;animation:livepulse 1.2s infinite"> ● LIVE{% if _live.minute %} {{ _live.minute }}'{% endif %}{% if _live.status == 'PAUSED' %} HZ{% endif %}</span>{% endif %}
+  </div>
+  <div class="bm-team">{% if hf %}<img src="https://flagcdn.com/16x12/{{ hf }}.png" alt="">{% endif %}<span>{{ home }}</span></div>
+  {% if _live %}<div class="bm-score" style="color:#dc3545">{{ _live.home }} : {{ _live.away }}</div>
+  {% elif m.has_result %}<div class="bm-score">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties %}<div style="font-size:.6rem;line-height:1">n.E.</div>{% endif %}</div>
+  {% else %}<div class="bm-sep">vs.</div>{% endif %}
+  <div class="bm-team">{% if af %}<img src="https://flagcdn.com/16x12/{{ af }}.png" alt="">{% endif %}<span>{{ away }}</span></div>
+</div>
+{% endmacro %}
+
+<div class="tab-content">
+
+  <!-- ════════════════ GRUPPENPHASE ════════════════ -->
+  <div class="tab-pane fade show active" id="gruppenphase">
+    <div class="row g-5">
+      {% for letter in group_matches.keys()|sort %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="group-block">
+          <h5 class="fw-bold mb-2">Gruppe {{ letter }}</h5>
+          {% for m in group_matches[letter] %}
+          {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+          {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+          {% set hf = m.home_team.flag_code if m.home_team else '' %}
+          {% set af = m.away_team.flag_code if m.away_team else '' %}
+          <div class="group-row">
+            <div class="gr-num">{{ m.match_number }}</div>
+            <div class="gr-meta">
+              {{ fmt(m.kickoff_utc) }}
+              {% if m.venue %}<br>{{ m.venue }}{% endif %}
+            </div>
+            <div class="gr-home">
+              <span>{{ home }}</span>
+              {% if hf %}<img src="https://flagcdn.com/20x15/{{ hf }}.png" alt="" style="flex-shrink:0">{% endif %}
+            </div>
+            <div class="gr-score">
+              {% set _glive = get_live_scores().get(m.id) %}
+              {% if _glive %}<span style="color:#dc3545;font-weight:800">{{ _glive.home }}:{{ _glive.away }}</span>
+              {% elif m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}
+              {% else %}vs.{% endif %}
+            </div>
+            <div class="gr-away">
+              {% if af %}<img src="https://flagcdn.com/20x15/{{ af }}.png" alt="" style="flex-shrink:0">{% endif %}
+              <span>{{ away }}</span>
+            </div>
+          </div>
+          {% endfor %}
+
+          {# ── Gruppentabelle ── #}
+          {% if group_tables.get(letter) %}
+          <table class="gtab">
+            <thead>
+              <tr>
+                <th>#</th><th>Team</th>
+                <th class="text-center">Sp</th>
+                <th class="text-center">S</th>
+                <th class="text-center">U</th>
+                <th class="text-center">N</th>
+                <th class="text-center">Tore</th>
+                <th class="text-center">TD</th>
+                <th class="text-center">Pkt</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in group_tables[letter] %}
+              <tr class="{% if r.pos <= 2 %}gt-qual{% elif r.pos == 3 %}gt-q3{% endif %}">
+                <td class="text-muted">{{ r.pos }}</td>
+                <td>
+                  <div class="gt-team">
+                    {% if r.flag %}<img src="https://flagcdn.com/16x12/{{ r.flag }}.png" alt="">{% endif %}
+                    {{ r.name }}
+                  </div>
+                </td>
+                <td class="text-center text-muted">{{ r.sp }}</td>
+                <td class="text-center">{{ r.s }}</td>
+                <td class="text-center text-muted">{{ r.u }}</td>
+                <td class="text-center text-muted">{{ r.n }}</td>
+                <td class="text-center text-muted">{{ r.tore }}:{{ r.gegen }}</td>
+                <td class="text-center {% if r.td > 0 %}text-success{% elif r.td < 0 %}text-danger{% endif %}">
+                  {% if r.td > 0 %}+{% endif %}{{ r.td }}
+                </td>
+                <td class="text-center gt-pkt">{{ r.pkt }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="text-muted mt-1" style="font-size:.62rem">
+            <span style="display:inline-block;width:8px;height:8px;background:rgba(30,78,140,.15);border-radius:2px;margin-right:3px"></span>Weiterkommen ·
+            <span style="display:inline-block;width:8px;height:8px;background:rgba(255,160,0,.12);border-radius:2px;margin-right:3px"></span>Evtl. 3. Platz
+          </div>
+          {% else %}
+          <p class="text-muted mt-2" style="font-size:.78rem">Noch keine Ergebnisse.</p>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ════════════════ K.O.-RUNDE ════════════════ -->
+  <div class="tab-pane fade" id="ko">
+
+    <!-- Round of 32 als Liste -->
+    {% if ko_matches.get('round32') %}
+    <h5 class="mb-3">{{ ko_labels['round32'] }}</h5>
+    <div class="row g-2 mb-5">
+      {% for m in ko_matches['round32'] %}
+      {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+      {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+      {% set hf = m.home_team.flag_code if m.home_team else '' %}
+      {% set af = m.away_team.flag_code if m.away_team else '' %}
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="match-card py-2 px-3">
+          <div class="match-meta mb-2">Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}{% if m.venue %} · {{ m.venue }}{% endif %}</div>
+          <div class="text-center">
+            <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+              {% if hf %}<img src="https://flagcdn.com/20x15/{{ hf }}.png" alt="" style="flex-shrink:0">{% endif %}
+              <span class="fw-semibold">{{ home }}</span>
+            </div>
+            <div class="fw-bold my-1" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1rem;color:#16202b">
+              {% if m.has_result %}{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties %} <span style="font-size:.7rem">n.E.</span>{% endif %}{% else %}<span class="text-muted" style="font-size:.85rem">vs.</span>{% endif %}
+            </div>
+            <div class="d-flex align-items-center justify-content-center gap-1 mt-1">
+              {% if af %}<img src="https://flagcdn.com/20x15/{{ af }}.png" alt="" style="flex-shrink:0">{% endif %}
+              <span class="fw-semibold">{{ away }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── Bracket ab Achtelfinale ── -->
+    <h5 class="mb-3">Bracket ab Achtelfinale</h5>
+    <div class="bracket-wrap">
+      <div class="bracket">
+
+        <!-- ACHTELFINALE (8 Spiele, slot=72px) -->
+        {% if ko_matches.get('round16') %}
+        <div>
+          <div class="bracket-col-label">Achtelfinale</div>
+          <div class="bracket-col bracket-col-r16">
+            {% for m in ko_matches['round16'] %}
+            <div class="bracket-slot">{{ bm(m) }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {{ bracket_svg(130, (ko_matches['quarter']|length) if ko_matches.get('quarter') else 4) }}
+        {% endif %}
+
+        <!-- VIERTELFINALE (4 Spiele, slot=144px) -->
+        {% if ko_matches.get('quarter') %}
+        <div>
+          <div class="bracket-col-label">Viertelfinale</div>
+          <div class="bracket-col bracket-col-qf">
+            {% for m in ko_matches['quarter'] %}
+            <div class="bracket-slot">{{ bm(m) }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {{ bracket_svg(260, (ko_matches['semi']|length) if ko_matches.get('semi') else 2) }}
+        {% endif %}
+
+        <!-- HALBFINALE (2 Spiele, slot=288px) -->
+        {% if ko_matches.get('semi') %}
+        <div>
+          <div class="bracket-col-label">Halbfinale</div>
+          <div class="bracket-col bracket-col-sf">
+            {% for m in ko_matches['semi'] %}
+            <div class="bracket-slot">{{ bm(m) }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {{ bracket_svg(520, 1) }}
+        {% endif %}
+
+        <!-- FINALE (1 Spiel, slot=576px = zentriert zwischen den zwei HF-Slots) -->
+        {% if ko_matches.get('final') %}
+        <div>
+          <div class="bracket-col-label" style="color:var(--gold)">⭐ Finale</div>
+          <div class="bracket-col bracket-col-final">
+            {% for m in ko_matches['final'] %}
+            <div class="bracket-slot">
+              <div class="bm-card" style="border-color:var(--gold);box-shadow:0 0 0 2px rgba(192,138,18,.2)">
+                <div class="bm-meta" style="color:var(--gold)">Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}</div>
+                {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+                {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+                {% set hf = m.home_team.flag_code if m.home_team else '' %}
+                {% set af = m.away_team.flag_code if m.away_team else '' %}
+                <div class="bm-team">{% if hf %}<img src="https://flagcdn.com/16x12/{{ hf }}.png" alt="">{% endif %}<span>{{ home }}</span></div>
+                {% if m.has_result %}<div class="bm-score" style="color:var(--gold)">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties %}<div style="font-size:.6rem;line-height:1">n.E.</div>{% endif %}</div>
+                {% else %}<div class="bm-sep">vs.</div>{% endif %}
+                <div class="bm-team">{% if af %}<img src="https://flagcdn.com/16x12/{{ af }}.png" alt="">{% endif %}<span>{{ away }}</span></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div><!-- .bracket -->
+    </div><!-- .bracket-wrap -->
+
+    <!-- Spiel um Platz 3 -->
+    {% if ko_matches.get('third_place') %}
+    <div class="mt-4">
+      <h6 class="text-muted mb-2">Spiel um Platz 3</h6>
+      {% for m in ko_matches['third_place'] %}
+      {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+      {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+      <div class="match-card d-inline-flex align-items-center gap-3 px-4">
+        <span class="text-muted small me-1">Sp.{{ m.match_number }}</span>
+        <span class="fw-semibold">{{ home }}</span>
+        <span class="fw-bold">{% if m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}{% else %}vs.{% endif %}</span>
+        <span class="fw-semibold">{{ away }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div><!-- #ko -->
+</div>
+{% endblock %}

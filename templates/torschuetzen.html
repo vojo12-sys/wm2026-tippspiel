@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="mb-1">Torschützenliste</h1>
+
+<p class="text-muted mb-4 small">Wird automatisch alle 5 Minuten aktualisiert (football-data.org).</p>
+
+
+
+{% if not scorers %}
+
+<div class="alert alert-info">
+
+  Noch keine Daten verfügbar – die Torschützenliste wird nach dem ersten Spieltag automatisch befüllt.
+
+  {% if user.is_admin %}<br><a href="/admin">Im Admin → Sync manuell anstoßen.</a>{% endif %}
+
+</div>
+
+{% else %}
+
+
+
+<div class="card border-0 shadow-sm">
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle mb-0">
+
+      <thead class="table-light">
+
+        <tr>
+
+          <th style="width:40px">#</th>
+
+          <th>Spieler</th>
+
+          <th>Team</th>
+
+          <th class="text-center">Tore</th>
+
+          <th class="text-center d-none d-md-table-cell">Assists</th>
+
+          <th class="text-center d-none d-md-table-cell">Elfm.</th>
+
+          <th class="text-center d-none d-sm-table-cell">Spiele</th>
+
+          <th>Getippt von</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+      {% for sc in scorers %}
+
+      <tr {% if loop.index <= 3 %}class="table-warning bg-opacity-25"{% endif %}>
+
+        <td>
+
+          <span class="fw-bold
+
+            {% if loop.index == 1 %}rank-1
+
+            {% elif loop.index == 2 %}rank-2
+
+            {% elif loop.index == 3 %}rank-3{% endif %}">
+
+            {{ loop.index }}
+
+          </span>
+
+        </td>
+
+        <td>
+
+          <div class="d-flex align-items-center gap-2">
+
+            {% if sc.flag_code %}
+
+            <img src="https://flagcdn.com/20x15/{{ sc.flag_code }}.png" alt="{{ sc.nationality or '' }}"
+
+                 title="{{ sc.nationality or '' }}">
+
+            {% endif %}
+
+            <span class="fw-semibold">{{ sc.player_name }}</span>
+
+          </div>
+
+          {% if sc.nationality %}
+
+          <div class="text-muted" style="font-size:.72rem">{{ sc.nationality }}</div>
+
+          {% endif %}
+
+        </td>
+
+        <td>
+
+          <div class="d-flex align-items-center gap-2">
+
+            {% if sc.team_flag_code %}
+
+            <img src="https://flagcdn.com/20x15/{{ sc.team_flag_code }}.png" alt="">
+
+            {% endif %}
+
+            <span style="font-size:.88rem">{{ sc.team_name or '—' }}</span>
+
+          </div>
+
+        </td>
+
+        <td class="text-center">
+
+          <span class="fw-bold fs-5" style="color:var(--accent)">{{ sc.goals }}</span>
+
+        </td>
+
+        <td class="text-center d-none d-md-table-cell text-muted">{{ sc.assists }}</td>
+
+        <td class="text-center d-none d-md-table-cell text-muted">{{ sc.penalties }}</td>
+
+        <td class="text-center d-none d-sm-table-cell text-muted">{{ sc.matches_played }}</td>
+
+        <td>
+
+          {% set tippers = scorer_tips.get(sc.player_name, []) %}
+
+          {% if tippers %}
+
+            {% for name in tippers %}
+
+            <span class="badge" style="background:rgba(126,200,227,.12);color:var(--accent-dk);font-weight:600">
+
+              {{ name }}
+
+            </span>
+
+            {% endfor %}
+
+          {% else %}
+
+            <span class="text-muted" style="font-size:.8rem">—</span>
+
+          {% endif %}
+
+        </td>
+
+      </tr>
+
+      {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+
+
+<p class="text-muted small mt-3">
+
+  <i class="bi bi-info-circle"></i>
+
+  Die Spalte "Getippt von" zeigt alle Teilnehmer, die diesen Spieler als Torschützenkönig getippt haben.
+
+</p>
+
+
+
+{% endif %}
+
+{% endblock %}
+

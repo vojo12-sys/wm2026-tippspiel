@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Spielregeln – WM 2026 Tippspiel</title>
+
+  <link rel="icon" href="/static/img/lew_logo.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { font-family: 'Hanken Grotesk', sans-serif; background: #f8f6f0; color: #0e1a0f; }
+
+
+
+    nav {
+
+      display: flex; align-items: center; justify-content: space-between;
+
+      padding: 1rem 2.5rem;
+
+      background: #fff; border-bottom: 1px solid #dde8de;
+
+    }
+
+    .nav-brand {
+
+      font-family: 'Bricolage Grotesque', sans-serif;
+
+      font-weight: 800; font-size: 1.1rem; color: #0e1a0f;
+
+      text-decoration: none;
+
+    }
+
+    .nav-actions { display: flex; gap: .6rem; }
+
+    .btn-ghost {
+
+      background: transparent; color: #4aaec8;
+
+      border: 1.5px solid #dde8de; border-radius: 50px;
+
+      padding: .38rem 1.1rem; font-size: .83rem; font-weight: 600;
+
+      text-decoration: none; transition: all .18s;
+
+    }
+
+    .btn-ghost:hover { border-color: #7EC8E3; background: #e6f5ed; }
+
+    .btn-fill {
+
+      background: #7EC8E3; color: #fff; border: none; border-radius: 50px;
+
+      padding: .38rem 1.2rem; font-size: .83rem; font-weight: 700;
+
+      text-decoration: none; transition: all .18s;
+
+    }
+
+    .btn-fill:hover { background: #4aaec8; }
+
+
+
+    .page { max-width: 800px; margin: 3rem auto; padding: 0 1.5rem 5rem; }
+
+
+
+    h1 {
+
+      font-family: 'Bricolage Grotesque', sans-serif;
+
+      font-weight: 800; font-size: 2.2rem; letter-spacing: -.03em;
+
+      margin-bottom: 2rem; color: #0e1a0f;
+
+    }
+
+
+
+    .card {
+
+      background: #fff; border: 1px solid #dde8de;
+
+      border-radius: 16px; padding: 1.8rem;
+
+      box-shadow: 0 2px 12px rgba(0,0,0,.05);
+
+      margin-bottom: 1.2rem;
+
+    }
+
+
+
+    .card p { font-size: .92rem; color: #3a4e3c; line-height: 1.7; margin-bottom: .4rem; }
+
+    .card h5 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 1rem; color: #0e1a0f; margin: 1.2rem 0 .4rem; }
+
+    .card h5:first-child { margin-top: 0; }
+
+
+
+    .scoring-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+    @media (max-width: 600px) { .scoring-grid { grid-template-columns: 1fr; } }
+
+
+
+    .score-card {
+
+      background: #fff; border: 1px solid #dde8de;
+
+      border-radius: 16px; padding: 1.5rem;
+
+      box-shadow: 0 2px 12px rgba(0,0,0,.05);
+
+    }
+
+    .score-card h6 {
+
+      font-size: .68rem; font-weight: 700; letter-spacing: .09em;
+
+      text-transform: uppercase; color: #67768a; margin-bottom: 1rem;
+
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+
+    tr + tr td { border-top: 1px solid #f0f4f0; }
+
+    td { padding: .45rem 0; color: #3a4e3c; }
+
+    td:last-child { text-align: right; font-weight: 700; color: #0e1a0f; }
+
+
+
+    .pool-card {
+
+      border-color: rgba(192,138,18,.3) !important;
+
+      background: linear-gradient(160deg, #fffef8, #fff);
+
+    }
+
+    .pool-card h6 { color: #c08a12 !important; }
+
+
+
+    .cta-banner {
+
+      background: #7EC8E3; border-radius: 16px;
+
+      padding: 2rem; text-align: center; margin-top: 2rem;
+
+      color: #fff;
+
+    }
+
+    .cta-banner h2 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.5rem; margin-bottom: .5rem; }
+
+    .cta-banner p { opacity: .85; font-size: .9rem; margin-bottom: 1.3rem; }
+
+    .cta-banner a {
+
+      background: #fff; color: #4aaec8;
+
+      border-radius: 10px; padding: .7rem 2rem;
+
+      font-weight: 800; font-size: .95rem; text-decoration: none;
+
+      font-family: 'Bricolage Grotesque', sans-serif;
+
+      display: inline-block; transition: all .18s;
+
+    }
+
+    .cta-banner a:hover { background: #e6f5ed; }
+
+  </style>
+
+</head>
+
+<body>
+
+
+
+<nav>
+
+  <a href="/" class="nav-brand">WM 2026 Tippspiel</a>
+
+  <div class="nav-actions">
+
+    <a href="/login" class="btn-ghost">Anmelden</a>
+
+    <a href="/register" class="btn-fill">Registrieren</a>
+
+  </div>
+
+</nav>
+
+
+
+<div class="page">
+
+  <h1>Spielregeln</h1>
+
+
+
+  <div class="card">
+
+    {% for line in rules_text.split('\n') %}
+
+      {% if line.strip() == '' %}
+
+        <br>
+
+      {% elif line.startswith('**') and line.endswith('**') and line|length > 4 %}
+
+        <h5>{{ line[2:-2] }}</h5>
+
+      {% elif line.startswith('- ') %}
+
+        <p>• {{ line[2:] }}</p>
+
+      {% else %}
+
+        <p>{{ line }}</p>
+
+      {% endif %}
+
+    {% endfor %}
+
+  </div>
+
+
+
+  <div class="scoring-grid">
+
+    <div class="score-card">
+
+      <h6>Punktesystem</h6>
+
+      <table>
+
+        <tr><td>Exaktes Ergebnis</td><td>{{ scoring.exact }} Pkt</td></tr>
+
+        <tr><td>Richtige Tordifferenz</td><td>{{ scoring.goal_diff }} Pkt</td></tr>
+
+        <tr><td>Richtige Tendenz</td><td>{{ scoring.tendency }} Pkt</td></tr>
+
+        <tr><td>K.o.-Bonus</td><td>{{ scoring.ko_advance_bonus }} Pkt</td></tr>
+
+        <tr><td>Gruppensieger</td><td>{{ scoring.group_first }} Pkt</td></tr>
+
+        <tr><td>Gruppenzweiter</td><td>{{ scoring.group_second }} Pkt</td></tr>
+
+        <tr><td>Weltmeister</td><td>{{ scoring.champion }} Pkt</td></tr>
+
+        <tr><td>Torschützenkönig</td><td>{{ scoring.top_scorer }} Pkt</td></tr>
+
+        <tr><td>Gesamttore (±{{ scoring.total_goals_tolerance }})</td><td>{{ scoring.total_goals }} Pkt</td></tr>
+
+      </table>
+
+    </div>
+
+
+
+    {% if pool.get('enabled') %}
+
+    <div class="score-card pool-card">
+
+      <h6>Kasse</h6>
+
+      <p style="font-size:.85rem;color:#5c6e5f;margin-bottom:.8rem">
+
+        Einsatz: <strong style="color:#0e1a0f">{{ pool.buy_in }} {{ pool.currency }}</strong> pro Tipper (freiwillig).
+
+        Nicht-Zahler können sportlich gewinnen – erhalten aber kein Geld aus dem Pott.
+
+      </p>
+
+      {% set tiers = pool.get('payout_tiers', {}) %}
+
+      {% set thresholds = pool.get('tier_thresholds', [15, 20]) %}
+
+      <table>
+
+        <tr><td style="font-weight:600">bis {{ thresholds[0] - 1 }} Einzahler</td><td>Top 3</td></tr>
+
+        <tr><td style="font-weight:600">{{ thresholds[0] }}–{{ thresholds[1] - 1 }}</td><td>Top 4</td></tr>
+
+        <tr><td style="font-weight:600">ab {{ thresholds[1] }}</td><td>Top 5</td></tr>
+
+      </table>
+
+    </div>
+
+    {% endif %}
+
+  </div>
+
+
+
+  <div class="cta-banner">
+
+    <h2>Bereit mitzumachen?</h2>
+
+    <p>Kostenlos registrieren und alle 104 WM-Spiele tippen.</p>
+
+    <a href="/register">Jetzt registrieren →</a>
+
+  </div>
+
+</div>
+
+
+
+</body>
+
+</html>
+

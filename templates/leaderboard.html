@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Leaderboard</h1>
+
+{% if rows %}
+<style>
+.podium-wrap { display:flex; align-items:flex-end; justify-content:center; gap:8px; margin-bottom:2rem; }
+.podium-col  { display:flex; flex-direction:column; align-items:center; flex:1; max-width:200px; }
+.podium-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:1rem; text-align:center; margin-bottom:6px; word-break:break-word; }
+.podium-pts  { font-weight:800; font-size:1.4rem; margin-bottom:2px; }
+.podium-step { width:100%; border-radius:12px 12px 0 0; display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:2rem; }
+.podium-step-1 { height:100px; background:linear-gradient(160deg,#f0c040,#c08a12); color:#fff; }
+.podium-step-2 { height:72px;  background:linear-gradient(160deg,#d0d8e0,#8794a3); color:#fff; }
+.podium-step-3 { height:52px;  background:linear-gradient(160deg,#d4966a,#ad6a34); color:#fff; }
+.tip-badge { display:inline-block; font-size:.95rem; font-weight:800; padding:3px 10px; border-radius:7px; }
+.tip-exact    { background:rgba(126,200,227,.15); color:var(--accent-dk); border:1px solid rgba(126,200,227,.3); }
+.tip-diff     { background:rgba(192,138,18,.12);  color:#8a6208;          border:1px solid rgba(192,138,18,.25); }
+.tip-tendency { background:rgba(173,106,52,.12);  color:#7a4a20;          border:1px solid rgba(173,106,52,.25); }
+</style>
+
+{% if rows|length >= 2 %}
+<div class="podium-wrap">
+  {% for i in [1, 0, 2] %}
+  {% if rows|length > i %}
+  {% set row = rows[i] %}
+  {% set rank = i + 1 %}
+  <div class="podium-col">
+    <div class="podium-name">{{ row.display_name }}</div>
+    <div class="podium-pts {% if rank==1 %}rank-1{% elif rank==2 %}rank-2{% else %}rank-3{% endif %}">
+      {{ row.total_points }} <span class="text-muted fw-normal" style="font-size:.9rem">Pkt</span>
+    </div>
+    <div class="podium-step podium-step-{{ rank }}">{{ rank }}.</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="lbTabs">
+  <li class="nav-item"><button class="nav-link active" data-tab="gesamt">Gesamt</button></li>
+  <li class="nav-item"><button class="nav-link" data-tab="gruppe">Gruppenphase</button></li>
+  <li class="nav-item"><button class="nav-link" data-tab="ko">K.o.-Phase</button></li>
+</ul>
+
+<!-- Tab: Gesamt -->
+<div id="tab-gesamt" class="lb-tab">
+<div class="card border-0 shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Teilnehmer</th>
+          <th class="text-center">Exakt</th>
+          <th class="text-center">Tordiff.</th>
+          <th class="text-center">Tendenz</th>
+          <th class="text-end">Spiel-Pkt</th>
+          <th class="text-end">Langfrist</th>
+          <th class="text-end fw-bold">Gesamt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
+          <td class="{% if row.rank==1 %}rank-1{% elif row.rank==2 %}rank-2{% elif row.rank==3 %}rank-3{% endif %}">{{ row.rank }}</td>
+          <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
+          <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
+          <td class="text-center"><span class="tip-badge tip-diff">{{ row.goal_diff_count }}</span></td>
+          <td class="text-center"><span class="tip-badge tip-tendency">{{ row.tendency_count }}</span></td>
+          <td class="text-end">{{ row.phase_points.values()|sum }}</td>
+          <td class="text-end">{{ row.longterm_points }}</td>
+          <td class="text-end fw-bold">{{ row.total_points }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- Tab: Gruppenphase -->
+<div id="tab-gruppe" class="lb-tab d-none">
+<div class="card border-0 shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Teilnehmer</th>
+          <th class="text-center">Exakt</th>
+          <th class="text-center">Tordiff.</th>
+          <th class="text-center">Tendenz</th>
+          <th class="text-end fw-bold">Gruppenphase</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set ns = namespace(rank=0, last=-1) %}
+        {% for row in rows_group %}
+        {% set gpts = row.phase_points.get('group', 0) %}
+        {% if gpts != ns.last %}{% set ns.rank = loop.index %}{% set ns.last = gpts %}{% endif %}
+        <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
+          <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}">{{ ns.rank }}</td>
+          <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
+          <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
+          <td class="text-center"><span class="tip-badge tip-diff">{{ row.goal_diff_count }}</span></td>
+          <td class="text-center"><span class="tip-badge tip-tendency">{{ row.tendency_count }}</span></td>
+          <td class="text-end fw-bold">{{ gpts }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="text-muted small">Nur Punkte aus der Gruppenphase (ohne Langfrist-Tipps).</p>
+</div>
+
+<!-- Tab: K.o.-Phase -->
+<div id="tab-ko" class="lb-tab d-none">
+<div class="card border-0 shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Teilnehmer</th>
+          <th class="text-center">Exakt</th>
+          <th class="text-center">Tordiff.</th>
+          <th class="text-center">Tendenz</th>
+          <th class="text-end">R32</th>
+          <th class="text-end">AF</th>
+          <th class="text-end">VF</th>
+          <th class="text-end">HF</th>
+          <th class="text-end">Finale</th>
+          <th class="text-end fw-bold">K.o. Gesamt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set ko_phases = ['round32','round16','quarter','semi','final'] %}
+        {% set ns2 = namespace(rank=0, last=-1) %}
+        {% for row in rows_ko %}
+        {% set ko_total = (row.phase_points.values()|sum) - row.phase_points.get('group', 0) %}
+        {% if ko_total != ns2.last %}{% set ns2.rank = loop.index %}{% set ns2.last = ko_total %}{% endif %}
+        <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
+          <td class="{% if ns2.rank==1 %}rank-1{% elif ns2.rank==2 %}rank-2{% elif ns2.rank==3 %}rank-3{% endif %}">{{ ns2.rank }}</td>
+          <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
+          <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
+          <td class="text-center"><span class="tip-badge tip-diff">{{ row.goal_diff_count }}</span></td>
+          <td class="text-center"><span class="tip-badge tip-tendency">{{ row.tendency_count }}</span></td>
+          {% for ph in ko_phases %}
+          <td class="text-end text-muted">{{ row.phase_points.get(ph, '—') }}</td>
+          {% endfor %}
+          <td class="text-end fw-bold">{{ ko_total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="text-muted small">AF = Achtelfinale · VF = Viertelfinale · HF = Halbfinale · Punkte ohne Langfrist-Tipps.</p>
+</div>
+
+<!-- Kasse -->
+{% if pool.enabled and pool.payers > 0 %}
+<div class="card border-0 shadow-sm" style="border-color:rgba(192,138,18,.3)!important">
+  <div class="card-body">
+    <h5 style="color:var(--gold)">Kasse</h5>
+    <div class="row g-3 mb-2">
+      <div class="col-6 col-md-3 text-center">
+        <div class="fw-bold fs-4" style="color:var(--gold)">{{ pool.pot_total }} {{ pool.currency }}</div>
+        <div class="text-muted small">Gesamttopf</div>
+      </div>
+      <div class="col-6 col-md-3 text-center">
+        <div class="fw-bold fs-4">{{ pool.payers }}</div>
+        <div class="text-muted small">Teilnehmer</div>
+      </div>
+      {% if user.is_admin %}
+      <div class="col-6 col-md-3 text-center">
+        <div class="fw-bold fs-4">{{ pool.paid_in }} {{ pool.currency }}</div>
+        <div class="text-muted small">Eingezahlt</div>
+      </div>
+      <div class="col-6 col-md-3 text-center">
+        {% if pool.outstanding > 0 %}
+        <div class="fw-bold fs-4 text-danger">{{ pool.outstanding }} {{ pool.currency }}</div>
+        <div class="text-muted small">Noch offen</div>
+        {% else %}
+        <div class="fw-bold fs-4" style="color:#28a745">✓</div>
+        <div class="text-muted small">Alles eingezahlt</div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% if pool.payouts %}
+    <table class="table table-sm mt-2">
+      <thead><tr><th>Platz</th><th>Teilnehmer</th><th class="text-end">Auszahlung</th></tr></thead>
+      <tbody>
+        {% for p in pool.payouts %}
+        <tr><td>{{ p.pool_rank }}</td><td>{{ p.display_name }}</td><td class="text-end fw-bold">{{ p.amount }} {{ pool.currency }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<p class="text-muted">Noch keine Tipps abgegeben.</p>
+{% endif %}
+
+{% if top5 %}
+<div class="card border-0 shadow-sm mt-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0"><i class="bi bi-person-badge me-2" style="color:var(--accent)"></i>Torschützen Top 5</h5>
+      <a href="/torschuetzen" class="btn btn-outline-secondary btn-sm">Alle anzeigen</a>
+    </div>
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light"><tr><th>#</th><th>Spieler</th><th>Team</th><th class="text-center">Tore</th></tr></thead>
+      <tbody>
+      {% for sc in top5 %}
+      <tr>
+        <td><span class="fw-bold {% if loop.index==1 %}rank-1{% elif loop.index==2 %}rank-2{% elif loop.index==3 %}rank-3{% endif %}">{{ loop.index }}</span></td>
+        <td><div class="d-flex align-items-center gap-2">{% if sc.flag_code %}<img src="https://flagcdn.com/20x15/{{ sc.flag_code }}.png" alt="">{% endif %}<span class="fw-semibold">{{ sc.player_name }}</span></div></td>
+        <td><div class="d-flex align-items-center gap-1">{% if sc.team_flag_code %}<img src="https://flagcdn.com/20x15/{{ sc.team_flag_code }}.png" alt="">{% endif %}<span class="text-muted small">{{ sc.team_name or '—' }}</span></div></td>
+        <td class="text-center fw-bold" style="color:var(--accent)">{{ sc.goals }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<script>
+document.querySelectorAll('[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.lb-tab').forEach(t => t.classList.add('d-none'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.remove('d-none');
+  });
+});
+</script>
+{% endblock %}

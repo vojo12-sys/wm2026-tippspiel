@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="mb-3">Statistik</h1>
+
+<ul class="nav nav-tabs mb-4" id="statsTabs" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-me" type="button">Meine Stats</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-all" type="button">Alle Tipper</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chart" type="button">Formkurve</button></li>
+</ul>
+
+<div class="tab-content">
+
+
+
+{% if flash %}
+
+<div class="alert alert-{{ flash.type }} alert-dismissible fade show">
+
+  {{ flash.message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+</div>
+
+{% endif %}
+
+
+
+<div class="tab-pane fade show active" id="tab-me" role="tabpanel">
+{% if total_finished == 0 %}
+<div class="alert alert-info">Noch keine abgeschlossenen Spiele – komm nach dem ersten Spieltag wieder!</div>
+{% else %}
+
+
+
+<!-- Übersicht-Kacheln -->
+
+<div class="row g-3 mb-4">
+
+  <div class="col-6 col-md-3">
+
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+
+      <div class="fs-2 fw-bold" style="color:var(--accent)">{{ total_pts }}</div>
+
+      <div class="text-muted small">Gesamtpunkte</div>
+
+    </div>
+
+  </div>
+
+  <div class="col-6 col-md-3">
+
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+
+      <div class="fs-2 fw-bold">{{ tipped }} / {{ total_finished }}</div>
+
+      <div class="text-muted small">Spiele getippt</div>
+
+    </div>
+
+  </div>
+
+  <div class="col-6 col-md-3">
+
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+
+      <div class="fs-2 fw-bold rank-1">{{ exact }}</div>
+
+      <div class="text-muted small">Exakte Treffer</div>
+
+    </div>
+
+  </div>
+
+  <div class="col-6 col-md-3">
+
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+
+      {% if joker_match_id %}<div class="fs-2 fw-bold"><i class="bi bi-suit-diamond-fill text-danger"></i> gesetzt</div>
+
+      {% else %}<div class="fs-2 fw-bold text-muted"><i class="bi bi-suit-diamond-fill text-danger"></i> offen</div>{% endif %}
+
+      <div class="text-muted small">Joker</div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- Trefferquote -->
+
+{% if tipped_finished > 0 %}
+
+<div class="card border-0 shadow-sm mb-4">
+
+  <div class="card-body">
+
+    <h5 class="mb-3">Trefferquote</h5>
+
+    <div class="d-flex gap-1 mb-2" style="height:24px;border-radius:8px;overflow:hidden">
+
+      {% if exact > 0 %}
+
+      <div style="flex:{{ exact }};background:var(--accent)" title="Exakt: {{ exact }}"></div>
+
+      {% endif %}
+
+      {% if goal_diff > 0 %}
+
+      <div style="flex:{{ goal_diff }};background:#3b82f6" title="Tordiff.: {{ goal_diff }}"></div>
+
+      {% endif %}
+
+      {% if tendency > 0 %}
+
+      <div style="flex:{{ tendency }};background:#8b5cf6" title="Tendenz: {{ tendency }}"></div>
+
+      {% endif %}
+
+      {% if wrong > 0 %}
+
+      <div style="flex:{{ wrong }};background:#e5e7eb" title="Falsch: {{ wrong }}"></div>
+
+      {% endif %}
+
+    </div>
+
+    <div class="d-flex gap-3 flex-wrap" style="font-size:.8rem">
+
+      <span style="color:var(--accent)"><i class="bi bi-suit-diamond-fill text-warning"></i> Exakt: {{ exact }} ({{ (exact/tipped_finished*100)|round|int }}%)</span>
+
+      <span style="color:#3b82f6"><i class="bi bi-suit-diamond-fill text-warning"></i> Tordiff.: {{ goal_diff }} ({{ (goal_diff/tipped_finished*100)|round|int }}%)</span>
+
+      <span style="color:#8b5cf6"><i class="bi bi-suit-diamond-fill text-warning"></i> Tendenz: {{ tendency }} ({{ (tendency/tipped_finished*100)|round|int }}%)</span>
+
+      <span style="color:#9ca3af"><i class="bi bi-suit-diamond-fill text-warning"></i> Falsch: {{ wrong }} ({{ (wrong/tipped_finished*100)|round|int }}%)</span>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- Punkte nach Phase -->
+
+{% if phase_pts %}
+
+<div class="card border-0 shadow-sm mb-4">
+
+  <div class="card-body">
+
+    <h5 class="mb-3">Punkte nach Phase</h5>
+
+    <div class="d-flex flex-wrap gap-3">
+
+      {% for key, label in phase_labels.items() %}
+
+      {% if phase_pts.get(key, 0) > 0 %}
+
+      <div class="text-center">
+
+        <div class="fw-bold fs-5" style="color:var(--accent)">{{ phase_pts.get(key, 0) }}</div>
+
+        <div class="text-muted" style="font-size:.75rem">{{ label }}</div>
+
+      </div>
+
+      {% endif %}
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endif %}
+
+
+
+<!-- Bestes Spiel -->
+
+{% if best_match and best_pts > 0 %}
+
+<div class="card border-0 shadow-sm mb-4">
+
+  <div class="card-body">
+
+    <h5 class="mb-1">Bestes Spiel</h5>
+
+    {% set home = best_match.home_team.name if best_match.home_team else (best_match.home_placeholder or 'TBD') %}
+
+    {% set away = best_match.away_team.name if best_match.away_team else (best_match.away_placeholder or 'TBD') %}
+
+    <div class="d-flex align-items-center gap-3 mt-2">
+
+      <div class="fs-2 fw-bold rank-1">{{ best_pts }} Pkt</div>
+
+      <div>
+
+        <div class="fw-semibold">{{ home }} vs. {{ away }}</div>
+
+        <div class="text-muted small">Sp.{{ best_match.match_number }}
+
+          {% if best_match.id == joker_match_id %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker{% endif %}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endif %}
+
+
+
+{% endif %}{# end total_finished == 0 #}
+</div>{# end tab-me #}
+
+<div class="tab-pane fade" id="tab-all" role="tabpanel">
+{% if total_finished == 0 %}
+<div class="alert alert-info">Noch keine abgeschlossenen Spiele – komm nach dem ersten Spieltag wieder!</div>
+{% else %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0 align-middle">
+      <thead style="background:#1E4E8C;color:#fff">
+        <tr>
+          <th class="ps-3">#</th>
+          <th>Name</th>
+          <th class="text-end">Punkte</th>
+          <th class="text-end d-none d-sm-table-cell">Exakt</th>
+          <th class="text-end d-none d-sm-table-cell">Tordiff.</th>
+          <th class="text-end d-none d-sm-table-cell">Tendenz</th>
+          <th class="text-end pe-3 d-none d-md-table-cell">Getippt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in all_users_stats %}
+        <tr {% if row.is_me %}style="background:rgba(30,78,140,.1);font-weight:600"{% endif %}>
+          <td class="ps-3 text-muted">{{ loop.index }}</td>
+          <td>
+            {{ row.name }}
+            {% if row.is_me %}<span class="badge ms-1" style="background:var(--accent);color:#fff;font-size:.7rem">ich</span>{% endif %}
+          </td>
+          <td class="text-end fw-bold" style="color:var(--accent)">{{ row.pts }}</td>
+          <td class="text-end d-none d-sm-table-cell">{{ row.exact }}</td>
+          <td class="text-end d-none d-sm-table-cell">{{ row.goal_diff }}</td>
+          <td class="text-end d-none d-sm-table-cell">{{ row.tendency }}</td>
+          <td class="text-end pe-3 d-none d-md-table-cell text-muted">{{ row.tipped }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+</div>{# end tab-all #}
+
+<div class="tab-pane fade" id="tab-chart" role="tabpanel">
+{% if date_labels %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Formkurve – Punkte im Turnierverlauf</h5>
+    <canvas id="formChart" style="max-height:320px"></canvas>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ date_labels | tojson }};
+const allData = {{ all_users_cum | tojson }};
+const currentUser = {{ current_user_name | tojson }};
+const palette = ['#7EC8E3','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16'];
+const datasets = Object.entries(allData).map(([name, pts], i) => ({
+  label: name,
+  data: pts,
+  borderColor: name === currentUser ? '#7EC8E3' : palette[(i + 1) % palette.length],
+  backgroundColor: 'transparent',
+  borderWidth: name === currentUser ? 3 : 1.5,
+  borderDash: name === currentUser ? [] : [4, 3],
+  pointRadius: name === currentUser ? 4 : 0,
+  tension: 0.3,
+  order: name === currentUser ? 0 : 1,
+}));
+new Chart(document.getElementById('formChart'), {
+  type: 'line',
+  data: { labels, datasets },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+      y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+</script>
+{% else %}
+<div class="alert alert-info mt-2">Noch keine Daten für die Formkurve.</div>
+{% endif %}
+</div>{# end tab-chart #}
+
+</div>{# end tab-content #}
+
+{% endblock %}
+

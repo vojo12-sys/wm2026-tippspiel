@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Admin</h1>
+
+{% if flash %}
+<div class="alert alert-{{ flash.type }} alert-dismissible fade show">
+  {{ flash.message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<ul class="nav nav-tabs mb-4" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-ergebnisse" type="button">Ergebnisse</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-kasse" type="button">Kasse</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-punktesystem" type="button">Punktesystem</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-regeln" type="button">Spielregeln</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-nutzer" type="button">Nutzer</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-sync" type="button">Sync</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-demo" type="button">Demo</button></li>
+  <li class="nav-item ms-auto">
+    <a href="/admin/urkunden" class="btn btn-accent btn-sm" target="_blank">
+      🏆 Siegerurkunden
+    </a>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- ════ ERGEBNISSE ════ -->
+  <div class="tab-pane fade show active" id="tab-ergebnisse">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="mb-3">Offene Spiele</h5>
+        {% if open_matches %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead class="table-light"><tr><th>Sp.</th><th>Datum</th><th>Heim</th><th>Ergebnis</th><th>Gast</th><th>Ort</th></tr></thead>
+            <tbody>
+            {% for m in open_matches %}
+            {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+            {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+            <tr>
+              <td><small class="text-muted">{{ m.match_number }}</small></td>
+              <td><small>{{ m.kickoff_utc.strftime('%d.%m %H:%M') if m.kickoff_utc else '—' }}</small></td>
+              <td class="fw-semibold" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ home }}</td>
+              <td>
+                <form method="post" action="/admin/result/{{ m.id }}" class="d-flex align-items-center gap-1">
+                  <input type="number" name="result_home" class="form-control form-control-sm score-input"
+                         value="{{ m.result_home if m.result_home is not none else '' }}" min="0" placeholder="—">
+                  <span class="fw-bold">:</span>
+                  <input type="number" name="result_away" class="form-control form-control-sm score-input"
+                         value="{{ m.result_away if m.result_away is not none else '' }}" min="0" placeholder="—">
+                  <button type="submit" class="btn btn-accent btn-sm">✓</button>
+                </form>
+              </td>
+              <td class="fw-semibold" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ away }}</td>
+              <td><small class="text-muted">{{ m.venue or '' }}</small></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Keine offenen Spiele.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if finished_matches %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5>Abgeschlossene Spiele
+          <button class="btn btn-sm btn-outline-secondary ms-2" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#finishedList">Anzeigen</button>
+        </h5>
+        <div class="collapse" id="finishedList">
+          <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle">
+              <thead class="table-light"><tr><th>Sp.</th><th>Heim</th><th>Ergebnis</th><th>Gast</th><th></th></tr></thead>
+              <tbody>
+              {% for m in finished_matches %}
+              {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+              {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+              <tr>
+                <td><small class="text-muted">{{ m.match_number }}</small></td>
+                <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ home }}</td>
+                <td class="fw-bold">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</td>
+                <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ away }}</td>
+                <td>
+                  <form method="post" action="/admin/result/{{ m.id }}/undo">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Zurücksetzen</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ════ KASSE ════ -->
+  <div class="tab-pane fade" id="tab-kasse">
+
+    <!-- Kassen-Einstellungen -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="mb-3">Kassen-Einstellungen</h5>
+        <form method="post" action="/admin/pool">
+          <div class="row g-3 mb-3">
+            <div class="col-auto d-flex align-items-center gap-2">
+              <input type="checkbox" name="enabled" class="form-check-input" id="pool_enabled"
+                     {% if pool.get('enabled', True) %}checked{% endif %}>
+              <label for="pool_enabled" class="form-check-label fw-semibold">Kasse aktiv</label>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Einsatz pro Tipper (€)</label>
+              <input type="number" name="buy_in" class="form-control" step="0.50" min="1"
+                     value="{{ pool.get('buy_in', 20) }}">
+            </div>
+          </div>
+
+          <h6 class="mt-3">Auszahlungsschlüssel (in %)</h6>
+          <p class="text-muted small">Die Werte werden automatisch auf 100 % normiert. Schwellenwerte bestimmen wann die nächste Stufe gilt.</p>
+
+          {% set t3 = tiers.get('3', [60, 30, 10]) %}
+          {% set t4 = tiers.get('4', [50, 25, 15, 10]) %}
+          {% set t5 = tiers.get('5', [40, 25, 20, 10, 5]) %}
+
+          <div class="row g-3 mb-2">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Bis <input type="number" name="threshold_4_minus1" class="form-control form-control-sm d-inline-block" style="width:60px" value="{{ thresholds[0]|default(15) - 1 }}" min="1" max="99"> Einzahler → Top 3</label>
+              <div class="d-flex gap-2 mt-1">
+                {% for i in range(3) %}
+                <div>
+                  <small class="text-muted">Platz {{ i+1 }}</small>
+                  <input type="number" name="t3_{{ i+1 }}" class="form-control form-control-sm"
+                         value="{{ (t3[i] * 100)|round|int }}" min="0" max="100" style="width:70px">
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Ab {{ thresholds[0]|default(15) }} Einzahler → Top 4</label>
+              <div class="d-flex gap-2 mt-1">
+                {% for i in range(4) %}
+                <div>
+                  <small class="text-muted">Platz {{ i+1 }}</small>
+                  <input type="number" name="t4_{{ i+1 }}" class="form-control form-control-sm"
+                         value="{{ (t4[i] * 100)|round|int }}" min="0" max="100" style="width:70px">
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Ab <input type="number" name="threshold_5" class="form-control form-control-sm d-inline-block" style="width:60px" value="{{ thresholds[1]|default(20) }}"> Einzahler → Top 5</label>
+              <div class="d-flex gap-2 mt-1">
+                {% for i in range(5) %}
+                <div>
+                  <small class="text-muted">Platz {{ i+1 }}</small>
+                  <input type="number" name="t5_{{ i+1 }}" class="form-control form-control-sm"
+                         value="{{ (t5[i] * 100)|round|int }}" min="0" max="100" style="width:70px">
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-accent mt-2">Kasse speichern</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Pool-Verwaltung pro Nutzer -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-1">Tipper-Übersicht</h5>
+        <p class="text-muted small mb-3">Lege fest wer am Pott teilnimmt und wer bereits bezahlt hat.</p>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Teilnehmer</th>
+                <th class="text-center">Zahlt mit</th>
+                <th class="text-center">Bezahlt</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+              <td>{{ u.display_name }} {% if u.is_admin %}<span class="badge bg-secondary">Admin</span>{% endif %}</td>
+              <form method="post" action="/admin/user/{{ u.id }}/pool">
+              <td class="text-center">
+                <input type="checkbox" name="in_pool" class="form-check-input pool-check"
+                       data-user="{{ u.id }}" {% if u.in_pool %}checked{% endif %}>
+              </td>
+              <td class="text-center">
+                <input type="checkbox" name="has_paid" class="form-check-input paid-check"
+                       data-user="{{ u.id }}" {% if not u.in_pool %}disabled{% endif %}
+                       {% if u.has_paid %}checked{% endif %}>
+              </td>
+              <td>
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Speichern</button>
+              </form>
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted small mt-2">
+          Zahlende: <strong>{{ users|selectattr('in_pool')|list|length }}</strong> ·
+          Davon bezahlt: <strong>{{ users|selectattr('has_paid')|list|length }}</strong> ·
+          Topf: <strong>{{ (users|selectattr('in_pool')|list|length * pool.get('buy_in', 20))|round(2) }} €</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PUNKTESYSTEM ════ -->
+  <div class="tab-pane fade" id="tab-punktesystem">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-3">Punktesystem bearbeiten</h5>
+        <form method="post" action="/admin/scoring">
+          <h6 class="text-muted text-uppercase small mb-2">Spiel-Tipps</h6>
+          <div class="row g-3 mb-4">
+            {% set fields = [
+              ('exact', 'Exaktes Ergebnis'),
+              ('goal_diff', 'Richtige Tordifferenz'),
+              ('tendency', 'Richtige Tendenz (Sieg/Unent./Niederlage)'),
+              ('ko_advance_bonus', 'K.o.-Bonus (richtiges Team weiter)'),
+            ] %}
+            {% for key, label in fields %}
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">{{ label }}</label>
+              <div class="input-group" style="max-width:180px">
+                <input type="number" name="{{ key }}" class="form-control" min="0" max="99"
+                       value="{{ scoring.get(key, 0) }}">
+                <span class="input-group-text">Pkt</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <h6 class="text-muted text-uppercase small mb-2">Langfrist-Tipps</h6>
+          <div class="row g-3 mb-4">
+            {% set lf_fields = [
+              ('group_first', 'Gruppensieger richtig'),
+              ('group_second', 'Gruppenzweiter richtig'),
+              ('champion', 'Weltmeister'),
+              ('top_scorer', 'Torschützenkönig'),
+              ('total_goals', 'Gesamttore (innerhalb Toleranz)'),
+              ('total_goals_tolerance', 'Toleranz Gesamttore (± Tore)'),
+            ] %}
+            {% for key, label in lf_fields %}
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">{{ label }}</label>
+              <div class="input-group" style="max-width:180px">
+                <input type="number" name="{{ key }}" class="form-control" min="0" max="99"
+                       value="{{ scoring.get(key, 0) }}">
+                <span class="input-group-text">{% if 'tolerance' in key %}Tore{% else %}Pkt{% endif %}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn-accent">Punktesystem speichern</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SPIELREGELN ════ -->
+  <div class="tab-pane fade" id="tab-regeln">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-1">Spielregeln bearbeiten</h5>
+        <p class="text-muted small mb-3">
+          Der Text wird auf der öffentlichen <a href="/regeln" target="_blank">/regeln</a>-Seite angezeigt.
+          Du kannst Platzhalter verwenden: <code>{exact}</code>, <code>{champion}</code>, <code>{buy_in}</code> etc. –
+          diese werden automatisch mit den aktuellen Werten ersetzt.
+        </p>
+        <form method="post" action="/admin/rules">
+          <textarea name="rules_text" class="form-control font-monospace mb-3"
+                    rows="20" style="font-size:.83rem">{{ rules }}</textarea>
+          <button type="submit" class="btn btn-accent">Regeln speichern</button>
+          <a href="/regeln" target="_blank" class="btn btn-outline-secondary ms-2">Vorschau</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ NUTZER ════ -->
+  <div class="tab-pane fade" id="tab-nutzer">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="mb-3">Teilnehmer ({{ users|length }})</h5>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead class="table-light"><tr><th>Benutzername</th><th>Anzeigename</th><th>Admin</th><th></th></tr></thead>
+            <tbody>
+              {% for u in users %}
+              <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.display_name }}</td>
+                <td>{% if u.is_admin %}<span class="badge bg-success">Ja</span>{% endif %}</td>
+                <td>
+                  {% if u.id != user.id %}
+                  <form method="post" action="/admin/user/{{ u.id }}/toggle-admin" class="d-inline">
+                    <button class="btn btn-outline-secondary btn-sm">
+                      {{ 'Admin entfernen' if u.is_admin else 'Admin machen' }}
+                    </button>
+                  </form>
+                  <button class="btn btn-outline-warning btn-sm" type="button"
+                          data-bs-toggle="collapse" data-bs-target="#pw-reset-{{ u.id }}">
+                    <i class="bi bi-key"></i> Passwort
+                  </button>
+                  <form method="post" action="/admin/user/{{ u.id }}/delete" class="d-inline"
+                        onsubmit="return confirm('Nutzer {{ u.display_name }} und alle Tipps löschen?')">
+                    <button class="btn btn-outline-danger btn-sm">Löschen</button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr class="collapse" id="pw-reset-{{ u.id }}">
+                <td colspan="4" class="bg-light py-2 px-3">
+                  <form method="post" action="/admin/user/{{ u.id }}/reset-password" class="d-flex gap-2 align-items-center">
+                    <span class="small text-muted">Neues Passwort für {{ u.display_name }}:</span>
+                    <input type="password" name="new_password" class="form-control form-control-sm" style="max-width:180px"
+                           required minlength="6" placeholder="mind. 6 Zeichen">
+                    <button type="submit" class="btn btn-warning btn-sm">Setzen</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <h6 class="mt-4">Neuen Nutzer anlegen</h6>
+        <form method="post" action="/admin/user/create" class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Benutzername *</label>
+            <input type="text" name="username" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Anzeigename</label>
+            <input type="text" name="display_name" class="form-control form-control-sm">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label form-label-sm">Passwort *</label>
+            <input type="password" name="password" class="form-control form-control-sm" required minlength="6">
+          </div>
+          <div class="col-md-2 d-flex align-items-center gap-1 pt-3">
+            <input type="checkbox" name="is_admin_flag" class="form-check-input" id="new_admin" value="true">
+            <label for="new_admin" class="form-check-label small">Admin</label>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-accent btn-sm w-100">Anlegen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ SYNC ════ -->
+  <div class="tab-pane fade" id="tab-sync">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5>Automatische Ergebnisse</h5>
+        <p class="text-muted small mb-3">Ergebnisse werden alle 5 Minuten automatisch von football-data.org geholt, sofern <code>FOOTBALL_API_KEY</code> gesetzt ist.</p>
+        <form method="post" action="/admin/sync">
+          <button type="submit" class="btn btn-outline-secondary">Jetzt manuell synchronisieren</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ DEMO ════ -->
+  <div class="tab-pane fade" id="tab-demo">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h5>Komplette WM simulieren</h5>
+            <p class="text-muted small mb-3">Simuliert alle 104 Spiele mit Zufallsergebnissen, berechnet Gruppenranglisten, füllt K.o.-Brackets und vergibt Punkte für alle Nutzer.</p>
+            <form method="post" action="/admin/demo/simulate"
+                  onsubmit="return confirm('Komplette WM simulieren? Das kann 10-20 Sekunden dauern.')">
+              <button type="submit" class="btn btn-accent">Komplette WM simulieren</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h5>Demo zurücksetzen</h5>
+            <p class="text-muted small mb-3">Löscht alle simulierten Ergebnisse, Tipps und Gruppen-Resultate. Setzt K.o.-Platzhalter zurück.</p>
+            <form method="post" action="/admin/demo/reset"
+                  onsubmit="return confirm('Alle Demo-Daten zurücksetzen?')">
+              <button type="submit" class="btn btn-outline-danger">Demo zurücksetzen</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- tab-content -->
+
+<script>
+/* Pool-Checkbox: bezahlt nur aktivierbar wenn "zahlt mit" aktiv */
+document.querySelectorAll('.pool-check').forEach(cb => {
+  cb.addEventListener('change', function() {
+    const uid = this.dataset.user;
+    const paidCb = document.querySelector(`.paid-check[data-user="${uid}"]`);
+    if (paidCb) {
+      paidCb.disabled = !this.checked;
+      if (!this.checked) paidCb.checked = false;
+    }
+  });
+});
+</script>
+{% endblock %}

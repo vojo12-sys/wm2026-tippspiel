@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-12 col-sm-8 col-md-5">
+    <div class="d-flex align-items-center gap-2 mb-4">
+      <img src="/static/img/lew_logo.png" style="height:48px;width:auto" alt="LEW">
+      <div>
+        <div class="brand-title">WM 2026 Tippspiel</div>
+        <div class="brand-sub">LEW Automotive · Kanada · Mexiko · USA</div>
+      </div>
+    </div>
+    <h2 class="mb-4">Registrieren</h2>
+    {% if flash %}
+    <div class="alert alert-{{ flash.type }}">{{ flash.message }}</div>
+    {% endif %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form method="post" action="/register">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Benutzername</label>
+            <input type="text" name="username" class="form-control" required autofocus
+                   placeholder="Eindeutiger Login-Name" autocomplete="username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Anzeigename</label>
+            <input type="text" name="display_name" class="form-control"
+                   placeholder="Wie sollen andere dich sehen?" autocomplete="nickname">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Passwort</label>
+            <input type="password" name="password" class="form-control" required minlength="6" autocomplete="new-password">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Passwort wiederholen</label>
+            <input type="password" name="password2" class="form-control" required minlength="6" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-accent w-100">Konto erstellen</button>
+        </form>
+      </div>
+    </div>
+    <p class="text-center mt-3 text-muted small">
+      Schon registriert? <a href="/login">Einloggen</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
