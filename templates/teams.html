@@ -24,9 +24,9 @@
 .squad-photo { width:36px; height:36px; border-radius:50%; object-fit:cover;
   border:2px solid var(--border); flex-shrink:0; background:#e4e9ef; }
 .squad-photo-placeholder { width:36px; height:36px; border-radius:50%;
-  background:linear-gradient(135deg,#e4e9ef,#cdd6de);
   display:flex; align-items:center; justify-content:center;
-  flex-shrink:0; color:#8a9ab0; font-size:.85rem; }
+  flex-shrink:0; font-size:.72rem; font-weight:700; color:#fff;
+  letter-spacing:.02em; font-family:'Hanken Grotesk',sans-serif; }
 .squad-name { font-weight:600; font-size:.88rem; flex:1; }
 .squad-club { font-size:.75rem; color:var(--muted); }
 .squad-pos-badge { font-size:.62rem; font-weight:700; padding:2px 6px; border-radius:4px;
@@ -161,12 +161,6 @@
         <a id="modalWikiLink" href="#" target="_blank" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-wikipedia me-1"></i>Wikipedia
         </a>
-        {% if not has_photos %}
-        <span class="text-muted small">
-          <i class="bi bi-info-circle me-1"></i>
-          Fotos verfügbar mit <code>SPORTSDB_API_KEY</code>
-        </span>
-        {% endif %}
       </div>
     </div>
   </div>
@@ -178,6 +172,23 @@ const SQUADS = {{ squad_map | tojson }};
 const HAS_PHOTOS = {{ 'true' if has_photos else 'false' }};
 
 const POS_ORDER = ['Torwart','Abwehr','Mittelfeld','Angriff'];
+
+const AVATAR_COLORS = [
+  '#1E4E8C','#2e7d6b','#7b3fa0','#c0541a',
+  '#1a7bbf','#a03060','#4a7a1e','#8a5c00',
+];
+
+function playerInitials(name) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
 
 document.querySelectorAll('[data-sec]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -218,7 +229,7 @@ squadModal.addEventListener('show.bs.modal', e => {
     for (const p of players) {
       const photo = HAS_PHOTOS && p.photo
         ? `<img class="squad-photo" src="${p.photo}" alt="${p.name}">`
-        : `<div class="squad-photo-placeholder"><i class="bi bi-person"></i></div>`;
+        : `<div class="squad-photo-placeholder" style="background:${avatarColor(p.name)}">${playerInitials(p.name)}</div>`;
       html += `<div class="squad-row">
         ${photo}
         <div style="flex:1;min-width:0">
