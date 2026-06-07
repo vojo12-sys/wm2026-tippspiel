@@ -259,12 +259,20 @@
         </tr>
         <tr>
           <td class="col-match">Langfrist-Punkte</td>
-          {% for u in users %}<td class="text-center col-user total-pts">{{ longterm_pts.get(u.id, 0) }}</td>{% endfor %}
+          {% for u in users %}
+          <td class="text-center col-user total-pts">
+            {% if langfrist_visible or u.id == user.id %}{{ longterm_pts.get(u.id, 0) }}{% else %}🔒{% endif %}
+          </td>
+          {% endfor %}
         </tr>
         <tr class="grand-row">
           <td class="col-match">Gesamt</td>
           {% for u in users %}
-          <td class="text-center grand-pts col-user">{{ match_pts.get(u.id, 0) + longterm_pts.get(u.id, 0) }}</td>
+          <td class="text-center grand-pts col-user">
+            {% if langfrist_visible %}{{ match_pts.get(u.id, 0) + longterm_pts.get(u.id, 0) }}
+            {% elif u.id == user.id %}{{ match_pts.get(u.id, 0) + longterm_pts.get(u.id, 0) }}
+            {% else %}{{ match_pts.get(u.id, 0) }}{% endif %}
+          </td>
           {% endfor %}
         </tr>
       </tbody>
@@ -291,8 +299,10 @@
           {% set sp = special_map.get(u.id, {}) %}
           {% set correct = tournament_result and tournament_result.champion and sp.get('champion') == tournament_result.champion %}
           <td class="text-center col-user">
+            {% if langfrist_visible or u.id == user.id %}
             <span class="{% if correct %}lt-correct{% else %}lt-wrong{% endif %}">{{ sp.get('champion', '—') }}</span>
             {% if correct %}<div class="lt-pts">{{ sp.get('champion_pts_val', 15) }} Pkt</div>{% endif %}
+            {% else %}<span class="text-muted">🔒</span>{% endif %}
           </td>
           {% endfor %}
           {% if tournament_result %}<td class="text-center fw-bold" style="color:#c08a12">{{ tournament_result.champion or '?' }}</td>{% endif %}
@@ -306,8 +316,10 @@
           {% set sp = special_map.get(u.id, {}) %}
           {% set correct = tournament_result and tournament_result.scorer and sp.get('scorer') == tournament_result.scorer %}
           <td class="text-center col-user">
+            {% if langfrist_visible or u.id == user.id %}
             <span class="{% if correct %}lt-correct{% else %}lt-wrong{% endif %}">{{ sp.get('scorer', '—') }}</span>
             {% if correct %}<div class="lt-pts">{{ sp.get('scorer_pts_val', 10) }} Pkt</div>{% endif %}
+            {% else %}<span class="text-muted">🔒</span>{% endif %}
           </td>
           {% endfor %}
           {% if tournament_result %}<td class="text-center fw-bold" style="color:#c08a12">{{ tournament_result.scorer or '?' }}</td>{% endif %}
@@ -323,8 +335,10 @@
           {% set tol = sp.get('goals_tol', 5) %}
           {% set correct = tournament_result and tournament_result.goals is not none and gv is not none and (gv - tournament_result.goals)|abs <= tol %}
           <td class="text-center col-user">
+            {% if langfrist_visible or u.id == user.id %}
             <span class="{% if correct %}lt-correct{% else %}lt-wrong{% endif %}">{{ gv if gv is not none else '—' }}</span>
             {% if correct %}<div class="lt-pts">{{ sp.get('goals_pts_val', 5) }} Pkt</div>{% endif %}
+            {% else %}<span class="text-muted">🔒</span>{% endif %}
           </td>
           {% endfor %}
           {% if tournament_result %}<td class="text-center fw-bold" style="color:#c08a12">{{ tournament_result.goals or '?' }}</td>{% endif %}
@@ -354,14 +368,16 @@
           {% for u in users %}
           {% set gp = group_pred_map.get(u.id, {}).get(letter) %}
           <td class="text-center col-user">
-            {% if gp %}
-              {% set p1, p2, gpts = gp %}
-              <div style="font-size:.85rem">
-                <span class="{% if actual[0] and p1 == actual[0] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p1 }}</span><br>
-                <span class="{% if actual[1] and p2 == actual[1] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
-              </div>
-              {% if gpts %}<div class="lt-pts">{{ gpts }} Pkt</div>{% endif %}
-            {% else %}<span class="text-muted">—</span>{% endif %}
+            {% if langfrist_visible or u.id == user.id %}
+              {% if gp %}
+                {% set p1, p2, gpts = gp %}
+                <div style="font-size:.85rem">
+                  <span class="{% if actual[0] and p1 == actual[0] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p1 }}</span><br>
+                  <span class="{% if actual[1] and p2 == actual[1] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
+                </div>
+                {% if gpts %}<div class="lt-pts">{{ gpts }} Pkt</div>{% endif %}
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            {% else %}<span class="text-muted">🔒</span>{% endif %}
           </td>
           {% endfor %}
         </tr>

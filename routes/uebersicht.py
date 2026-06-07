@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 
-from config import DISPLAY_TIMEZONE, PHASES
+from config import DISPLAY_TIMEZONE, PHASES, TOURNAMENT_START_UTC
 from database import get_session
 from deps import require_user, templates
 from models import GroupPrediction, GroupResult, Match, Prediction, SpecialTip, Team, TournamentResult, User
@@ -158,6 +158,8 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
 
     groups_with_results = sorted(group_results.keys())
 
+    langfrist_visible = datetime.now(timezone.utc) >= datetime.fromisoformat(TOURNAMENT_START_UTC)
+
     # ── by_phase für Kompatibilität ───────────────────────────────
     by_phase: dict[str, list[Match]] = {}
     for m in locked_matches:
@@ -181,5 +183,6 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
         "groups_with_results": groups_with_results,
         "special_map": special_map,
         "tournament_result": tournament_result,
+        "langfrist_visible": langfrist_visible,
         "flash": request.session.pop("flash", None),
     })
