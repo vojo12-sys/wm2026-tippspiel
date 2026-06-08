@@ -118,11 +118,11 @@
       {% else %}<span class="badge" style="background:#4aaec8;color:#fff;font-size:.8rem"><i class="bi bi-unlock-fill me-1"></i>offen</span>{% endif %}
 
       {% if tipped %}
-        <span class="badge ms-1" style="background:#28a745;color:#fff;font-size:.8rem">
+        <span class="badge ms-1 tipp-badge" style="background:#28a745;color:#fff;font-size:.8rem">
           <i class="bi bi-check-lg"></i> {{ ph[0] }} : {{ ph[1] }}
         </span>
       {% elif not locked %}
-        <span class="badge ms-1" style="background:#ffc107;color:#000;font-size:.8rem">
+        <span class="badge ms-1 tipp-badge" style="background:#ffc107;color:#000;font-size:.8rem">
           <i class="bi bi-exclamation-triangle-fill"></i> Kein Tipp
         </span>
       {% endif %}
@@ -321,6 +321,14 @@ document.querySelectorAll('.tipp-form').forEach(form => {
     try {
       await fetch('/tipps', {method: 'POST', body: new FormData(form)});
       inputs.forEach(i => { i.style.borderColor = '#28a745'; i.style.borderWidth = '2px'; });
+      const homeVal = inputs[0] ? inputs[0].value : '';
+      const awayVal = inputs[1] ? inputs[1].value : '';
+      const badge = form.querySelector('.tipp-badge');
+      if (badge) {
+        badge.style.background = '#28a745';
+        badge.style.color = '#fff';
+        badge.innerHTML = `<i class="bi bi-check-lg"></i> ${homeVal} : ${awayVal}`;
+      }
       btn.innerHTML = '<i class="bi bi-check-lg"></i> Gespeichert';
       btn.classList.replace('btn-accent', 'btn-success');
       setTimeout(() => {
