@@ -363,7 +363,7 @@
         <tr>
           <td class="col-match lt-decided">
             <div class="lt-label">Gruppe {{ letter }}</div>
-            <div style="font-size:.82rem">Erster: {{ actual[0] or '—' }}<br>Zweiter: {{ actual[1] or '—' }}</div>
+            <div style="font-size:.82rem">1. {{ actual[0] or '—' }}<br>2. {{ actual[1] or '—' }}</div>
           </td>
           {% for u in users %}
           {% set gp = group_pred_map.get(u.id, {}).get(letter) %}
