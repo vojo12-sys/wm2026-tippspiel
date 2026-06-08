@@ -11,7 +11,7 @@
       {% if line.strip() == '' %}
         <br>
       {% elif line.startswith('**') and line.endswith('**') and line|length > 4 %}
-        <h5 class="mt-3 mb-1">{{ line[2:-2] }}</h5>
+        <p class="mt-3 mb-1 fw-bold">{{ line[2:-2] }}</p>
       {% elif line.startswith('- ') %}
         <p class="mb-1 ms-3">• {{ line[2:] }}</p>
       {% else %}
