@@ -62,7 +62,7 @@
           <strong>Gruppe {{ letter }}</strong>
           <select name="g1_{{ letter }}" class="form-select form-select-sm mt-1 mb-1"
                   {% if locked %}disabled{% endif %}>
-            <option value="">1. Platz</option>
+            <option value="">Gruppen Erster</option>
             {% for t in grp_teams %}
             <option value="{{ t.id }}"
               {% if saved[0] == t.id %}selected{% endif %}>{{ t.name }}</option>
@@ -70,7 +70,7 @@
           </select>
           <select name="g2_{{ letter }}" class="form-select form-select-sm"
                   {% if locked %}disabled{% endif %}>
-            <option value="">2. Platz</option>
+            <option value="">Gruppen Zweiter</option>
             {% for t in grp_teams %}
             <option value="{{ t.id }}"
               {% if saved[1] == t.id %}selected{% endif %}>{{ t.name }}</option>
