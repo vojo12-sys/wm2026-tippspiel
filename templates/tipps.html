@@ -23,11 +23,11 @@
 
 </div>
 
-<p class="text-muted mb-2">{{ count }} / {{ total }} Spiele getippt · <i class="bi bi-clock me-1"></i>Tippschluss: 10 Minuten vor Anpfiff</p>
+<p class="text-muted mb-2"><span id="stat-count">{{ count }}</span> / {{ total }} Spiele getippt · <i class="bi bi-clock me-1"></i>Tippschluss: 10 Minuten vor Anpfiff</p>
 
 <div class="progress mb-3">
 
-  <div class="progress-bar progress-bar-accent" role="progressbar"
+  <div class="progress-bar progress-bar-accent" id="stat-progress" role="progressbar"
 
        style="width:{{ [(count / total * 100)|round, 100]|min }}%"></div>
 
@@ -51,12 +51,10 @@
 
 {% endif %}
 
-{% if today_open > 0 %}
-<div class="alert alert-warning py-2 mb-3 d-flex align-items-center gap-2" style="font-size:.88rem">
+<div id="today-alert" class="alert alert-warning py-2 mb-3 d-flex align-items-center gap-2{% if today_open == 0 %} d-none{% endif %}" style="font-size:.88rem">
   <i class="bi bi-clock-history"></i>
-  <span>Du hast heute noch <strong>{{ today_open }} Spiel{{ 'e' if today_open != 1 else '' }}</strong> ohne Tipp!</span>
+  <span>Du hast heute noch <strong><span id="today-count">{{ today_open }}</span> Spiel<span id="today-plural">{{ 'e' if today_open != 1 else '' }}</span></strong> ohne Tipp!</span>
 </div>
-{% endif %}
 
 
 
@@ -105,7 +103,9 @@
 
 {% set locked = m.is_locked %}
 
-<form method="post" action="/tipps" class="tipp-form">
+<form method="post" action="/tipps" class="tipp-form"
+      data-tipped="{{ 'true' if tipped else 'false' }}"
+      data-kickoff="{{ m.kickoff_utc.strftime('%Y-%m-%dT%H:%M:%SZ') if m.kickoff_utc else '' }}">
 
 <div class="match-card {% if locked %}opacity-75{% endif %}">
 
@@ -282,7 +282,10 @@
         {% endfor %}
         <div class="tab-pane fade {% if st == active_st %}show active{% endif %}"
              id="st-pane-{{ st }}" role="tabpanel">
-          <p class="text-muted mb-3" style="font-size:.8rem">{{ ns.tipped }} von {{ spieltage[st]|length }} getippt{% if ns.open > 0 %} · <span style="color:#b8860b">{{ ns.open }} noch offen</span>{% endif %}{% if ns.joker_here %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker aktiv{% elif joker_match_id is none %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker verfügbar{% endif %}</p>
+          <p class="text-muted mb-3" style="font-size:.8rem">
+            <span id="st-tipped-{{ st }}">{{ ns.tipped }}</span> von {{ spieltage[st]|length }} getippt
+            <span id="st-open-wrap-{{ st }}"{% if ns.open == 0 %} style="display:none"{% endif %}> · <span id="st-open-{{ st }}" style="color:#b8860b">{{ ns.open }}</span> noch offen</span>{% if ns.joker_here %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker aktiv{% elif joker_match_id is none %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker verfügbar{% endif %}
+          </p>
           {% set seen_groups = [] %}
           {% for m in spieltage[st] %}
             {% if m.group_letter not in seen_groups %}
@@ -333,6 +336,53 @@
 </div>
 
 <script>
+const _TOTAL = {{ total }};
+
+function _updateStats(form) {
+  if (form.dataset.tipped === 'true') return;
+  form.dataset.tipped = 'true';
+
+  // global count + progress bar
+  const countEl = document.getElementById('stat-count');
+  if (countEl) {
+    const newCount = parseInt(countEl.textContent) + 1;
+    countEl.textContent = newCount;
+    const bar = document.getElementById('stat-progress');
+    if (bar) bar.style.width = Math.min(newCount / _TOTAL * 100, 100) + '%';
+  }
+
+  // today alert
+  const kickoff = form.dataset.kickoff;
+  if (kickoff) {
+    const matchDay = new Date(kickoff).toDateString();
+    if (matchDay === new Date().toDateString()) {
+      const todayCountEl = document.getElementById('today-count');
+      const todayAlert = document.getElementById('today-alert');
+      if (todayCountEl && todayAlert) {
+        const n = Math.max(0, parseInt(todayCountEl.textContent) - 1);
+        todayCountEl.textContent = n;
+        document.getElementById('today-plural').textContent = n !== 1 ? 'e' : '';
+        todayAlert.classList.toggle('d-none', n === 0);
+      }
+    }
+  }
+
+  // spieltag sub-info (st-pane-1/2/3)
+  const stPane = form.closest('[id^="st-pane-"]');
+  if (stPane) {
+    const st = stPane.id.replace('st-pane-', '');
+    const stTippedEl = document.getElementById('st-tipped-' + st);
+    if (stTippedEl) stTippedEl.textContent = parseInt(stTippedEl.textContent) + 1;
+    const stOpenEl  = document.getElementById('st-open-' + st);
+    const stOpenWrap = document.getElementById('st-open-wrap-' + st);
+    if (stOpenEl && stOpenWrap) {
+      const nOpen = Math.max(0, parseInt(stOpenEl.textContent) - 1);
+      stOpenEl.textContent = nOpen;
+      if (nOpen === 0) stOpenWrap.style.display = 'none';
+    }
+  }
+}
+
 document.querySelectorAll('.tipp-form').forEach(form => {
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -352,6 +402,7 @@ document.querySelectorAll('.tipp-form').forEach(form => {
         badge.style.color = '#fff';
         badge.innerHTML = `<i class="bi bi-check-lg"></i> ${homeVal} : ${awayVal}`;
       }
+      _updateStats(form);
       btn.innerHTML = '<i class="bi bi-check-lg"></i> Gespeichert';
       btn.classList.replace('btn-accent', 'btn-success');
       setTimeout(() => {

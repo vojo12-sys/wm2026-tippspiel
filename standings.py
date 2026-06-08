@@ -49,21 +49,35 @@ def compute_standings() -> list[Standing]:
     with get_session() as session:
         users = session.scalars(select(User)).all()
 
-        # Spiel-Tipp-Punkte je Nutzer und Phase
-        rows = session.execute(
-            select(Prediction.user_id, Prediction.points_awarded, Prediction.match_id,
-                   Prediction.pred_home, Prediction.pred_away)
-        ).all()
+        # Spiel-Tipp-Punkte je Nutzer und Phase – nur abgeschlossene Spiele
         from models import Match
         from settings import get_scoring as _gs
         _sc = _gs()
 
         match_info = {
-            mid: (phase, rh, ra)
-            for mid, phase, rh, ra in session.execute(
-                select(Match.id, Match.phase, Match.result_home, Match.result_away)
+            mid: (phase, match_number, rh, ra)
+            for mid, phase, match_number, rh, ra in session.execute(
+                select(Match.id, Match.phase, Match.match_number, Match.result_home, Match.result_away)
             ).all()
         }
+
+        finished_ids = session.scalars(
+            select(Match.id).where(Match.is_finished.is_(True))
+        ).all()
+
+        rows = session.execute(
+            select(Prediction.user_id, Prediction.points_awarded, Prediction.match_id,
+                   Prediction.pred_home, Prediction.pred_away)
+            .where(Prediction.match_id.in_(finished_ids))
+        ).all() if finished_ids else []
+
+        def _phase_key(phase: str, match_number: int | None) -> str:
+            if phase == "group":
+                mn = match_number or 0
+                if mn <= 24:  return "st1"
+                if mn <= 48:  return "st2"
+                return "st3"
+            return phase
 
         match_pts: dict[int, dict[str, int]] = {}
         exact_c: dict[int, int] = {}
@@ -72,8 +86,10 @@ def compute_standings() -> list[Standing]:
 
         for uid, pts, mid, ph, pa in rows:
             info = match_info.get(mid)
-            phase = info[0] if info else "group"
-            rh, ra = (info[1], info[2]) if info else (None, None)
+            raw_phase = info[0] if info else "group"
+            match_num = info[1] if info else None
+            rh, ra    = (info[2], info[3]) if info else (None, None)
+            phase     = _phase_key(raw_phase, match_num)
 
             match_pts.setdefault(uid, {}).setdefault(phase, 0)
             match_pts[uid][phase] += pts or 0
@@ -84,7 +100,7 @@ def compute_standings() -> list[Standing]:
                     exact_c[uid] = exact_c.get(uid, 0) + 1
                 elif base >= _sc["goal_diff"]:
                     goal_diff_c[uid] = goal_diff_c.get(uid, 0) + 1
-                elif base >= _sc["tendency"]:
+                elif base >= _sc["tendency"] and base > 0:
                     tendency_c[uid] = tendency_c.get(uid, 0) + 1
 
         # Langfrist: Gruppen-Tipps

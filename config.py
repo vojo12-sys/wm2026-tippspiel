@@ -44,8 +44,8 @@ FLAG_BASE_URL = "https://flagcdn.com"  # -> {base}/{size}/{code}.png
 DEFAULT_SCORING = {
     # --- Spiel-Tipps (Ergebnis) ---
     "exact": 4,            # exaktes Ergebnis
-    "goal_diff": 3,        # richtige Tordifferenz (nicht exakt)
-    "tendency": 2,         # richtige Tendenz (Sieger / Unentschieden)
+    "goal_diff": 2,        # richtige Tordifferenz (nicht exakt)
+    "tendency": 1,         # richtige Tendenz (Sieger / Unentschieden)
     "ko_advance_bonus": 1, # K.-o.: richtiges weiterkommendes Team (Zusatzpunkt)
 
     # --- Gruppen-Platzierungen (Langfrist) ---

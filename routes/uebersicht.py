@@ -105,6 +105,43 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
                 "goals":    tr.total_goals,
             }
 
+        # ── Joker-Info ────────────────────────────────────────────
+        joker_info = []
+        for u_raw in users_raw:
+            if u_raw.joker_match_id is None:
+                continue
+            jm = s.get(Match, u_raw.joker_match_id)
+            if not jm:
+                continue
+            _ = jm.home_team, jm.away_team
+            home_name = str(jm.home_team.name) if jm.home_team else str(jm.home_placeholder or "TBD")
+            away_name = str(jm.away_team.name) if jm.away_team else str(jm.away_placeholder or "TBD")
+            jpred = s.scalar(
+                select(Prediction).where(
+                    Prediction.user_id == u_raw.id,
+                    Prediction.match_id == jm.id,
+                )
+            )
+            _phase_labels = {
+                "st1": "Spieltag 1", "st2": "Spieltag 2", "st3": "Spieltag 3",
+                "round32": "Sechzehntelfinale", "round16": "Achtelfinale",
+                "quarter": "Viertelfinale", "semi": "Halbfinale",
+                "third_place": "Spiel um Platz 3", "final": "Finale",
+            }
+            if jm.phase == "group":
+                _mn = jm.match_number or 0
+                _jphase_key = "st1" if _mn <= 24 else "st2" if _mn <= 48 else "st3"
+            else:
+                _jphase_key = jm.phase
+            joker_info.append({
+                "user":       str(u_raw.display_name),
+                "match":      f"{home_name} – {away_name}",
+                "phase":      _phase_labels.get(_jphase_key, "Gruppenphase"),
+                "pred":       f"{jpred.pred_home}:{jpred.pred_away}" if jpred else None,
+                "pts":        int(jpred.points_awarded or 0) if jpred else None,
+                "has_result": bool(jm.result_home is not None),
+            })
+
     # ── Nach Turnierphase/Spieltag gruppieren ────────────────────
     ROUND_ORDER = ["st1", "st2", "st3", "round32", "round16", "quarter", "semi", "third_place", "final"]
     ROUND_LABELS = {
@@ -158,7 +195,9 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
 
     groups_with_results = sorted(group_results.keys())
 
-    langfrist_visible = datetime.now(timezone.utc) >= datetime.fromisoformat(TOURNAMENT_START_UTC)
+    _tournament_started = datetime.now(timezone.utc) >= datetime.fromisoformat(TOURNAMENT_START_UTC)
+    _any_result = any(m.result_home is not None for m in locked_matches)
+    langfrist_visible = _tournament_started or _any_result
 
     # ── by_phase für Kompatibilität ───────────────────────────────
     by_phase: dict[str, list[Match]] = {}
@@ -185,4 +224,5 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
         "tournament_result": tournament_result,
         "langfrist_visible": langfrist_visible,
         "flash": request.session.pop("flash", None),
+        "joker_info": joker_info,
     })

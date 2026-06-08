@@ -12,7 +12,7 @@
 .overview-wrap { overflow-x: visible; }
 .overview-table { border-collapse: separate; border-spacing: 0; min-width: max-content; table-layout: fixed; }
 .overview-table .col-match { width: 180px; min-width: 180px; }
-.overview-table .col-user  { width: 80px;  min-width: 80px; max-width: 80px; }
+.overview-table .col-user  { width: 110px;  min-width: 110px; max-width: 110px; }
 .overview-table th, .overview-table td {
   padding: 5px 8px;
   border-bottom: 1px solid var(--border);
@@ -28,7 +28,7 @@
   color: #16202b;
   text-transform: none !important;
   letter-spacing: 0 !important;
-  width: 80px; min-width: 80px; max-width: 80px;
+  width: 110px; min-width: 110px; max-width: 110px;
   padding: 5px 3px;
   white-space: nowrap;
   overflow: hidden;
@@ -36,7 +36,7 @@
   text-align: center;
 }
 .overview-table td.col-user {
-  width: 80px; min-width: 80px; max-width: 80px;
+  width: 110px; min-width: 110px; max-width: 110px;
   padding: 5px 2px;
   background: #fff;
   overflow: hidden;
@@ -77,7 +77,7 @@
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700; font-size: .82rem;
   text-transform: uppercase; letter-spacing: .04em;
-  color: var(--muted); border-bottom: 2px solid var(--border);
+  color: #16202b; border-bottom: 2px solid var(--border);
 }
 .overview-table .col-match {
   position: sticky; left: 0; background: #fff; z-index: 2;
@@ -105,18 +105,18 @@
   border-top: 2px solid #1E4E8C;
 }
 .total-pts { font-size: 1.1rem; font-weight: 800;
-  background: rgba(30,78,140,.18) !important; color: #16202b !important; }
+  background: #fff !important; color: #16202b !important; }
 .grand-row td {
   background: #fff; color: #16202b; font-weight: 700;
   font-family: 'Bricolage Grotesque', sans-serif;
   border-top: 2px solid #1E4E8C;
 }
 .grand-pts { font-size: 1.1rem; font-weight: 800;
-  background: rgba(30,78,140,.18) !important; color: #16202b !important; }
+  background: #fff !important; color: #16202b !important; }
 
 /* Langfrist */
 .lt-decided { background: rgba(30,78,140,.05); border-left: 3px solid #1E4E8C; }
-.lt-label { font-weight: 700; font-size: .82rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.lt-label { font-weight: 400; font-size: .82rem; color: #16202b; }
 .lt-correct { color: #1E4E8C; font-weight: 700; }
 .lt-wrong   { color: #9ca3af; }
 .lt-pts     { color: #dc3545; font-size: .72rem; font-weight: 700; }
@@ -347,7 +347,43 @@
     </table>
   </div>
 
-  {# ── 3. GRUPPEN-TIPPS ── #}
+  {# ── 3. JOKER ── #}
+  {% if joker_info %}
+  <div class="overview-wrap mb-4">
+    <table class="overview-table" style="min-width:unset;width:auto">
+      <thead>
+        <tr>
+          <th class="col-match">Joker-Einsatz</th>
+          <th style="min-width:130px">Phase</th>
+          <th style="min-width:220px">Partie</th>
+          <th style="min-width:60px;text-align:center">Tipp</th>
+          <th style="min-width:80px;text-align:center">Punkte</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in joker_info %}
+        <tr>
+          <td class="col-match">
+            <i class="bi bi-suit-diamond-fill text-danger me-1"></i>{{ j.user }}
+          </td>
+          <td class="text-muted" style="font-size:.85rem">{{ j.phase }}</td>
+          <td>{{ j.match }}</td>
+          <td class="text-center">{{ j.pred or '—' }}</td>
+          <td class="text-center">
+            {% if not j.has_result %}
+              <span class="text-muted" style="font-size:.78rem">noch offen</span>
+            {% elif j.pts is not none %}
+              <span class="{% if j.pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}" style="font-size:.85rem;font-weight:700">{{ j.pts }} Pkt</span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {# ── 4. GRUPPEN-TIPPS ── #}
   {% if group_results %}
   <div class="overview-wrap mb-4">
     <table class="overview-table">
