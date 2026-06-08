@@ -85,6 +85,8 @@ async def undo_result(request: Request, match_id: int, user: dict = Depends(requ
             m.result_away = None
             m.is_finished = False
             m.winner_team_id = None
+            for p in s.scalars(select(Prediction).where(Prediction.match_id == match_id)).all():
+                p.points_awarded = 0
     request.session["flash"] = {"message": "Ergebnis zurückgesetzt.", "type": "warning"}
     return RedirectResponse("/admin", status_code=303)
 
