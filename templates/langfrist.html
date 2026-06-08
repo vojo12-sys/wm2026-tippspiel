@@ -35,7 +35,7 @@
             <option value="">— auswählen —</option>
             {% for opt in scorer_opts %}
             <option value="{{ opt }}"
-              {% if special and special.top_scorer == opt %}selected{% endif %}>
+              {% if special and special.top_scorer and opt.startswith(special.top_scorer + ' (') %}selected{% endif %}>
               {{ opt }}
             </option>
             {% endfor %}
