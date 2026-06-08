@@ -274,14 +274,15 @@
       <div class="tab-content">
         {% for st in [1, 2, 3] %}
         {% if spieltage.get(st) %}
-        {% set ns = namespace(tipped=0, open=0) %}
+        {% set ns = namespace(tipped=0, open=0, joker_here=false) %}
         {% for m in spieltage[st] %}
           {% if m.id in preds %}{% set ns.tipped = ns.tipped + 1 %}{% endif %}
           {% if not m.is_locked and m.id not in preds %}{% set ns.open = ns.open + 1 %}{% endif %}
+          {% if m.id == joker_match_id %}{% set ns.joker_here = true %}{% endif %}
         {% endfor %}
         <div class="tab-pane fade {% if st == active_st %}show active{% endif %}"
              id="st-pane-{{ st }}" role="tabpanel">
-          <p class="text-muted mb-3" style="font-size:.8rem">{{ ns.tipped }} von {{ spieltage[st]|length }} getippt{% if ns.open > 0 %} · <span style="color:#b8860b">{{ ns.open }} noch offen</span>{% endif %}</p>
+          <p class="text-muted mb-3" style="font-size:.8rem">{{ ns.tipped }} von {{ spieltage[st]|length }} getippt{% if ns.open > 0 %} · <span style="color:#b8860b">{{ ns.open }} noch offen</span>{% endif %}{% if ns.joker_here %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker aktiv{% elif joker_match_id is none %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker verfügbar{% endif %}</p>
           {% set seen_groups = [] %}
           {% for m in spieltage[st] %}
             {% if m.group_letter not in seen_groups %}
@@ -297,12 +298,13 @@
 
     {% else %}
 
-      {% set ns = namespace(tipped=0, open=0) %}
+      {% set ns = namespace(tipped=0, open=0, joker_here=false) %}
       {% for m in matches %}
         {% if m.id in preds %}{% set ns.tipped = ns.tipped + 1 %}{% endif %}
         {% if not m.is_locked and m.id not in preds %}{% set ns.open = ns.open + 1 %}{% endif %}
+        {% if m.id == joker_match_id %}{% set ns.joker_here = true %}{% endif %}
       {% endfor %}
-      <p class="text-muted mb-3" style="font-size:.8rem">{{ ns.tipped }} von {{ matches|length }} getippt{% if ns.open > 0 %} · <span style="color:#b8860b">{{ ns.open }} noch offen</span>{% endif %}</p>
+      <p class="text-muted mb-3" style="font-size:.8rem">{{ ns.tipped }} von {{ matches|length }} getippt{% if ns.open > 0 %} · <span style="color:#b8860b">{{ ns.open }} noch offen</span>{% endif %}{% if ns.joker_here %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker aktiv{% elif joker_match_id is none %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker verfügbar{% endif %}</p>
 
       {% for m in matches %}
 
