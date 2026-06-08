@@ -8,14 +8,15 @@
 <div class="card border-0 shadow-sm">
   <div class="card-body p-4">
     {% for line in rules_text.split('\n') %}
-      {% if line.strip() == '' %}
+      {% set l = line.strip() %}
+      {% if l == '' %}
         <br>
-      {% elif line.startswith('**') and line.endswith('**') and line|length > 4 %}
-        <p class="mt-3 mb-1 fw-bold">{{ line[2:-2] }}</p>
-      {% elif line.startswith('- ') %}
-        <p class="mb-1 ms-3">• {{ line[2:] }}</p>
+      {% elif l.startswith('**') and l.endswith('**') and l|length > 4 %}
+        <p class="mt-3 mb-1 fw-bold">{{ l[2:-2] }}</p>
+      {% elif l.startswith('- ') %}
+        <p class="mb-1 ms-3">• {{ l[2:] }}</p>
       {% else %}
-        <p class="mb-1">{{ line }}</p>
+        <p class="mb-1">{{ l }}</p>
       {% endif %}
     {% endfor %}
   </div>
