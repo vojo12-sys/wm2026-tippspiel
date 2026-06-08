@@ -91,7 +91,22 @@
     </div>
   </div>
 </div>
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Nach oben"
+  style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
+         background:var(--accent);color:#fff;border:none;border-radius:50%;
+         width:42px;height:42px;font-size:1.1rem;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer">
+  <i class="bi bi-arrow-up"></i>
+</button>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw.js'); }</script>
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw.js'); }
+(function(){
+  const btn = document.getElementById('back-to-top');
+  const scrollEl = () => document.querySelector('.col-12.col-md-10') || window;
+  function onScroll() { btn.style.display = (scrollEl().scrollTop || window.scrollY) > 200 ? 'block' : 'none'; }
+  scrollEl().addEventListener('scroll', onScroll);
+  window.addEventListener('scroll', onScroll);
+})();
+</script>
 </body>
 </html>
