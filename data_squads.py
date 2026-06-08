@@ -1,5 +1,5 @@
 """
-data_squads.py  –  Offizielle WM-2026-Kader (FIFA Squad List, 5. Juni 2026)
+data_squads.py  –  Offizielle WM-2026-Kader (FIFA Squad List, Stand 8. Juni 2026)
 Positionen: TW · IV · ZM · ST  (GK→TW, DF→IV, MF→ZM, FW→ST)
 """
 from __future__ import annotations
@@ -12,7 +12,12 @@ def _p(pos: str) -> str:
     return {"GK": "TW", "DF": "IV", "MF": "ZM", "FW": "ST"}.get(pos, pos)
 
 def _squad(rows):
-    return [{"name": n, "pos": _p(p), "club": _c(c)} for n, p, c in rows]
+    result = []
+    for row in rows:
+        n, p, c = row[0], row[1], row[2]
+        note = row[3] if len(row) > 3 else ""
+        result.append({"name": n, "pos": _p(p), "club": _c(c), "note": note})
+    return result
 
 SQUADS: dict[str, list[dict]] = {
 
@@ -192,7 +197,8 @@ SQUADS: dict[str, list[dict]] = {
 
 "br": _squad([  # Brasilien
     ("Alisson Becker","GK","Liverpool FC (ENG)"),
-    ("Wesley","DF","AS Roma (ITA)"),
+    ("Wesley","DF","AS Roma (ITA)","verletzt"),
+    ("Éderson","MF","Atalanta Bergamo (ITA)","nachnominiert"),
     ("Gabriel Magalhaes","DF","Arsenal FC (ENG)"),
     ("Marquinhos","DF","Paris Saint-Germain (FRA)"),
     ("Casemiro","MF","Manchester United FC (ENG)"),
@@ -274,7 +280,7 @@ SQUADS: dict[str, list[dict]] = {
     ("Niko Sigur","DF","HNK Hajduk Split (CRO)"),
     ("Promise David","FW","Royale Union Saint-Gilloise (BEL)"),
     ("Nathan Saliba","MF","RSC Anderlecht (BEL)"),
-    ("Marcelo Flores","MF","Tigres UANL (MEX)"),
+    ("Marcelo Flores","MF","Tigres UANL (MEX)","verletzt"),
 ]),
 
 "co": _squad([  # Kolumbien
@@ -592,7 +598,8 @@ SQUADS: dict[str, list[dict]] = {
     ("David Raum","DF","RB Leipzig (GER)"),
     ("Felix Nmecha","MF","Borussia Dortmund (GER)"),
     ("Malick Thiaw","DF","Newcastle United FC (ENG)"),
-    ("Lennart Karl","MF","FC Bayern München (GER)"),
+    ("Lennart Karl","MF","FC Bayern München (GER)","verletzt"),
+    ("Assan Ouédraogo","MF","RB Leipzig (GER)","nachnominiert"),
     ("Deniz Undav","FW","VfB Stuttgart (GER)"),
 ]),
 

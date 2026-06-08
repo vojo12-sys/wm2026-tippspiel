@@ -230,10 +230,13 @@ squadModal.addEventListener('show.bs.modal', e => {
       const photo = HAS_PHOTOS && p.photo
         ? `<img class="squad-photo" src="${p.photo}" alt="${p.name}">`
         : `<div class="squad-photo-placeholder" style="background:${avatarColor(p.name)}">${playerInitials(p.name)}</div>`;
+      const noteBadge = p.note
+        ? `<span style="font-size:.6rem;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:600;${p.note === 'verletzt' ? 'background:rgba(220,53,69,.12);color:#dc3545;border:1px solid rgba(220,53,69,.3)' : 'background:rgba(40,167,69,.12);color:#1a7a34;border:1px solid rgba(40,167,69,.3)'}">${p.note}</span>`
+        : '';
       html += `<div class="squad-row">
         ${photo}
         <div style="flex:1;min-width:0">
-          <div class="squad-name">${p.name}</div>
+          <div class="squad-name">${p.name}${noteBadge}</div>
           <div class="squad-club">${p.club}</div>
         </div>
         <span class="squad-pos-badge">${p.pos}</span>
