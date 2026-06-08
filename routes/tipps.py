@@ -15,10 +15,14 @@ from models import Match, Prediction, User
 router = APIRouter()
 
 
+_DAYS_DE = {"Mon": "Mo", "Tue": "Di", "Wed": "Mi", "Thu": "Do", "Fri": "Fr", "Sat": "Sa", "Sun": "So"}
+
 def _fmt(dt: datetime) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(DISPLAY_TIMEZONE).strftime("%a %d.%m. · %H:%M")
+    local = dt.astimezone(DISPLAY_TIMEZONE)
+    day = _DAYS_DE.get(local.strftime("%a"), local.strftime("%a"))
+    return f"{day} {local.strftime('%d.%m. · %H:%M')}"
 
 
 def _spieltag(match_number: int) -> int:
