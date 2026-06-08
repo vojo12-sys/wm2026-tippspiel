@@ -380,8 +380,8 @@ document.querySelectorAll('.tipp-form').forEach(form => {
       const pad = n => String(n).padStart(2, '0');
       const d = Math.floor(h / 24);
       el.textContent = d > 0
-        ? `· noch ${d} Tag${d !== 1 ? 'e' : ''} ${pad(h%24)}:${pad(m)}`
-        : `· noch ${pad(h)}:${pad(m)}:${pad(s)}`;
+        ? `· noch ${d} Tag${d !== 1 ? 'e' : ''} ${pad(h%24)}:${pad(m)} bis Anpfiff`
+        : `· noch ${pad(h)}:${pad(m)}:${pad(s)} bis Anpfiff`;
     });
   }
   updateCardCountdowns();
