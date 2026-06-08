@@ -90,7 +90,7 @@
 
 {% set locked = m.is_locked %}
 
-<form method="post" action="/tipps">
+<form method="post" action="/tipps" class="tipp-form">
 
 <div class="match-card {% if locked %}opacity-75{% endif %}">
 
@@ -293,7 +293,32 @@
 
 </div>
 
-
+<script>
+document.querySelectorAll('.tipp-form').forEach(form => {
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type=submit]:not([form])');
+    const inputs = form.querySelectorAll('input[type=number]');
+    if (!btn) return;
+    btn.disabled = true;
+    const origHTML = btn.innerHTML;
+    try {
+      await fetch('/tipps', {method: 'POST', body: new FormData(form)});
+      inputs.forEach(i => { i.style.borderColor = '#28a745'; i.style.borderWidth = '2px'; });
+      btn.innerHTML = '<i class="bi bi-check-lg"></i> Gespeichert';
+      btn.classList.replace('btn-accent', 'btn-success');
+      setTimeout(() => {
+        btn.innerHTML = origHTML;
+        btn.classList.replace('btn-success', 'btn-accent');
+        btn.disabled = false;
+      }, 2000);
+    } catch {
+      btn.innerHTML = origHTML;
+      btn.disabled = false;
+    }
+  });
+});
+</script>
 
 {% if next_kickoff %}
 
