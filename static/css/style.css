@@ -21,6 +21,9 @@ h1,h2,h3,h4,h5 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 80
 .brand-logo { height: 48px; width: auto; }
 
 .sidebar { min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); }
+@media (min-width: 768px) {
+  .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+}
 .nav-link { color: #16202b; border-radius: 8px; font-weight: 500; padding: .5rem .75rem; }
 .nav-link:hover, .nav-link.active { background: rgba(126,200,227,.1); color: var(--accent); }
 
