@@ -74,6 +74,20 @@ def _get_joker_match_id(user_id: int) -> int | None:
         return u.joker_match_id if u else None
 
 
+def _today_open_count(by_phase: dict, preds: dict) -> int:
+    today = datetime.now(DISPLAY_TIMEZONE).date()
+    count = 0
+    for matches in by_phase.values():
+        for m in matches:
+            if m.is_locked or m.id in preds:
+                continue
+            if m.kickoff_utc:
+                ko = m.kickoff_utc if m.kickoff_utc.tzinfo else m.kickoff_utc.replace(tzinfo=timezone.utc)
+                if ko.astimezone(DISPLAY_TIMEZONE).date() == today:
+                    count += 1
+    return count
+
+
 def _joker_match_locked(joker_match_id: int | None) -> bool:
     if joker_match_id is None:
         return False
@@ -108,6 +122,7 @@ async def tipps_get(request: Request, user: dict = Depends(require_user)):
     count = _count_tipped(user["id"])
     joker_match_id = _get_joker_match_id(user["id"])
     joker_locked = _joker_match_locked(joker_match_id)
+    today_open = _today_open_count(by_phase, preds)
     next_kickoff = _next_kickoff_iso()
     group_matches = by_phase.get("group", [])
     active_st = _active_spieltag(group_matches) if group_matches else 1
@@ -125,6 +140,7 @@ async def tipps_get(request: Request, user: dict = Depends(require_user)):
         "fmt": _fmt,
         "joker_match_id": joker_match_id,
         "joker_locked": joker_locked,
+        "today_open": today_open,
         "next_kickoff": next_kickoff,
         "flash": request.session.pop("flash", None),
         "spieltage": spieltage,

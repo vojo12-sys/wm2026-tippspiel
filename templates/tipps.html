@@ -51,6 +51,13 @@
 
 {% endif %}
 
+{% if today_open > 0 %}
+<div class="alert alert-warning py-2 mb-3 d-flex align-items-center gap-2" style="font-size:.88rem">
+  <i class="bi bi-clock-history"></i>
+  <span>Du hast heute noch <strong>{{ today_open }} Spiel{{ 'e' if today_open != 1 else '' }}</strong> ohne Tipp!</span>
+</div>
+{% endif %}
+
 
 
 <ul class="nav nav-tabs mb-4" id="phaseTabs" role="tablist">
@@ -104,7 +111,12 @@
 
   <div class="match-meta d-flex justify-content-between align-items-center">
 
-    <span>{{ fmt(m.kickoff_utc) }}{% if m.venue %} · {{ m.venue }}{% endif %}</span>
+    <span>
+      {{ fmt(m.kickoff_utc) }}{% if m.venue %} · {{ m.venue }}{% endif %}
+      {% if not locked and m.kickoff_utc %}
+        <span class="match-countdown ms-1" data-kickoff="{{ m.kickoff_utc.strftime('%Y-%m-%dT%H:%M:%SZ') }}" style="color:var(--accent-dk);font-weight:600"></span>
+      {% endif %}
+    </span>
 
     <span>
 
@@ -251,12 +263,19 @@
       <ul class="nav nav-pills nav-sm mb-3 gap-1" id="stTabs" role="tablist">
         {% for st in [1, 2, 3] %}
         {% if spieltage.get(st) %}
+        {% set ns = namespace(tipped=0, open=0) %}
+        {% for m in spieltage[st] %}
+          {% if m.id in preds %}{% set ns.tipped = ns.tipped + 1 %}{% endif %}
+          {% if not m.is_locked and m.id not in preds %}{% set ns.open = ns.open + 1 %}{% endif %}
+        {% endfor %}
         <li class="nav-item" role="presentation">
           <button class="nav-link {% if st == active_st %}active{% endif %} py-1 px-3"
                   id="st-tab-{{ st }}"
                   data-bs-toggle="tab" data-bs-target="#st-pane-{{ st }}"
                   type="button" role="tab" style="font-size:.85rem">
             Spieltag {{ st }}
+            <span class="badge ms-1" style="font-size:.7rem;background:{% if ns.tipped == spieltage[st]|length %}#28a745{% else %}rgba(0,0,0,.15){% endif %}">{{ ns.tipped }}/{{ spieltage[st]|length }}</span>
+            {% if ns.open > 0 %}<span class="badge ms-1" style="font-size:.7rem;background:#ffc107;color:#000">{{ ns.open }} offen</span>{% endif %}
           </button>
         </li>
         {% endif %}
@@ -342,6 +361,27 @@ document.querySelectorAll('.tipp-form').forEach(form => {
     }
   });
 });
+</script>
+
+<script>
+(function(){
+  function updateCardCountdowns() {
+    const now = Date.now();
+    document.querySelectorAll('.match-countdown[data-kickoff]').forEach(el => {
+      const diff = new Date(el.dataset.kickoff) - now;
+      if (diff <= 0) { el.textContent = ''; return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      const pad = n => String(n).padStart(2, '0');
+      el.textContent = h >= 24
+        ? `· noch ${Math.floor(h/24)}T ${pad(h%24)}:${pad(m)}`
+        : `· noch ${pad(h)}:${pad(m)}:${pad(s)}`;
+    });
+  }
+  updateCardCountdowns();
+  setInterval(updateCardCountdowns, 1000);
+})();
 </script>
 
 {% if next_kickoff %}
