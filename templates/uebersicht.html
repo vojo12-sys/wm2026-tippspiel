@@ -130,6 +130,7 @@
 .special-table .cat-col { font-weight:700; color:var(--muted); font-size:.82rem; min-width:130px; }
 .special-correct { color:#1E4E8C; font-weight:700; }
 .special-wrong   { color:#9ca3af; }
+.lt-missing-badge { display:inline-block; background:#ffc107; color:#000; font-size:.68rem; font-weight:700; padding:1px 5px; border-radius:3px; white-space:nowrap; }
 </style>
 
 <!-- Tabs -->
@@ -302,7 +303,8 @@
             {% if langfrist_visible or u.id == user.id %}
             <span class="{% if correct %}lt-correct{% else %}lt-wrong{% endif %}">{{ sp.get('champion', '—') }}</span>
             {% if correct %}<div class="lt-pts">{{ sp.get('champion_pts_val', 15) }} Pkt</div>{% endif %}
-            {% else %}<span class="text-muted">🔒</span>{% endif %}
+            {% elif sp.get('champion_id') %}<span class="text-muted">🔒</span>
+            {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
           </td>
           {% endfor %}
           {% if tournament_result %}<td class="text-center fw-bold" style="color:#c08a12">{{ tournament_result.champion or '?' }}</td>{% endif %}
@@ -319,7 +321,8 @@
             {% if langfrist_visible or u.id == user.id %}
             <span class="{% if correct %}lt-correct{% else %}lt-wrong{% endif %}">{{ sp.get('scorer', '—') }}</span>
             {% if correct %}<div class="lt-pts">{{ sp.get('scorer_pts_val', 10) }} Pkt</div>{% endif %}
-            {% else %}<span class="text-muted">🔒</span>{% endif %}
+            {% elif sp.get('scorer_raw') %}<span class="text-muted">🔒</span>
+            {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
           </td>
           {% endfor %}
           {% if tournament_result %}<td class="text-center fw-bold" style="color:#c08a12">{{ tournament_result.scorer or '?' }}</td>{% endif %}
@@ -338,7 +341,8 @@
             {% if langfrist_visible or u.id == user.id %}
             <span class="{% if correct %}lt-correct{% else %}lt-wrong{% endif %}">{{ gv if gv is not none else '—' }}</span>
             {% if correct %}<div class="lt-pts">{{ sp.get('goals_pts_val', 5) }} Pkt</div>{% endif %}
-            {% else %}<span class="text-muted">🔒</span>{% endif %}
+            {% elif gv is not none %}<span class="text-muted">🔒</span>
+            {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
           </td>
           {% endfor %}
           {% if tournament_result %}<td class="text-center fw-bold" style="color:#c08a12">{{ tournament_result.goals or '?' }}</td>{% endif %}
@@ -414,8 +418,9 @@
                   <span class="{% if actual[1] and p2 == actual[1] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
                 </div>
                 {% if gpts %}<div class="lt-pts">{{ gpts }} Pkt</div>{% endif %}
-              {% else %}<span class="text-muted">—</span>{% endif %}
-            {% else %}<span class="text-muted">🔒</span>{% endif %}
+              {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
+            {% elif gp %}<span class="text-muted">🔒</span>
+            {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
           </td>
           {% endfor %}
         </tr>
