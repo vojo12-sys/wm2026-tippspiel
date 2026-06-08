@@ -10,6 +10,7 @@ from database import get_session
 from deps import require_admin, templates
 from models import Match, Prediction, User
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
+from scoring import recalculate_match
 from standings import compute_standings
 
 router = APIRouter(prefix="/admin")
@@ -70,6 +71,7 @@ async def save_result(
                 m.winner_team_id = m.home_team_id
             elif result_away > result_home:
                 m.winner_team_id = m.away_team_id
+    recalculate_match(match_id)
     request.session["flash"] = {"message": "Ergebnis gespeichert.", "type": "success"}
     return RedirectResponse("/admin", status_code=303)
 
