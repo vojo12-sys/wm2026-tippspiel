@@ -35,12 +35,17 @@ _connect_args = {}
 if _db_url.startswith("sqlite"):
     _connect_args = {"check_same_thread": False}
 
+_pool_kwargs: dict = {}
+if not _db_url.startswith("sqlite"):
+    _pool_kwargs = {"pool_size": 10, "max_overflow": 20, "pool_timeout": 30}
+
 engine = create_engine(
     _db_url,
     echo=False,
     future=True,
-    pool_pre_ping=True,      # erkennt abgelaufene Verbindungen (wichtig bei Supabase)
+    pool_pre_ping=True,
     connect_args=_connect_args,
+    **_pool_kwargs,
 )
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, future=True)

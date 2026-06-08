@@ -3,6 +3,7 @@ services:
     name: wm2026-tippspiel
     env: python
     buildCommand: pip install -r requirements.txt
+    plan: basic
     startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: SECRET_KEY
@@ -18,4 +19,4 @@ databases:
   - name: wm2026-db
     databaseName: wm2026
     user: wm2026
-    plan: free
+    plan: basic
