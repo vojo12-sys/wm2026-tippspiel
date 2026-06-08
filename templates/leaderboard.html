@@ -160,26 +160,28 @@
 <p class="text-muted small">AF = Achtelfinale · VF = Viertelfinale · HF = Halbfinale · Punkte ohne Langfrist-Tipps.</p>
 </div>
 
+<p class="text-muted small mb-4"><span class="text-warning">●</span> nimmt am Geldtopf teil</p>
+
 <!-- Kasse -->
 {% if pool.enabled and pool.payers > 0 %}
 <div class="card border-0 shadow-sm" style="border-color:rgba(192,138,18,.3)!important">
   <div class="card-body">
     <h5 style="color:var(--gold)">Kasse</h5>
-    <div class="row g-3 mb-2">
-      <div class="col-6 col-md-3 text-center">
+    <div class="d-flex flex-wrap gap-4 mb-2">
+      <div>
         <div class="fw-bold fs-4" style="color:var(--gold)">{{ pool.pot_total }} {{ pool.currency }}</div>
         <div class="text-muted small">Gesamttopf</div>
       </div>
-      <div class="col-6 col-md-3 text-center">
+      <div>
         <div class="fw-bold fs-4">{{ pool.payers }}</div>
         <div class="text-muted small">Teilnehmer</div>
       </div>
       {% if user.is_admin %}
-      <div class="col-6 col-md-3 text-center">
+      <div>
         <div class="fw-bold fs-4">{{ pool.paid_in }} {{ pool.currency }}</div>
         <div class="text-muted small">Eingezahlt</div>
       </div>
-      <div class="col-6 col-md-3 text-center">
+      <div>
         {% if pool.outstanding > 0 %}
         <div class="fw-bold fs-4 text-danger">{{ pool.outstanding }} {{ pool.currency }}</div>
         <div class="text-muted small">Noch offen</div>
