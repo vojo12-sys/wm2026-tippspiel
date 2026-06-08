@@ -68,6 +68,13 @@
 
   {% if by_phase.get(phase_key) %}
 
+  {% set ns = namespace(tipped=0, open=0, total=0) %}
+  {% for m in by_phase[phase_key] %}
+    {% set ns.total = ns.total + 1 %}
+    {% if m.id in preds %}{% set ns.tipped = ns.tipped + 1 %}{% endif %}
+    {% if not m.is_locked and m.id not in preds %}{% set ns.open = ns.open + 1 %}{% endif %}
+  {% endfor %}
+
   <li class="nav-item" role="presentation">
 
     <button class="nav-link {% if not first_tab.done %}active{% endif %}"
@@ -76,7 +83,11 @@
 
             data-bs-toggle="tab" data-bs-target="#tab-{{ phase_key }}"
 
-            type="button" role="tab">{{ phase_label }}</button>
+            type="button" role="tab">
+      {{ phase_label }}
+      <span class="badge ms-1" style="font-size:.7rem;background:{% if ns.tipped == ns.total %}#28a745{% else %}rgba(0,0,0,.15){% endif %}">{{ ns.tipped }}/{{ ns.total }}</span>
+      {% if ns.open > 0 %}<span class="badge ms-1" style="font-size:.7rem;background:#ffc107;color:#000">{{ ns.open }} offen</span>{% endif %}
+    </button>
 
   </li>
 
@@ -269,10 +280,10 @@
           {% if not m.is_locked and m.id not in preds %}{% set ns.open = ns.open + 1 %}{% endif %}
         {% endfor %}
         <li class="nav-item" role="presentation">
-          <button class="nav-link {% if st == active_st %}active{% endif %} py-1 px-3"
+          <button class="nav-link {% if st == active_st %}active{% endif %} py-2 px-3"
                   id="st-tab-{{ st }}"
                   data-bs-toggle="tab" data-bs-target="#st-pane-{{ st }}"
-                  type="button" role="tab" style="font-size:.85rem">
+                  type="button" role="tab">
             Spieltag {{ st }}
             <span class="badge ms-1" style="font-size:.7rem;background:{% if ns.tipped == spieltage[st]|length %}#28a745{% else %}rgba(0,0,0,.15){% endif %}">{{ ns.tipped }}/{{ spieltage[st]|length }}</span>
             {% if ns.open > 0 %}<span class="badge ms-1" style="font-size:.7rem;background:#ffc107;color:#000">{{ ns.open }} offen</span>{% endif %}
