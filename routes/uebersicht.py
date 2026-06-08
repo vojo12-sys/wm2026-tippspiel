@@ -135,11 +135,13 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
                 _jphase_key = jm.phase
             joker_info.append({
                 "user":       str(u_raw.display_name),
+                "user_id":    int(u_raw.id),
                 "match":      f"{home_name} – {away_name}",
                 "phase":      _phase_labels.get(_jphase_key, "Gruppenphase"),
                 "pred":       f"{jpred.pred_home}:{jpred.pred_away}" if jpred else None,
                 "pts":        int(jpred.points_awarded or 0) if jpred else None,
                 "has_result": bool(jm.result_home is not None),
+                "is_locked":  jm.is_locked,
             })
 
     # ── Nach Turnierphase/Spieltag gruppieren ────────────────────

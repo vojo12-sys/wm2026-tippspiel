@@ -254,11 +254,11 @@
       </thead>
       <tbody>
         <tr>
-          <td class="col-match">Spiel-Punkte</td>
+          <td class="col-match lt-decided">Spiel-Punkte</td>
           {% for u in users %}<td class="text-center col-user">{{ match_pts.get(u.id, 0) }}</td>{% endfor %}
         </tr>
         <tr>
-          <td class="col-match">Langfrist-Punkte</td>
+          <td class="col-match lt-decided">Langfrist-Punkte</td>
           {% for u in users %}
           <td class="text-center col-user total-pts">
             {% if langfrist_visible or u.id == user.id %}{{ longterm_pts.get(u.id, 0) }}{% else %}🔒{% endif %}
@@ -266,7 +266,7 @@
           {% endfor %}
         </tr>
         <tr class="grand-row">
-          <td class="col-match">Gesamt</td>
+          <td class="col-match lt-decided">Gesamt</td>
           {% for u in users %}
           <td class="text-center grand-pts col-user">
             {% if langfrist_visible %}{{ match_pts.get(u.id, 0) + longterm_pts.get(u.id, 0) }}
@@ -363,12 +363,14 @@
       <tbody>
         {% for j in joker_info %}
         <tr>
-          <td class="col-match">
+          <td class="col-match lt-decided">
             <i class="bi bi-suit-diamond-fill text-danger me-1"></i>{{ j.user }}
           </td>
           <td class="text-muted" style="font-size:.85rem">{{ j.phase }}</td>
           <td>{{ j.match }}</td>
-          <td class="text-center">{{ j.pred or '—' }}</td>
+          <td class="text-center">
+            {% if j.is_locked or j.user_id == user.id %}{{ j.pred or '—' }}{% else %}<span class="text-muted">🔒</span>{% endif %}
+          </td>
           <td class="text-center">
             {% if not j.has_result %}
               <span class="text-muted" style="font-size:.78rem">noch offen</span>
