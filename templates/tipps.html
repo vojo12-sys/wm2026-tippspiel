@@ -37,7 +37,15 @@
 
 <div class="alert alert-danger py-2 mb-3" style="font-size:.88rem">
 
-  <i class="bi bi-suit-diamond-fill text-danger"></i> <strong>Joker verfügbar!</strong> Klicke bei einem offenen Spiel auf "Joker setzen" — deine Punkte dort werden verdoppelt. Einmalig und unwiderruflich!
+  <i class="bi bi-suit-diamond-fill text-danger"></i> <strong>Joker verfügbar!</strong> Klicke bei einem offenen Spiel auf "Joker setzen" — deine Punkte dort werden verdoppelt. Du kannst ihn bis zum Anstoß noch ändern!
+
+</div>
+
+{% elif not joker_locked %}
+
+<div class="alert alert-warning py-2 mb-3" style="font-size:.88rem">
+
+  <i class="bi bi-suit-diamond-fill text-danger"></i> <strong>Joker gesetzt</strong> — du kannst ihn noch bis zum Anstoß des Joker-Spiels auf ein anderes Spiel verschieben.
 
 </div>
 
@@ -75,7 +83,7 @@
 
 
 
-{% macro match_card(m, joker_match_id=none) %}
+{% macro match_card(m, joker_match_id=none, joker_locked=false) %}
 
 {% set ph = preds.get(m.id, (0, 0)) %}
 {% set tipped = m.id in preds %}
@@ -179,13 +187,21 @@
 
       <button type="submit" form="joker-form-{{ m.id }}"
               class="btn btn-sm btn-outline-danger px-3"
-              onclick="return confirm('Joker auf dieses Spiel setzen? Das ist unwiderruflich!')">
-        <i class="bi bi-suit-diamond-fill text-danger"></i> Joker
+              onclick="return confirm('Joker auf dieses Spiel setzen? Du kannst ihn bis zum Anstoß noch ändern.')">
+        <i class="bi bi-suit-diamond-fill text-danger"></i> Joker setzen
       </button>
 
     {% elif joker_match_id == m.id %}
 
     <span class="badge fs-6" style="background:rgba(220,53,69,.12);color:#dc3545;border:1px solid rgba(220,53,69,.35)"><i class="bi bi-suit-diamond-fill text-danger"></i> Joker aktiv</span>
+
+    {% elif not joker_locked %}
+
+      <button type="submit" form="joker-form-{{ m.id }}"
+              class="btn btn-sm btn-outline-danger px-3"
+              onclick="return confirm('Joker auf dieses Spiel verschieben?')">
+        <i class="bi bi-suit-diamond-fill text-danger"></i> Joker verschieben
+      </button>
 
     {% endif %}
 
@@ -206,7 +222,7 @@
 </form>
 
 {# Externe Joker-Form – unsichtbar, wird vom Button oben über form="joker-form-ID" referenziert #}
-{% if not m.is_locked and joker_match_id is none %}
+{% if not m.is_locked and (joker_match_id is none or not joker_locked) %}
 <form id="joker-form-{{ m.id }}" method="post" action="/tipps/joker/{{ m.id }}" style="display:none"></form>
 {% endif %}
 
@@ -258,7 +274,7 @@
               <h5 class="mt-3 mb-2">Gruppe {{ m.group_letter }}</h5>
               {% set _ = seen_groups.append(m.group_letter) %}
             {% endif %}
-            {{ match_card(m, joker_match_id) }}
+            {{ match_card(m, joker_match_id, joker_locked) }}
           {% endfor %}
         </div>
         {% endif %}
@@ -269,7 +285,7 @@
 
       {% for m in matches %}
 
-        {{ match_card(m, joker_match_id) }}
+        {{ match_card(m, joker_match_id, joker_locked) }}
 
       {% endfor %}
 

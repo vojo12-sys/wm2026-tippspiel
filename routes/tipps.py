@@ -74,6 +74,14 @@ def _get_joker_match_id(user_id: int) -> int | None:
         return u.joker_match_id if u else None
 
 
+def _joker_match_locked(joker_match_id: int | None) -> bool:
+    if joker_match_id is None:
+        return False
+    with get_session() as s:
+        m = s.get(Match, joker_match_id)
+        return m.is_locked if m else False
+
+
 def _next_kickoff_iso() -> str | None:
     """ISO-String des nächsten noch nicht gesperrten Spiels."""
     now = datetime.now(timezone.utc)
@@ -99,6 +107,7 @@ async def tipps_get(request: Request, user: dict = Depends(require_user)):
     preds = _load_predictions(user["id"])
     count = _count_tipped(user["id"])
     joker_match_id = _get_joker_match_id(user["id"])
+    joker_locked = _joker_match_locked(joker_match_id)
     next_kickoff = _next_kickoff_iso()
     group_matches = by_phase.get("group", [])
     active_st = _active_spieltag(group_matches) if group_matches else 1
@@ -115,6 +124,7 @@ async def tipps_get(request: Request, user: dict = Depends(require_user)):
         "phases": PHASES,
         "fmt": _fmt,
         "joker_match_id": joker_match_id,
+        "joker_locked": joker_locked,
         "next_kickoff": next_kickoff,
         "flash": request.session.pop("flash", None),
         "spieltage": spieltage,
@@ -184,8 +194,10 @@ async def set_joker(request: Request, match_id: int, user: dict = Depends(requir
             request.session["flash"] = {"message": "Ungültige Anfrage.", "type": "danger"}
             return RedirectResponse("/tipps", status_code=303)
         if u.joker_match_id is not None:
-            request.session["flash"] = {"message": "Joker bereits gesetzt – kann nicht geändert werden.", "type": "warning"}
-            return RedirectResponse("/tipps", status_code=303)
+            current = s.get(Match, u.joker_match_id)
+            if current and current.is_locked:
+                request.session["flash"] = {"message": "Joker-Spiel bereits angepfiffen – kann nicht mehr geändert werden.", "type": "warning"}
+                return RedirectResponse("/tipps", status_code=303)
         if m.is_locked:
             request.session["flash"] = {"message": "Spiel bereits gesperrt – Joker kann nicht mehr gesetzt werden.", "type": "danger"}
             return RedirectResponse("/tipps", status_code=303)

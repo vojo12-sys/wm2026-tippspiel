@@ -114,7 +114,8 @@ Tipps werden 10 Minuten vor dem jeweiligen Anpfiff automatisch gesperrt. Danach 
 **Joker**
 Jeder Teilnehmer hat einen einmaligen Joker, den er auf genau ein Spiel setzen kann. Der Joker verdoppelt die Punkte für dieses Spiel – egal ob exaktes Ergebnis, Tordifferenz oder Tendenz.
 - Der Joker kann nur auf ein noch nicht gesperrtes Spiel gesetzt werden
-- Der Joker ist unwiderruflich – einmal gesetzt, nicht mehr änderbar
+- Der Joker kann bis 10 Minuten vor dem Anstoß des gewählten Spiels noch geändert werden
+- Nach dem Tippschluss des Joker-Spiels ist er unwiderruflich
 - Der Joker gilt auch in der K.o.-Phase (der K.o.-Bonus wird ebenfalls verdoppelt)
 - Werden im Joker-Spiel 0 Punkte erzielt, bringt der Joker ebenfalls 0 Punkte
 
