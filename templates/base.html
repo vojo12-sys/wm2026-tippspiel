@@ -35,7 +35,7 @@
         <a href="/tipps" class="nav-link {% if active == 'tipps' %}active{% endif %}">
           <i class="bi bi-pencil-square me-2"></i>Tipps abgeben
         </a>
-        <a href="/langfrist" class="nav-link {% if active == 'langfrist' %}active{% endif %}">
+        <a href="/langfrist" class="nav-link {% if active == 'langfrist' %}active{% endif %} {% if user and get_bonus_tips_incomplete(user.id) %}nav-glow-gold{% endif %}">
           <i class="bi bi-trophy me-2"></i>Bonus Tipps
         </a>
         <a href="/spielplan" class="nav-link {% if active == 'spielplan' %}active{% endif %}">

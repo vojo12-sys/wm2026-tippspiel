@@ -39,6 +39,30 @@ _env = Environment(
 _env.globals["get_pool"] = get_pool
 _env.globals["get_pot_info"] = get_pot_info
 
+def get_bonus_tips_incomplete(user_id: int | None) -> bool:
+    """True wenn Turnier noch nicht gestartet UND User noch keine Bonus Tipps abgegeben hat."""
+    if user_id is None:
+        return False
+    from datetime import datetime, timezone
+    from config import TOURNAMENT_START_UTC
+    if datetime.now(timezone.utc) >= datetime.fromisoformat(TOURNAMENT_START_UTC):
+        return False
+    try:
+        from sqlalchemy import select
+        from database import get_session
+        from models import SpecialTip, GroupPrediction
+        with get_session() as s:
+            has_special = s.scalar(
+                select(SpecialTip).where(SpecialTip.user_id == user_id)
+            ) is not None
+            has_group = s.scalar(
+                select(GroupPrediction).where(GroupPrediction.user_id == user_id)
+            ) is not None
+        return not (has_special or has_group)
+    except Exception:
+        return False
+
+
 def _get_live_scores():
     try:
         from results_sync import get_live_scores
@@ -47,6 +71,7 @@ def _get_live_scores():
         return {}
 
 _env.globals["get_live_scores"] = _get_live_scores
+_env.globals["get_bonus_tips_incomplete"] = get_bonus_tips_incomplete
 templates = Jinja2Templates(env=_env)
 
 
