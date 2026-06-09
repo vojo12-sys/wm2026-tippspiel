@@ -133,10 +133,16 @@ def recalculate_group_predictions() -> None:
             res = results.get(gp.group_letter)
             pts = 0
             if res:
-                if res.actual_1st is not None and gp.predicted_1st == res.actual_1st:
-                    pts += s["group_first"]
-                if res.actual_2nd is not None and gp.predicted_2nd == res.actual_2nd:
-                    pts += s["group_second"]
+                if res.actual_1st is not None:
+                    if gp.predicted_1st == res.actual_1st:
+                        pts += s["group_first"]
+                    elif gp.predicted_2nd == res.actual_1st:
+                        pts += s["group_partial_credit"]
+                if res.actual_2nd is not None:
+                    if gp.predicted_2nd == res.actual_2nd:
+                        pts += s["group_second"]
+                    elif gp.predicted_1st == res.actual_2nd:
+                        pts += s["group_partial_credit"]
             gp.points_awarded = pts
 
 

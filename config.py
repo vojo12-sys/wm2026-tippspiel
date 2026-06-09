@@ -48,9 +48,10 @@ DEFAULT_SCORING = {
     "tendency": 1,         # richtige Tendenz (Sieger / Unentschieden)
     "ko_advance_bonus": 1, # K.-o.: richtiges weiterkommendes Team (Zusatzpunkt)
 
-    # --- Gruppen-Platzierungen (Langfrist) ---
-    "group_first": 3,      # richtiger Gruppensieger (je Gruppe)
-    "group_second": 2,     # richtiger Gruppenzweiter (je Gruppe)
+    # --- Gruppen-Platzierungen (Bonus Tipps) ---
+    "group_first": 3,           # richtiger Gruppensieger (exakt 1. Platz)
+    "group_second": 3,          # richtiger Gruppenzweiter (exakt 2. Platz)
+    "group_partial_credit": 2,  # Team korrekt im Top-2, aber falsche Position
 
     # --- Sonder-Tipps (Langfrist) ---
     "champion": 15,        # Weltmeister
@@ -104,11 +105,13 @@ Tipps werden 10 Minuten vor dem jeweiligen Anpfiff automatisch gesperrt. Danach 
 - Richtige Tendenz (Sieg/Unentschieden/Niederlage): {tendency} Punkte
 - K.o.-Bonus (richtiges Team kommt weiter): {ko_advance_bonus} Punkt
 
-**Langfrist-Tipps (vor Turnierstart)**
+**Bonus Tipps (vor Turnierstart)**
 - Weltmeister: {champion} Punkte
 - Torschützenkönig: {top_scorer} Punkte
-- Gruppensieger: {group_first} Punkte je Gruppe
-- Gruppenzweiter: {group_second} Punkte je Gruppe
+- Gruppensieger (exakt 1. Platz): {group_first} Punkte je Gruppe
+- Gruppenzweiter (exakt 2. Platz): {group_second} Punkte je Gruppe
+- Team auf Platz 2 getippt, wird Gruppensieger: {group_partial_credit} Punkte je Gruppe
+- Team auf Platz 1 getippt, wird Gruppenzweiter: {group_partial_credit} Punkte je Gruppe
 - Gesamttore (±{total_goals_tolerance}): {total_goals} Punkte
 
 **Joker**
