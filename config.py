@@ -108,10 +108,8 @@ Tipps werden 10 Minuten vor dem jeweiligen Anpfiff automatisch gesperrt. Danach 
 **Bonus Tipps (vor Turnierstart)**
 - Weltmeister: {champion} Punkte
 - Torschützenkönig: {top_scorer} Punkte
-- Gruppensieger (exakt 1. Platz): {group_first} Punkte je Gruppe
-- Gruppenzweiter (exakt 2. Platz): {group_second} Punkte je Gruppe
-- Team auf Platz 2 getippt, wird Gruppensieger: {group_partial_credit} Punkte je Gruppe
-- Team auf Platz 1 getippt, wird Gruppenzweiter: {group_partial_credit} Punkte je Gruppe
+- Team richtig auf Position (1. oder 2. Platz): {group_first} Punkte je Gruppe
+- Team richtig Top-2, aber auf falscher Position: {group_partial_credit} Punkte je Gruppe
 - Gesamttore (±{total_goals_tolerance}): {total_goals} Punkte
 
 **Joker**
