@@ -7,16 +7,8 @@ from sqlalchemy import select
 from auth import hash_password, verify_password
 from database import get_session
 from deps import require_user, templates
-from models import Match, User
+from models import User
 from settings import get_pool
-from sqlalchemy import select
-
-
-def _pool_locked() -> bool:
-    """Pott-Anmeldung gesperrt sobald das erste Spiel gesperrt ist."""
-    with get_session() as s:
-        first = s.scalar(select(Match).order_by(Match.kickoff_utc))
-        return first.is_locked if first else False
 
 router = APIRouter()
 
@@ -35,7 +27,6 @@ async def profil_get(request: Request, user: dict = Depends(require_user)):
         "in_pool": in_pool,
         "has_paid": has_paid,
         "pool": pool,
-        "pool_locked": _pool_locked(),
         "flash": request.session.pop("flash", None),
     })
 
@@ -48,9 +39,6 @@ async def update_pool(
 ):
     if isinstance(user, RedirectResponse):
         return user
-    if _pool_locked():
-        request.session["flash"] = {"message": "Pott-Anmeldung ist nach Turnierbeginn nicht mehr möglich.", "type": "danger"}
-        return RedirectResponse("/profil", status_code=303)
     with get_session() as s:
         u = s.get(User, user["id"])
         if u:

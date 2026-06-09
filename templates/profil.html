@@ -32,19 +32,17 @@
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch" name="in_pool"
                  id="in_pool_toggle" {% if in_pool %}checked{% endif %}
-                 {% if has_paid or pool_locked %}disabled{% endif %}>
+                 {% if has_paid %}disabled{% endif %}>
           <label class="form-check-label fw-semibold" for="in_pool_toggle">
             Ich möchte am Pott teilnehmen ({{ pool.get('buy_in', 20) }} €)
           </label>
         </div>
-        {% if not has_paid and not pool_locked %}
+        {% if not has_paid %}
         <button type="submit" class="btn btn-accent btn-sm">Speichern</button>
         {% endif %}
       </div>
       {% if has_paid %}
       <p class="text-muted small mt-1">Einzahlung bereits bestätigt – Opt-out nicht mehr möglich. Wende dich an den Admin.</p>
-      {% elif pool_locked %}
-      <p class="text-muted small mt-1">Turnier läuft – Pott-Anmeldung nicht mehr möglich.</p>
       {% endif %}
     </form>
   </div>
