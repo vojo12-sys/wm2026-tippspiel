@@ -312,8 +312,20 @@ async def urkunden_get(request: Request, user: dict = Depends(require_admin)):
             ).all()
         )
 
+    KO_PHASES = {"round32", "round16", "quarter", "semi", "third_place", "final"}
+
     for r in rows:
         r.tips_total = tip_counts.get(r.user_id, 0)
+        match_pts = sum(r.phase_points.values())
+        r.pts_per_game = round(match_pts / r.tips_total, 2) if r.tips_total > 0 else 0.0
+
+    sorted_group = sorted(rows, key=lambda r: -(r.phase_points.get("group", 0)))
+    for i, r in enumerate(sorted_group, 1):
+        r.group_rank = i
+
+    sorted_ko = sorted(rows, key=lambda r: -sum(r.phase_points.get(p, 0) for p in KO_PHASES))
+    for i, r in enumerate(sorted_ko, 1):
+        r.ko_rank = i
 
     return templates.TemplateResponse(request, "urkunden.html", {
         "user": user,
