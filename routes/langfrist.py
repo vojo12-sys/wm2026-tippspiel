@@ -106,5 +106,5 @@ async def langfrist_post(request: Request, user: dict = Depends(require_user)):
                 s.add(gp)
             gp.predicted_1st = first
             gp.predicted_2nd = second
-    request.session["flash"] = {"message": "Langfrist-Tipps gespeichert.", "type": "success"}
+    request.session["flash"] = {"message": "Bonus Tipps gespeichert.", "type": "success"}
     return RedirectResponse("/langfrist", status_code=303)

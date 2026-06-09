@@ -2,7 +2,7 @@
 {% block content %}
 
 <h1 class="mb-1">Tipp-Übersicht</h1>
-<p class="text-muted mb-4">Gesperrte Spiele · Langfrist-Tipps · Punkte</p>
+<p class="text-muted mb-4">Gesperrte Spiele · Bonus Tipps · Punkte</p>
 
 {% if not sorted_dates and not group_results and not tournament_result %}
 <div class="alert alert-info">Noch keine Spiele gesperrt.</div>
@@ -148,7 +148,7 @@
   <li class="nav-item">
     <button class="nav-link {% if not first.done %}active{% endif %}"
             data-bs-toggle="tab" data-bs-target="#ov-langfrist" type="button">
-      Langfrist & Gesamt
+      Bonus & Gesamt
     </button>
   </li>
 </ul>
@@ -264,7 +264,7 @@
           {% for u in users %}<td class="text-center col-user">{{ match_pts.get(u.id, 0) }}</td>{% endfor %}
         </tr>
         <tr>
-          <td class="col-match lt-decided">Langfrist-Punkte</td>
+          <td class="col-match lt-decided">Bonus-Punkte</td>
           {% for u in users %}
           <td class="text-center col-user total-pts">
             {% if langfrist_visible or u.id == user.id %}{{ longterm_pts.get(u.id, 0) }}{% else %}🔒{% endif %}

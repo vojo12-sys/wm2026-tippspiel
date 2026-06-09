@@ -34,9 +34,10 @@
             <tr><td>Richtige Tordifferenz</td><td class="text-end fw-bold">{{ scoring.goal_diff }} Pkt</td></tr>
             <tr><td>Richtige Tendenz</td><td class="text-end fw-bold">{{ scoring.tendency }} Pkt</td></tr>
             <tr><td>K.o.-Bonus</td><td class="text-end fw-bold">{{ scoring.ko_advance_bonus }} Pkt</td></tr>
-            <tr class="table-light"><td colspan="2" class="fw-semibold small">Langfrist</td></tr>
-            <tr><td>Gruppensieger</td><td class="text-end fw-bold">{{ scoring.group_first }} Pkt</td></tr>
-            <tr><td>Gruppenzweiter</td><td class="text-end fw-bold">{{ scoring.group_second }} Pkt</td></tr>
+            <tr class="table-light"><td colspan="2" class="fw-semibold small">Bonus Tipps</td></tr>
+            <tr><td>Gruppensieger (exakt 1. Platz)</td><td class="text-end fw-bold">{{ scoring.group_first }} Pkt</td></tr>
+            <tr><td>Gruppenzweiter (exakt 2. Platz)</td><td class="text-end fw-bold">{{ scoring.group_second }} Pkt</td></tr>
+            <tr><td>Team richtig Top-2, falsche Position</td><td class="text-end fw-bold">{{ scoring.group_partial_credit }} Pkt</td></tr>
             <tr><td>Weltmeister</td><td class="text-end fw-bold">{{ scoring.champion }} Pkt</td></tr>
             <tr><td>Torschützenkönig</td><td class="text-end fw-bold">{{ scoring.top_scorer }} Pkt</td></tr>
             <tr><td>Gesamttore (±{{ scoring.total_goals_tolerance }})</td><td class="text-end fw-bold">{{ scoring.total_goals }} Pkt</td></tr>

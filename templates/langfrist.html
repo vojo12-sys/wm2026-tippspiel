@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-2">Langfrist-Tipps</h1>
+<h1 class="mb-2">Bonus Tipps</h1>
 
 {% if locked %}
 <div class="alert alert-warning">Gesperrt seit Turnierstart ({{ deadline }}).</div>
@@ -84,7 +84,7 @@
 
   {% if not locked %}
   <div class="mb-5">
-    <button type="submit" class="btn btn-accent px-4">Langfrist-Tipps speichern</button>
+    <button type="submit" class="btn btn-accent px-4">Bonus Tipps speichern</button>
   </div>
   {% endif %}
 </form>
