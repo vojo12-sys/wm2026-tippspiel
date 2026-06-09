@@ -238,7 +238,7 @@
           <th>Teilnehmer</th>
           <th class="text-center">Getippte Spiele</th>
           <th class="text-center">Spiel-Punkte</th>
-          <th class="text-end fw-bold">Pkt / Spiel</th>
+          <th class="text-center fw-bold">Pkt / Spiel</th>
         </tr>
       </thead>
       <tbody>
@@ -251,7 +251,7 @@
           <td>{{ row.display_name }}</td>
           <td class="text-center text-muted">{{ stats[row.user_id].tipped_count }}</td>
           <td class="text-center text-muted">{{ row.phase_points.values()|sum }}</td>
-          <td class="text-end fw-bold" style="color:#1E4E8C">{{ "%.1f"|format(tq) }}</td>
+          <td class="text-center fw-bold" style="color:#1E4E8C">{{ "%.2f"|format(tq) }}</td>
         </tr>
         {% endfor %}
       </tbody>
