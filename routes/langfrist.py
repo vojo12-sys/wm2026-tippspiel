@@ -44,6 +44,7 @@ async def langfrist_get(request: Request, user: dict = Depends(require_user)):
         return user
     locked = _is_locked()
     dl = _deadline().astimezone(DISPLAY_TIMEZONE).strftime("%d.%m.%Y · %H:%M Uhr")
+    deadline_iso = _deadline().isoformat() if not locked else None
     user_id = user["id"]
     with get_session() as s:
         special = s.scalar(select(SpecialTip).where(SpecialTip.user_id == user_id))
@@ -55,7 +56,7 @@ async def langfrist_get(request: Request, user: dict = Depends(require_user)):
         }
     return templates.TemplateResponse(request, "langfrist.html", {
         "user": user, "active": "langfrist",
-        "locked": locked, "deadline": dl,
+        "locked": locked, "deadline": dl, "deadline_iso": deadline_iso,
         "special": special, "gpreds": gpreds,
         "teams": _all_teams(),
         "teams_by_group": _teams_by_group(),

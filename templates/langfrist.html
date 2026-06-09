@@ -5,7 +5,10 @@
 {% if locked %}
 <div class="alert alert-warning">Gesperrt seit Turnierstart ({{ deadline }}).</div>
 {% else %}
-<div class="alert alert-info">Editierbar bis <strong>{{ deadline }}</strong>. Danach gesperrt.</div>
+<div class="alert alert-info">
+  Editierbar bis <strong>{{ deadline }}</strong>. Danach gesperrt.
+  {% if deadline_iso %}&nbsp;·&nbsp; <span id="bonus-countdown" style="font-weight:600"></span>{% endif %}
+</div>
 {% endif %}
 
 {% if flash %}
@@ -88,4 +91,27 @@
   </div>
   {% endif %}
 </form>
+
+{% if deadline_iso %}
+<script>
+(function() {
+  const target = new Date({{ deadline_iso | tojson }});
+  const el = document.getElementById('bonus-countdown');
+  if (!el) return;
+  function update() {
+    const diff = target - Date.now();
+    if (diff <= 0) { el.textContent = 'Abgelaufen!'; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = d > 0
+      ? `${d}T ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  update();
+  setInterval(update, 1000);
+})();
+</script>
+{% endif %}
 {% endblock %}
