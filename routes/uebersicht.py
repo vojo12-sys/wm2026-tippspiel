@@ -162,6 +162,13 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
     for m in matches:
         by_date[_round_key(m)].append(m)
 
+    # KO-Phase nach Phase gruppiert (für einklappbare Abschnitte im Tab)
+    _KO_PHASE_ORDER = ["round32", "round16", "quarter", "semi", "third_place", "final"]
+    _by_ko: dict[str, list] = {}
+    for m in by_date["ko"]:
+        _by_ko.setdefault(m.phase, []).append(m)
+    ko_by_phase = [(ph, PHASES.get(ph, ph), _by_ko[ph]) for ph in _KO_PHASE_ORDER if ph in _by_ko]
+
     sorted_dates = SECTION_ORDER
     date_labels = SECTION_LABELS
 
@@ -220,4 +227,5 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
         "joker_info": joker_info,
         "locked_set": locked_set,
         "active_section": active_section,
+        "ko_by_phase": ko_by_phase,
     })

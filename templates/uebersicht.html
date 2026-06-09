@@ -156,6 +156,106 @@
 <!-- ════ SPIELTAG-TABS ════ -->
 {% for dk in sorted_dates %}
 <div class="tab-pane fade {% if dk == active_section %}show active{% endif %}" id="ov-{{ dk }}">
+
+  {% if dk == 'ko' %}
+  {# ── K.o.-Phase: Punkte-Zusammenfassung + einklappbare Runden ── #}
+  <div class="overview-wrap mb-3">
+    <table class="overview-table">
+      <thead>
+        <tr>
+          <th class="col-match">Spiel</th>
+          <th class="text-center">Ergebnis</th>
+          {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="total-row">
+          <td class="col-match" style="font-size:.75rem">Pkt K.o.-Phase</td>
+          <td></td>
+          {% for u in users %}
+          <td class="text-center total-pts col-user">{{ date_pts.get('ko', {}).get(u.id, 0) }}</td>
+          {% endfor %}
+        </tr>
+        <tr class="grand-row">
+          <td class="col-match" style="font-size:.75rem">Gesamt Spiel-Pkt</td>
+          <td></td>
+          {% for u in users %}
+          <td class="text-center grand-pts col-user">{{ match_pts.get(u.id, 0) }}</td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% for phase_key, phase_label, phase_matches in ko_by_phase %}
+  <div class="mb-3">
+    <div class="d-flex align-items-center gap-2 mb-1 px-3 py-2" style="background:var(--bg);border-radius:6px">
+      <button class="btn btn-sm btn-outline-secondary py-0 px-2 collapse-toggle"
+              type="button" data-bs-toggle="collapse"
+              data-bs-target="#ko-{{ phase_key }}" aria-expanded="true">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+      <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:.88rem">{{ phase_label }}</span>
+    </div>
+    <div class="collapse show" id="ko-{{ phase_key }}">
+      <div class="overview-wrap">
+        <table class="overview-table">
+          <thead>
+            <tr>
+              <th class="col-match">Spiel</th>
+              <th class="text-center">Ergebnis</th>
+              {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in phase_matches %}
+            {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
+            {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+            {% set hf = m.home_team.flag_code if m.home_team else '' %}
+            {% set af = m.away_team.flag_code if m.away_team else '' %}
+            {% set is_locked_match = m.id in locked_set %}
+            <tr>
+              <td class="col-match">
+                <div class="text-muted" style="font-size:.74rem">Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}</div>
+                <div style="display:flex;align-items:center;gap:4px">
+                  {% if hf %}<img src="https://flagcdn.com/16x12/{{ hf }}.png" alt="">{% endif %}
+                  <span class="fw-semibold">{{ home }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px">
+                  {% if af %}<img src="https://flagcdn.com/16x12/{{ af }}.png" alt="">{% endif %}
+                  <span class="fw-semibold">{{ away }}</span>
+                </div>
+              </td>
+              <td class="text-center">
+                {% if m.has_result %}<span class="result-badge">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</span>
+                {% else %}<span class="text-muted">—</span>{% endif %}
+              </td>
+              {% for u in users %}
+              {% set tip = pred_map.get(m.id, {}).get(u.id) %}
+              <td class="text-center col-user">
+                {% if is_locked_match %}
+                  {% if tip %}
+                    {% set ph, pa, pts = tip %}
+                    <div class="{% if pts >= 4 %}pts-4{% elif pts == 3 %}pts-3{% elif pts == 2 %}pts-2{% elif pts == 1 %}pts-1{% elif m.has_result %}pts-0{% endif %}">{{ ph }}:{{ pa }}</div>
+                    {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>{% endif %}
+                  {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
+                {% else %}
+                  {% if tip %}<span class="text-muted">🔒</span>
+                  {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% else %}
+  {# ── Spieltag 1/2/3: alle Spiele mit Gruppen-Headern ── #}
   <div class="overview-wrap">
     <table class="overview-table">
       <thead>
@@ -180,24 +280,19 @@
           <td class="text-center grand-pts col-user">{{ match_pts.get(u.id, 0) }}</td>
           {% endfor %}
         </tr>
-        {% set cur = namespace(phase='', group='') %}
+        {% set cur = namespace(group='') %}
         {% for m in by_date[dk] %}
+        {% if m.group_letter != cur.group %}
+        {% set cur.group = m.group_letter or '' %}
+        <tr class="group-header">
+          <td colspan="{{ users|length + 2 }}">Gruppe {{ m.group_letter }}</td>
+        </tr>
+        {% endif %}
         {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
         {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
         {% set hf = m.home_team.flag_code if m.home_team else '' %}
         {% set af = m.away_team.flag_code if m.away_team else '' %}
         {% set is_locked_match = m.id in locked_set %}
-
-        {% if m.phase != cur.phase or (m.phase == 'group' and m.group_letter != cur.group) %}
-        {% set cur.phase = m.phase %}{% set cur.group = m.group_letter or '' %}
-        <tr class="group-header">
-          <td colspan="{{ users|length + 2 }}">
-            {% if m.phase == 'group' %}Gruppe {{ m.group_letter }}
-            {% else %}{{ phases.get(m.phase, m.phase) }}{% endif %}
-          </td>
-        </tr>
-        {% endif %}
-
         <tr>
           <td class="col-match">
             <div class="text-muted" style="font-size:.74rem">Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}</div>
@@ -221,9 +316,7 @@
               {% if tip %}
                 {% set ph, pa, pts = tip %}
                 <div class="{% if pts >= 4 %}pts-4{% elif pts == 3 %}pts-3{% elif pts == 2 %}pts-2{% elif pts == 1 %}pts-1{% elif m.has_result %}pts-0{% endif %}">{{ ph }}:{{ pa }}</div>
-                {% if m.has_result %}
-                <div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>
-                {% endif %}
+                {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>{% endif %}
               {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
             {% else %}
               {% if tip %}<span class="text-muted">🔒</span>
@@ -236,6 +329,8 @@
       </tbody>
     </table>
   </div>
+  {% endif %}
+
 </div>
 {% endfor %}
 
@@ -355,15 +450,15 @@
   {# ── 3. JOKER (einklappbar) ── #}
   {% if joker_info %}
   <div class="mb-4">
-    <div class="d-flex align-items-center mb-2">
-      <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:.95rem" class="flex-grow-1">
-        <i class="bi bi-suit-diamond-fill text-danger me-1"></i>Joker-Einsatz
-      </span>
+    <div class="d-flex align-items-center mb-2 gap-2">
       <button class="btn btn-sm btn-outline-secondary py-0 px-2 collapse-toggle"
               type="button" data-bs-toggle="collapse"
               data-bs-target="#collapse-joker" aria-expanded="false">
         <i class="bi bi-chevron-down"></i>
       </button>
+      <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:.95rem">
+        <i class="bi bi-suit-diamond-fill text-danger me-1"></i>Joker-Einsatz
+      </span>
     </div>
     <div class="collapse" id="collapse-joker">
       <div class="overview-wrap">
@@ -405,15 +500,15 @@
   {# ── 4. GRUPPEN-TIPPS (einklappbar) ── #}
   {% if group_results or group_pred_map %}
   <div class="mb-4">
-    <div class="d-flex align-items-center mb-2">
-      <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:.95rem" class="flex-grow-1">
-        Gruppen-Tipps
-      </span>
+    <div class="d-flex align-items-center mb-2 gap-2">
       <button class="btn btn-sm btn-outline-secondary py-0 px-2 collapse-toggle"
               type="button" data-bs-toggle="collapse"
               data-bs-target="#collapse-gruppen" aria-expanded="false">
         <i class="bi bi-chevron-down"></i>
       </button>
+      <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:.95rem">
+        Gruppen-Tipps
+      </span>
     </div>
     <div class="collapse" id="collapse-gruppen">
       <div class="overview-wrap">
