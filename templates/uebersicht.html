@@ -566,4 +566,67 @@
 </div>
 
 </div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'uebersicht-col-widths';
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) {}
+
+  function initTable(table) {
+    const tableId = table.closest('[id]')?.id || 'tbl';
+    const ths = table.querySelectorAll('thead tr:first-child th');
+
+    ths.forEach((th, i) => {
+      // restore saved width
+      const key = tableId + '-' + i;
+      if (saved[key]) th.style.width = saved[key];
+
+      // add resize handle
+      const handle = document.createElement('span');
+      handle.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;user-select:none;z-index:10';
+      th.style.position = 'relative';
+      th.appendChild(handle);
+
+      let startX, startW;
+      handle.addEventListener('mousedown', e => {
+        startX = e.clientX;
+        startW = th.offsetWidth;
+        e.preventDefault();
+
+        function onMove(e) {
+          const newW = Math.max(50, startW + e.clientX - startX);
+          th.style.width = newW + 'px';
+          // sync all cells in this column
+          table.querySelectorAll('tr').forEach(row => {
+            const cell = row.cells[i];
+            if (cell) cell.style.width = newW + 'px';
+          });
+        }
+        function onUp() {
+          saved[key] = th.style.width;
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e) {}
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    });
+  }
+
+  function initAll() {
+    document.querySelectorAll('.overview-table, .special-table').forEach(initTable);
+  }
+
+  // init on load + after tab switch (tabs load lazily)
+  document.addEventListener('DOMContentLoaded', initAll);
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', initAll);
+  });
+  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(btn => {
+    btn.addEventListener('shown.bs.collapse', initAll);
+  });
+})();
+</script>
 {% endblock %}
