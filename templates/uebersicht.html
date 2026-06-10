@@ -240,7 +240,11 @@
                     {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>{% endif %}
                   {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
                 {% else %}
-                  {% if tip %}<span class="text-muted">🔒</span>
+                  {% if tip %}
+                    {% if u.id == user.id %}
+                      {% set ph, pa, pts = tip %}
+                      <div style="color:#6b7280">{{ ph }}:{{ pa }}</div>
+                    {% else %}<span class="text-muted">🔒</span>{% endif %}
                   {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
                 {% endif %}
               </td>
@@ -319,7 +323,11 @@
                 {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>{% endif %}
               {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
             {% else %}
-              {% if tip %}<span class="text-muted">🔒</span>
+              {% if tip %}
+                {% if u.id == user.id %}
+                  {% set ph, pa, pts = tip %}
+                  <div style="color:#6b7280">{{ ph }}:{{ pa }}</div>
+                {% else %}<span class="text-muted">🔒</span>{% endif %}
               {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
             {% endif %}
           </td>
