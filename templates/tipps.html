@@ -56,12 +56,21 @@
   <span>Du hast heute noch <strong><span id="today-count">{{ today_open }}</span> Spiel<span id="today-plural">{{ 'e' if today_open != 1 else '' }}</span></strong> ohne Tipp!</span>
 </div>
 
-<div class="alert py-2 mb-3 d-flex align-items-center gap-2" style="font-size:.88rem;background:rgba(126,200,227,.12);border:1px solid rgba(126,200,227,.4);color:#16202b">
-  <i class="bi bi-info-circle" style="color:var(--accent);flex-shrink:0"></i>
-  <span>
-    <strong>Gesamttore-Tipp:</strong> Es zählen nur Tore aus 90 Min. + Verlängerung – Elfmetertore nicht (offizielle FIFA-Regel).
-    Noch nicht getippt? <a href="/langfrist" style="color:var(--accent-dk);font-weight:600">Jetzt Bonus Tipps abgeben &rarr;</a>
-  </span>
+<div class="mb-4 p-3" style="background:rgba(220,53,69,.07);border:1.5px solid rgba(220,53,69,.3);border-radius:8px">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <i class="bi bi-exclamation-triangle-fill" style="color:#dc3545;font-size:1.1rem;flex-shrink:0"></i>
+    <strong style="font-size:.97rem;color:#b02030">Wichtiger Hinweis: Elfmeter & Gesamttore</strong>
+  </div>
+  <p class="mb-2" style="font-size:.88rem;color:#16202b">
+    Bei K.o.-Spielen mit Elfmeterschießen gilt das Ergebnis nach 90 Min. + Verlängerung als Wertungsgrundlage – <strong>nicht</strong> der Elfmeter-Score. Beispiel: Endet ein Spiel 1:1 n.V. und dann 5:3 n.E., zählt <strong>1:1</strong> für die Tipps.
+  </p>
+  <p class="mb-2" style="font-size:.88rem;color:#16202b">
+    Für den <strong>Gesamttore-Bonus</strong> zählen ebenfalls nur Feld- und Verlängerungstore – keine Elfmetertore (offizielle FIFA-Zählweise).
+  </p>
+  <div class="d-flex gap-3 flex-wrap mt-1" style="font-size:.85rem">
+    <a href="/langfrist" style="color:#dc3545;font-weight:700">Bonus Tipps abgeben &rarr;</a>
+    <a href="/regeln" style="color:#6b7280">Vollständige Regeln lesen &rarr;</a>
+  </div>
 </div>
 
 
