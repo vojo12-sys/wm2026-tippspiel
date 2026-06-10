@@ -122,10 +122,15 @@ Jeder Teilnehmer hat einen einmaligen Joker, den er auf genau ein Spiel setzen k
 
 **Verlängerung & Elfmeterschießen**
 Ab dem Sechzehntelfinale gilt bei Unentschieden nach 90 Minuten: zuerst 2 × 15 Minuten Verlängerung, danach bei Bedarf Elfmeterschießen. In der Gruppenphase gibt es weder Verlängerung noch Elfmeterschießen – ein Remis bleibt ein Remis.
-- Bei Elfmeterschießen zählt das Penalty-Ergebnis als offizielles Ergebnis (z. B. 5:3 n.E.) – wer genau diesen Stand tippt, bekommt das exakte Ergebnis
-- Das Ergebnis wird als "5:3 n.E." angezeigt und so auch in der Wertung geführt
+- Gewertet wird das Ergebnis nach 90 Minuten + Verlängerung (offizielle FIFA-Regelung)
+- Tore aus dem Elfmeterschießen zählen nicht – weder für den Spieltipp noch für den Gesamttore-Bonus
+- Beispiel: Ein Spiel endet 1:1 nach Verlängerung, dann 5:3 n.E. → Wertung als 1:1 (n.E.) – wer 1:1 tippt, bekommt das exakte Ergebnis
+- Das Ergebnis wird als "1:1 n.E." angezeigt, um das Elfmeterschießen als Entscheidung kenntlich zu machen
 - Der K.o.-Bonus (richtiges Team kommt weiter) wird unabhängig vergeben – egal ob Sieg nach 90 Min., Verlängerung oder Elfmeterschießen
 - In der K.o.-Phase gibt es immer einen Sieger – wer auf Unentschieden tippt, bekommt 0 Punkte
+
+**Gesamttore (Bonus Tipp)**
+Die Gesamtanzahl aller Turniertore wird nach offizieller FIFA-Zählweise ermittelt: Es zählen alle Tore aus der regulären Spielzeit (90 Min.) und der Verlängerung. Tore aus dem Elfmeterschießen zählen nicht. Eigentore werden normal mitgezählt. Der aktuelle Stand wird automatisch nach jedem Spieltag aktualisiert.
 
 **Kasse**
 Die Teilnahme am Tippspiel ist kostenlos. Wer möchte, kann freiwillig {buy_in} € in den Pott einzahlen. Der Pott wird unter den zahlenden Tippern aufgeteilt – nach ihrer Platzierung untereinander. Nicht-Zahler können das Tippspiel sportlich gewinnen, erhalten aber kein Geld.

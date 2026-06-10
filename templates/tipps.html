@@ -56,6 +56,14 @@
   <span>Du hast heute noch <strong><span id="today-count">{{ today_open }}</span> Spiel<span id="today-plural">{{ 'e' if today_open != 1 else '' }}</span></strong> ohne Tipp!</span>
 </div>
 
+<div class="alert py-2 mb-3 d-flex align-items-center gap-2" style="font-size:.88rem;background:rgba(126,200,227,.12);border:1px solid rgba(126,200,227,.4);color:#16202b">
+  <i class="bi bi-info-circle" style="color:var(--accent);flex-shrink:0"></i>
+  <span>
+    <strong>Gesamttore-Tipp:</strong> Es zählen nur Tore aus 90 Min. + Verlängerung – Elfmetertore nicht (offizielle FIFA-Regel).
+    Noch nicht getippt? <a href="/langfrist" style="color:var(--accent-dk);font-weight:600">Jetzt Bonus Tipps abgeben &rarr;</a>
+  </span>
+</div>
+
 
 
 <ul class="nav nav-tabs mb-4" id="phaseTabs" role="tablist">
