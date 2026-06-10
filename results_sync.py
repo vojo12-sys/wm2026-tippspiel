@@ -146,11 +146,23 @@ def _sync_matches() -> int:
                 penalties = score.get("penalties") or {}
                 pen_home = penalties.get("home")
                 pen_away = penalties.get("away")
+                extra = score.get("extraTime") or {}
+                extra_home = extra.get("home")
+                extra_away = extra.get("away")
                 if pen_home is not None and pen_away is not None:
-                    # Elfmeterschießen: Penalty-Score als offizielles Ergebnis
-                    m.result_home = pen_home
-                    m.result_away = pen_away
+                    # Elfmeterschießen: ET-Score als offizielles Ergebnis (FIFA-Regel: Elfmeter zählen nicht)
+                    if extra_home is not None and extra_away is not None:
+                        m.result_home = extra_home
+                        m.result_away = extra_away
+                    else:
+                        m.result_home = home_goals
+                        m.result_away = away_goals
                     m.went_to_penalties = True
+                elif extra_home is not None and extra_away is not None:
+                    # Verlängerung ohne Elfmeter
+                    m.result_home = extra_home
+                    m.result_away = extra_away
+                    m.went_to_penalties = False
                 else:
                     m.result_home = home_goals
                     m.result_away = away_goals
@@ -173,8 +185,9 @@ def _sync_matches() -> int:
 
     if updated > 0:
         try:
-            from scoring import recalculate_all
-            recalculate_all()
+            from scoring import recalculate_everything, update_total_goals
+            recalculate_everything()
+            update_total_goals()
         except Exception as e:
             logger.error("Punkte-Neuberechnung: %s", e)
 

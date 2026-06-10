@@ -166,8 +166,25 @@ def recalculate_special_tips() -> None:
             t.points_awarded = pts
 
 
+def update_total_goals() -> None:
+    """Summiert Tore aller abgeschlossenen Spiele (90min + Verlängerung, keine Elfmeter)
+    und schreibt das Ergebnis in TournamentResult.total_goals."""
+    from models import TournamentResult
+    with get_session() as session:
+        finished = session.scalars(
+            select(Match).where(Match.is_finished.is_(True))
+        ).all()
+        total = sum((m.result_home or 0) + (m.result_away or 0) for m in finished)
+        tr = session.get(TournamentResult, 1)
+        if tr is None:
+            tr = TournamentResult(id=1)
+            session.add(tr)
+        tr.total_goals = total
+    recalculate_special_tips()
+
+
 def recalculate_everything() -> None:
     """Komplette Neubewertung – nützlich nach einer Punktesystem-Änderung."""
     recalculate_all_matches()
     recalculate_group_predictions()
-    recalculate_special_tips()
+    update_total_goals()
