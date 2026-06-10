@@ -455,110 +455,96 @@
     </table>
   </div>
 
-  {# ── 3. JOKER (einklappbar) ── #}
+  {# ── 3. JOKER ── #}
   {% if joker_info %}
   <div class="mb-4">
-    <div class="d-flex align-items-center mb-2 gap-2">
-      <button class="btn btn-sm btn-outline-secondary py-0 px-2 collapse-toggle"
-              type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapse-joker" aria-expanded="false">
-        <i class="bi bi-chevron-down"></i>
-      </button>
+    <div class="mb-2">
       <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:.95rem">
         <i class="bi bi-suit-diamond-fill text-danger me-1"></i>Joker-Einsatz
       </span>
     </div>
-    <div class="collapse" id="collapse-joker">
-      <div class="overview-wrap">
-        <table class="overview-table" style="min-width:unset;width:auto">
-          <thead>
-            <tr>
-              <th class="col-match">Teilnehmer</th>
-              <th style="min-width:130px">Phase</th>
-              <th style="min-width:220px">Partie</th>
-              <th style="min-width:60px;text-align:center">Tipp</th>
-              <th style="min-width:80px;text-align:center">Punkte</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for j in joker_info %}
-            <tr>
-              <td class="col-match lt-decided">{{ j.user }}</td>
-              <td class="text-muted" style="font-size:.85rem">{{ j.phase }}</td>
-              <td>{{ j.match }}</td>
-              <td class="text-center">
-                {% if j.is_locked or j.user_id == user.id %}{{ j.pred or '—' }}{% else %}<span class="text-muted">🔒</span>{% endif %}
-              </td>
-              <td class="text-center">
-                {% if not j.has_result %}
-                  <span class="text-muted" style="font-size:.78rem">noch offen</span>
-                {% elif j.pts is not none %}
-                  <span class="{% if j.pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}" style="font-size:.85rem;font-weight:700">{{ j.pts }} Pkt</span>
-                {% else %}—{% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+    <div class="overview-wrap">
+      <table class="overview-table" style="min-width:unset;width:auto">
+        <thead>
+          <tr>
+            <th class="col-match">Teilnehmer</th>
+            <th style="min-width:130px">Phase</th>
+            <th style="min-width:220px">Partie</th>
+            <th style="min-width:60px;text-align:center">Tipp</th>
+            <th style="min-width:80px;text-align:center">Punkte</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for j in joker_info %}
+          <tr>
+            <td class="col-match lt-decided">{{ j.user }}</td>
+            <td class="text-muted" style="font-size:.85rem">{{ j.phase }}</td>
+            <td>{{ j.match }}</td>
+            <td class="text-center">
+              {% if j.is_locked or j.user_id == user.id %}{{ j.pred or '—' }}{% else %}<span class="text-muted">🔒</span>{% endif %}
+            </td>
+            <td class="text-center">
+              {% if not j.has_result %}
+                <span class="text-muted" style="font-size:.78rem">noch offen</span>
+              {% elif j.pts is not none %}
+                <span class="{% if j.pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}" style="font-size:.85rem;font-weight:700">{{ j.pts }} Pkt</span>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
   {% endif %}
 
-  {# ── 4. GRUPPEN-TIPPS (einklappbar) ── #}
+  {# ── 4. GRUPPEN-TIPPS ── #}
   {% if group_results or group_pred_map %}
   <div class="mb-4">
-    <div class="d-flex align-items-center mb-2 gap-2">
-      <button class="btn btn-sm btn-outline-secondary py-0 px-2 collapse-toggle"
-              type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapse-gruppen" aria-expanded="false">
-        <i class="bi bi-chevron-down"></i>
-      </button>
+    <div class="mb-2">
       <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:.95rem">
         Gruppen-Tipps
       </span>
     </div>
-    <div class="collapse" id="collapse-gruppen">
-      <div class="overview-wrap">
-        <table class="overview-table">
-          <thead>
-            <tr>
-              <th class="col-match">Gruppen-Tipps</th>
-              {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% set all_groups = ['A','B','C','D','E','F','G','H','I','J','K','L'] %}
-            {% for letter in all_groups %}
-            {% set actual = group_results.get(letter) %}
-            <tr>
-              <td class="col-match lt-decided">
-                <div class="lt-label">Gruppe {{ letter }}</div>
-                {% if actual %}
-                <div style="font-size:.82rem">1. {{ actual[0] or '—' }}<br>2. {{ actual[1] or '—' }}</div>
-                {% endif %}
-              </td>
-              {% for u in users %}
-              {% set gp = group_pred_map.get(u.id, {}).get(letter) %}
-              <td class="text-center col-user">
-                {% if langfrist_visible or u.id == user.id %}
-                  {% if gp %}
-                    {% set p1, p2, gpts = gp %}
-                    <div style="font-size:.85rem">
-                      <span class="{% if actual and actual[0] and p1 == actual[0] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p1 }}</span><br>
-                      <span class="{% if actual and actual[1] and p2 == actual[1] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
-                    </div>
-                    {% if gpts %}<div class="lt-pts">{{ gpts }} Pkt</div>{% endif %}
-                  {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
-                {% elif gp %}<span class="text-muted">🔒</span>
+    <div class="overview-wrap">
+      <table class="overview-table">
+        <thead>
+          <tr>
+            <th class="col-match">Gruppen-Tipps</th>
+            {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% set all_groups = ['A','B','C','D','E','F','G','H','I','J','K','L'] %}
+          {% for letter in all_groups %}
+          {% set actual = group_results.get(letter) %}
+          <tr>
+            <td class="col-match lt-decided">
+              <div class="lt-label">Gruppe {{ letter }}</div>
+              {% if actual %}
+              <div style="font-size:.82rem">1. {{ actual[0] or '—' }}<br>2. {{ actual[1] or '—' }}</div>
+              {% endif %}
+            </td>
+            {% for u in users %}
+            {% set gp = group_pred_map.get(u.id, {}).get(letter) %}
+            <td class="text-center col-user">
+              {% if langfrist_visible or u.id == user.id %}
+                {% if gp %}
+                  {% set p1, p2, gpts = gp %}
+                  <div style="font-size:.85rem">
+                    <span class="{% if actual and actual[0] and p1 == actual[0] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p1 }}</span><br>
+                    <span class="{% if actual and actual[1] and p2 == actual[1] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
+                  </div>
+                  {% if gpts %}<div class="lt-pts">{{ gpts }} Pkt</div>{% endif %}
                 {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
-              </td>
-              {% endfor %}
-            </tr>
+              {% elif gp %}<span class="text-muted">🔒</span>
+              {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
+            </td>
             {% endfor %}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
   {% endif %}
@@ -569,43 +555,65 @@
 
 <script>
 (function() {
-  const STORAGE_KEY = 'uebersicht-col-widths';
+  const STORAGE_KEY = 'uebersicht-col-widths-v3';
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) {}
 
+  function setColWidth(table, colIdx, w) {
+    table.querySelectorAll('tr').forEach(row => {
+      const cell = row.cells[colIdx];
+      if (!cell) return;
+      cell.style.width    = w + 'px';
+      cell.style.minWidth = w + 'px';
+      cell.style.maxWidth = w + 'px';
+    });
+  }
+
+  function tableKey(table) {
+    if (table.dataset.colKey) return table.dataset.colKey;
+    const pane = table.closest('.tab-pane');
+    const paneId = pane ? pane.id : 'root';
+    const siblings = (pane || document).querySelectorAll('.overview-table, .special-table');
+    const idx = [...siblings].indexOf(table);
+    const key = paneId + '-t' + idx;
+    table.dataset.colKey = key;
+    return key;
+  }
+
   function initTable(table) {
-    const tableId = table.closest('[id]')?.id || 'tbl';
-    const ths = table.querySelectorAll('thead tr:first-child th');
+    if (table.dataset.colResizeReady) return;
+    table.dataset.colResizeReady = '1';
+
+    const tKey = tableKey(table);
+    const ths = [...table.querySelectorAll('thead tr:first-child th')];
 
     ths.forEach((th, i) => {
-      // restore saved width
-      const key = tableId + '-' + i;
-      if (saved[key]) th.style.width = saved[key];
+      const cKey = tKey + '-c' + i;
 
-      // add resize handle
-      const handle = document.createElement('span');
-      handle.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;user-select:none;z-index:10';
+      // restore saved width
+      if (saved[cKey]) setColWidth(table, i, parseInt(saved[cKey]));
+
+      // drag handle
       th.style.position = 'relative';
+      const handle = document.createElement('span');
+      handle.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:6px;cursor:col-resize;z-index:10;';
       th.appendChild(handle);
 
-      let startX, startW;
       handle.addEventListener('mousedown', e => {
-        startX = e.clientX;
-        startW = th.offsetWidth;
+        const startX = e.clientX;
+        const startW = th.offsetWidth;
         e.preventDefault();
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
 
         function onMove(e) {
-          const newW = Math.max(50, startW + e.clientX - startX);
-          th.style.width = newW + 'px';
-          // sync all cells in this column
-          table.querySelectorAll('tr').forEach(row => {
-            const cell = row.cells[i];
-            if (cell) cell.style.width = newW + 'px';
-          });
+          setColWidth(table, i, Math.max(40, startW + e.clientX - startX));
         }
         function onUp() {
-          saved[key] = th.style.width;
+          saved[cKey] = th.offsetWidth;
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch(e) {}
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
           document.removeEventListener('mousemove', onMove);
           document.removeEventListener('mouseup', onUp);
         }
@@ -619,14 +627,9 @@
     document.querySelectorAll('.overview-table, .special-table').forEach(initTable);
   }
 
-  // init on load + after tab switch (tabs load lazily)
   document.addEventListener('DOMContentLoaded', initAll);
-  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
-    btn.addEventListener('shown.bs.tab', initAll);
-  });
-  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(btn => {
-    btn.addEventListener('shown.bs.collapse', initAll);
-  });
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(b => b.addEventListener('shown.bs.tab', initAll));
+  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 </script>
 {% endblock %}
