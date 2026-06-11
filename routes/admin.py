@@ -59,6 +59,7 @@ async def save_result(
     match_id: int,
     result_home: int = Form(...),
     result_away: int = Form(...),
+    went_to_penalties: bool = Form(False),
     user: dict = Depends(require_admin),
 ):
     with get_session() as s:
@@ -67,10 +68,13 @@ async def save_result(
             m.result_home = result_home
             m.result_away = result_away
             m.is_finished = True
+            m.went_to_penalties = went_to_penalties
             if result_home > result_away:
                 m.winner_team_id = m.home_team_id
             elif result_away > result_home:
                 m.winner_team_id = m.away_team_id
+            else:
+                m.winner_team_id = None
     recalculate_match(match_id)
     request.session["flash"] = {"message": "Ergebnis gespeichert.", "type": "success"}
     return RedirectResponse("/admin", status_code=303)
@@ -85,6 +89,7 @@ async def undo_result(request: Request, match_id: int, user: dict = Depends(requ
             m.result_away = None
             m.is_finished = False
             m.winner_team_id = None
+            m.went_to_penalties = False
             for p in s.scalars(select(Prediction).where(Prediction.match_id == match_id)).all():
                 p.points_awarded = 0
     request.session["flash"] = {"message": "Ergebnis zurückgesetzt.", "type": "warning"}
@@ -125,12 +130,16 @@ async def reset_password(
     if len(new_password) < 6:
         request.session["flash"] = {"message": "Passwort muss mind. 6 Zeichen haben.", "type": "danger"}
         return RedirectResponse("/admin", status_code=303)
+    name = None
     with get_session() as s:
         u = s.get(User, user_id)
         if u:
             u.password_hash = hash_password(new_password)
             name = u.display_name
-    request.session["flash"] = {"message": f"Passwort für '{name}' zurückgesetzt.", "type": "success"}
+    if name:
+        request.session["flash"] = {"message": f"Passwort für '{name}' zurückgesetzt.", "type": "success"}
+    else:
+        request.session["flash"] = {"message": "Nutzer nicht gefunden.", "type": "danger"}
     return RedirectResponse("/admin", status_code=303)
 
 
@@ -139,12 +148,16 @@ async def delete_user(request: Request, user_id: int, user: dict = Depends(requi
     if user_id == user["id"]:
         request.session["flash"] = {"message": "Du kannst dich nicht selbst löschen.", "type": "danger"}
         return RedirectResponse("/admin", status_code=303)
+    name = None
     with get_session() as s:
         u = s.get(User, user_id)
         if u:
             name = u.display_name
             s.delete(u)
-    request.session["flash"] = {"message": f"Nutzer '{name}' gelöscht.", "type": "success"}
+    if name:
+        request.session["flash"] = {"message": f"Nutzer '{name}' gelöscht.", "type": "success"}
+    else:
+        request.session["flash"] = {"message": "Nutzer nicht gefunden.", "type": "danger"}
     return RedirectResponse("/admin", status_code=303)
 
 

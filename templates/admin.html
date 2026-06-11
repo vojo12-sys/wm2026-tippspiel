@@ -44,12 +44,16 @@
               <td><small>{{ m.kickoff_utc.strftime('%d.%m %H:%M') if m.kickoff_utc else '—' }}</small></td>
               <td class="fw-semibold" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ home }}</td>
               <td>
-                <form method="post" action="/admin/result/{{ m.id }}" class="d-flex align-items-center gap-1">
+                <form method="post" action="/admin/result/{{ m.id }}" class="d-flex align-items-center gap-1 flex-wrap">
                   <input type="number" name="result_home" class="form-control form-control-sm score-input"
                          value="{{ m.result_home if m.result_home is not none else '' }}" min="0" placeholder="—">
                   <span class="fw-bold">:</span>
                   <input type="number" name="result_away" class="form-control form-control-sm score-input"
                          value="{{ m.result_away if m.result_away is not none else '' }}" min="0" placeholder="—">
+                  <label class="d-flex align-items-center gap-1 small text-muted mb-0" title="Elfmeterschießen">
+                    <input type="checkbox" name="went_to_penalties" value="true"
+                           {% if m.went_to_penalties %}checked{% endif %}>n.E.
+                  </label>
                   <button type="submit" class="btn btn-accent btn-sm">✓</button>
                 </form>
               </td>
