@@ -34,7 +34,7 @@
         <div class="brand-sub">LEW Automotive · Kanada · Mexiko · USA</div>
       </div>
     </div>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    <button type="button" class="btn-close"></button>
   </div>
   <div class="offcanvas-body p-3 d-flex flex-column gap-2">
     <div class="mb-2">
@@ -46,38 +46,38 @@
     </div>
     <hr class="my-1">
     <nav class="nav flex-column gap-1">
-      <a href="/tipps" class="nav-link {% if active == 'tipps' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/tipps" class="nav-link {% if active == 'tipps' %}active{% endif %}">
         <i class="bi bi-pencil-square me-2"></i>Tipps abgeben
       </a>
-      <a href="/langfrist" class="nav-link {% if active == 'langfrist' %}active{% endif %} {% if user and get_bonus_tips_incomplete(user.id) %}nav-glow-gold{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/langfrist" class="nav-link {% if active == 'langfrist' %}active{% endif %} {% if user and get_bonus_tips_incomplete(user.id) %}nav-glow-gold{% endif %}">
         <i class="bi bi-trophy me-2"></i>Bonus Tipps
       </a>
-      <a href="/spielplan" class="nav-link {% if active == 'spielplan' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/spielplan" class="nav-link {% if active == 'spielplan' %}active{% endif %}">
         <i class="bi bi-calendar3 me-2"></i>Spielplan
       </a>
-      <a href="/leaderboard" class="nav-link {% if active == 'leaderboard' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/leaderboard" class="nav-link {% if active == 'leaderboard' %}active{% endif %}">
         <i class="bi bi-bar-chart me-2"></i>Leaderboard
       </a>
-      <a href="/uebersicht" class="nav-link {% if active == 'uebersicht' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/uebersicht" class="nav-link {% if active == 'uebersicht' %}active{% endif %}">
         <i class="bi bi-table me-2"></i>Tipp-Übersicht
       </a>
-      <a href="/torschuetzen" class="nav-link {% if active == 'torschuetzen' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/torschuetzen" class="nav-link {% if active == 'torschuetzen' %}active{% endif %}">
         <i class="bi bi-person-badge me-2"></i>Torschützen
       </a>
-      <a href="/stats" class="nav-link {% if active == 'stats' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/stats" class="nav-link {% if active == 'stats' %}active{% endif %}">
         <i class="bi bi-graph-up me-2"></i>Meine Statistik
       </a>
-      <a href="/teams" class="nav-link {% if active == 'teams' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/teams" class="nav-link {% if active == 'teams' %}active{% endif %}">
         <i class="bi bi-globe me-2"></i>Teams & Spielorte
       </a>
       <a href="https://www.sportschau.de/fussball/fifa-wm-2026" target="_blank" rel="noopener" class="nav-link">
         <i class="bi bi-newspaper me-2"></i>News
       </a>
-      <a href="/regeln" class="nav-link {% if active == 'regeln' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/regeln" class="nav-link {% if active == 'regeln' %}active{% endif %}">
         <i class="bi bi-info-circle me-2"></i>Spielregeln
       </a>
       {% if user.is_admin %}
-      <a href="/admin" class="nav-link {% if active == 'admin' %}active{% endif %}" data-bs-dismiss="offcanvas">
+      <a href="/admin" class="nav-link {% if active == 'admin' %}active{% endif %}">
         <i class="bi bi-gear me-2"></i>Admin
       </a>
       {% endif %}
