@@ -140,12 +140,17 @@
 .result-badge { font-weight: 800; color: #1E4E8C; font-size: 1.2rem; }
 
 .group-header td {
-  background: var(--bg);
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 800; font-size: .88rem;
   padding: 8px 12px 4px; border-bottom: none;
-  position: sticky; left: 0; z-index: 3;
 }
+.overview-table .group-header td { background: var(--bg); }
+.overview-table .group-header .col-match,
+.overview-table .group-header .col-result { background: var(--bg); }
+.overview-table .group-header .col-result { border-right-color: var(--bg); }
+.overview-table .group-header:hover td,
+.overview-table .group-header:hover .col-match,
+.overview-table .group-header:hover .col-result { background: var(--bg); }
 .total-row td {
   background: #fff; font-weight: 700;
   font-family: 'Bricolage Grotesque', sans-serif;
@@ -162,6 +167,7 @@
   background: #fff !important; color: #16202b !important; }
 
 /* Langfrist */
+#ov-langfrist .overview-wrap { overflow-x: auto; }
 .lt-decided { background: rgba(30,78,140,.05); border-left: 3px solid #1E4E8C; }
 .lt-label { font-weight: 400; font-size: .82rem; color: #16202b; }
 .lt-correct { color: #1E4E8C; font-weight: 700; }
@@ -342,7 +348,9 @@
         {% if m.group_letter != cur.group %}
         {% set cur.group = m.group_letter or '' %}
         <tr class="group-header">
-          <td colspan="{{ users|length + 2 }}">Gruppe {{ m.group_letter }}</td>
+          <td class="col-match">Gruppe {{ m.group_letter }}</td>
+          <td class="col-result"></td>
+          {% for u in users %}<td></td>{% endfor %}
         </tr>
         {% endif %}
         {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
@@ -710,18 +718,23 @@
     var table = wrap.querySelector('.overview-table');
     if (!table) return;
 
-    // col-match Breite messen (für --col-match-w CSS-Variable und total/grand left)
+    // col-match Breite messen
     var firstColMatch = table.querySelector('th.col-match');
-    var matchW = firstColMatch ? firstColMatch.offsetWidth : 210;
-    if (matchW === 0) matchW = 210;
-    document.documentElement.style.setProperty('--col-match-w', matchW + 'px');
+    var rawMatchW = firstColMatch ? firstColMatch.offsetWidth : 0;
+    var matchW = rawMatchW > 0 ? rawMatchW : 210;
+    // CSS-Variable nur setzen wenn Tabelle sichtbar (sonst überschreiben versteckte Tabs den Wert)
+    if (rawMatchW > 0) {
+      document.documentElement.style.setProperty('--col-match-w', matchW + 'px');
+    }
 
-    // Horizontales Sticky: col-result body-Zellen (col-match via CSS, col-result braucht left-Wert)
+    // Horizontales Sticky: col-result – alle Zellen (thead + tbody) mit inline left fixieren
+    table.querySelectorAll('th.col-result, td.col-result').forEach(function(c) {
+      c.style.left = matchW + 'px';
+    });
     table.querySelectorAll('tbody td.col-result').forEach(function(c) {
       c.style.position = 'sticky';
-      c.style.left = matchW + 'px';
       c.style.zIndex = '2';
-      c.style.background = '#fff';
+      c.style.background = c.closest('.group-header') ? 'var(--bg)' : '#fff';
     });
 
     // Vertikales Sticky: total/grand-row (nur Desktop; Header-Zeile übernimmt CSS)
