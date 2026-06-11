@@ -12,8 +12,8 @@
   --surface: #ffffff;
 }
 
-body { font-family: 'Hanken Grotesk', sans-serif; background: var(--bg); color: #16202b; overflow-x: auto; }
-.col-12.col-md-10 { overflow-x: visible !important; }
+body { font-family: 'Hanken Grotesk', sans-serif; background: var(--bg); color: #16202b; overflow-x: hidden; }
+.col-12.col-md-10 { overflow-x: hidden; }
 h1,h2,h3,h4,h5 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; }
 
 .brand-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.25rem; line-height: 1.2; }
