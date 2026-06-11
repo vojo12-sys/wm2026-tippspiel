@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from datetime import datetime, timezone
 
 import httpx
@@ -79,6 +80,7 @@ def _sync_matches() -> int:
     matches_data = resp.json().get("matches", [])
     updated = 0
     new_live: dict[int, dict] = {}
+    finished_ids: set[int] = set()
 
     with get_session() as s:
         team_by_name: dict[str, int] = {
@@ -139,10 +141,12 @@ def _sync_matches() -> int:
                     "away": away_goals,
                     "minute": minute,
                     "status": status,  # IN_PLAY oder PAUSED
+                    "ts": time.time(),
                 }
                 logger.info("LIVE Sp.%s: %d:%d (%s')", m.match_number, home_goals, away_goals, minute)
             else:
                 # Abgeschlossen: in DB schreiben
+                finished_ids.add(m.id)
                 penalties = score.get("penalties") or {}
                 pen_home = penalties.get("home")
                 pen_away = penalties.get("away")
@@ -179,8 +183,19 @@ def _sync_matches() -> int:
                 logger.info("Spiel %s: %d:%d%s", m.match_number, m.result_home, m.result_away,
                             " n.E." if m.went_to_penalties else "")
 
-    # Live-Cache aktualisieren (abgeschlossene Spiele entfernen)
-    _live_scores.clear()
+    # Live-Cache aktualisieren:
+    # - Abgeschlossene Spiele (jetzt in DB) gezielt entfernen
+    # - Spiele, die die API in diesem Zyklus nicht gemeldet hat, behalten
+    #   (kurze API-Lücke → letzter bekannter Stand bleibt sichtbar)
+    # - Einträge älter als 120 min bereinigen (Spiel ist definitiv vorbei)
+    now = time.time()
+    for mid in finished_ids:
+        _live_scores.pop(mid, None)
+    for mid in list(_live_scores):
+        if mid not in new_live:
+            age_min = (now - _live_scores[mid].get("ts", now)) / 60
+            if age_min > 120:
+                del _live_scores[mid]
     _live_scores.update(new_live)
 
     if updated > 0:
