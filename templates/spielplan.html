@@ -47,8 +47,28 @@
 .gtab .gt-q3   { background: rgba(255,160,0,.06); }
 
 /* ── K.o.-Bracket ── */
-.bracket-wrap { overflow-x: auto; padding-bottom: 1rem; }
+.bracket-outer { position: relative; }
+.bracket-wrap { overflow-x: auto; padding-bottom: 1rem; -webkit-overflow-scrolling: touch; }
 .bracket { display: flex; align-items: flex-start; min-width: max-content; }
+@media (max-width: 767px) {
+  .bracket-outer::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 1rem;
+    width: 48px;
+    background: linear-gradient(to right, transparent, #fff);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .bracket-outer.scrolled-end::after { display: none; }
+  .bracket-scroll-hint {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; font-size: .72rem; color: var(--muted); margin-bottom: 6px;
+  }
+}
+@media (min-width: 768px) {
+  .bracket-scroll-hint { display: none; }
+}
 
 .bracket-col { display: flex; flex-direction: column; }
 .bracket-col-label {
@@ -254,7 +274,9 @@
 
     <!-- ── Bracket ab Achtelfinale ── -->
     <h5 class="mb-3">Bracket ab Achtelfinale</h5>
-    <div class="bracket-wrap">
+    <p class="bracket-scroll-hint"><span>&#8592;</span> nach rechts scrollen <span>&#8594;</span></p>
+    <div class="bracket-outer" id="bracket-outer">
+    <div class="bracket-wrap" id="bracket-wrap">
       <div class="bracket">
 
         <!-- ACHTELFINALE (8 Spiele, slot=72px) -->
@@ -322,6 +344,7 @@
 
       </div><!-- .bracket -->
     </div><!-- .bracket-wrap -->
+    </div><!-- .bracket-outer -->
 
     <!-- Spiel um Platz 3 -->
     {% if ko_matches.get('third_place') %}
@@ -342,4 +365,17 @@
 
   </div><!-- #ko -->
 </div>
+<script>
+(function(){
+  var wrap = document.getElementById('bracket-wrap');
+  var outer = document.getElementById('bracket-outer');
+  if (!wrap || !outer) return;
+  function check() {
+    var atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 4;
+    outer.classList.toggle('scrolled-end', atEnd);
+  }
+  wrap.addEventListener('scroll', check, {passive: true});
+  check();
+})();
+</script>
 {% endblock %}
