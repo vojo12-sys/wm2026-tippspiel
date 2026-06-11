@@ -88,37 +88,47 @@
 .overview-table thead .col-result { z-index: 11; }
 .overview-table tr:hover .col-result { background: #f8fbff; }
 
-/* Desktop: Tabs außerhalb Scroll-Viewport, interner Scroll beides Achsen */
+/* Desktop: Jede Spieltag-Tabelle scrollt eigenständig – sticky relativ zum direkten Wrapper */
 @media (min-width: 768px) {
   #overviewContainer {
     border: 1px solid var(--border);
     border-radius: 8px;
   }
+  /* Tabs sticky oben (Fenster-Scroll für K.o.-Tab) */
   .ov-tabs {
+    position: sticky; top: 0; z-index: 50;
     background: var(--bg);
     box-shadow: 0 2px 6px rgba(0,0,0,.08);
     padding: 8px 8px 0;
     border-radius: 8px 8px 0 0;
   }
-  #overviewViewport {
+  /* Spieltag-Wrapper ist der Scroll-Container (nicht der äußere Viewport) */
+  .spieltag-table {
     overflow: auto;
-    height: calc(100vh - 220px); /* CSS-Fallback; JS überschreibt mit präzisem Wert */
+    max-height: calc(100vh - 170px);
   }
-  /* Einzelne Header-Zellen sticky (nicht das thead-Element) */
-  .spieltag-table .overview-table thead tr:first-child th,
-  .collapse .overview-table thead tr:first-child th {
+  /* Header-Zellen sticky oben (relativ zu .spieltag-table) */
+  .spieltag-table .overview-table thead tr:first-child th {
     position: sticky; top: 0; z-index: 10;
   }
-  .spieltag-table .overview-table thead tr:first-child .col-match,
-  .collapse .overview-table thead tr:first-child .col-match { z-index: 13; }
-  .spieltag-table .overview-table thead tr:first-child .col-result,
-  .collapse .overview-table thead tr:first-child .col-result { z-index: 12; }
-  /* K.o.-Zusammenfassung */
+  .spieltag-table .overview-table thead tr:first-child .col-match { z-index: 13; }
+  .spieltag-table .overview-table thead tr:first-child .col-result { z-index: 12; }
+  /* K.o.-Zusammenfassung sticky oben (Fenster-Scroll) */
   .ko-summary-sticky {
     position: sticky; top: 0; z-index: 30;
     background: var(--surface);
     border-bottom: 2px solid var(--border);
   }
+  /* K.o.-Runden-Tabellen ebenfalls eigener Scroll-Container */
+  .collapse .overview-wrap {
+    overflow: auto;
+    max-height: calc(100vh - 250px);
+  }
+  .collapse .overview-table thead tr:first-child th {
+    position: sticky; top: 0; z-index: 10;
+  }
+  .collapse .overview-table thead tr:first-child .col-match { z-index: 13; }
+  .collapse .overview-table thead tr:first-child .col-result { z-index: 12; }
 }
 .overview-table tr:hover td { background: #f8fbff; }
 .overview-table tr:hover .col-match { background: #f8fbff; }
@@ -677,21 +687,18 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Viewport-Höhe + sticky Zellen (synchron)
+// Sticky-Messung: col-result left-Offset + total/grand-row Positionen
 (function() {
-  var vp = document.getElementById('overviewViewport');
-  if (!vp) return;
-
   function measureAndStick() {
-    // col-match Breite für col-result left-Offset
-    var colMatch = vp.querySelector('.overview-table th.col-match');
+    // col-match Breite für col-result left-Offset (CSS-Variable)
+    var activePane = document.querySelector('.tab-pane.active.show');
+    var colMatch = activePane && activePane.querySelector('.overview-table th.col-match');
     if (colMatch) {
       document.documentElement.style.setProperty('--col-match-w', colMatch.offsetWidth + 'px');
     }
 
-    // total-row und grand-row in sichtbaren Spieltag-Tabellen sticky machen
-    vp.querySelectorAll('.spieltag-table .overview-table').forEach(function(table) {
-      // Nur sichtbare Tabellen (in aktivem Tab)
+    // total-row und grand-row sticky (relativ zum .spieltag-table Scroll-Container)
+    document.querySelectorAll('.spieltag-table .overview-table').forEach(function(table) {
       if (!table.offsetParent) return;
       var hdr = table.querySelector('thead tr:first-child');
       if (!hdr) return;
@@ -722,19 +729,8 @@
     });
   }
 
-  function setHeight() {
-    if (window.innerWidth < 768) { vp.style.height = ''; return; }
-    var vpTop = vp.getBoundingClientRect().top;
-    vp.style.height = Math.max(300, window.innerHeight - vpTop - 20) + 'px';
-  }
-
-  function init() {
-    setHeight();
-    measureAndStick();
-  }
-
-  document.addEventListener('DOMContentLoaded', init);
-  window.addEventListener('resize', function() { setHeight(); measureAndStick(); });
+  document.addEventListener('DOMContentLoaded', measureAndStick);
+  window.addEventListener('resize', measureAndStick);
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(b) {
     b.addEventListener('shown.bs.tab', measureAndStick);
   });
