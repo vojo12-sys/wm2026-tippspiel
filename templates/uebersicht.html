@@ -69,7 +69,7 @@
 }
 .overview-table th:last-child, .overview-table td:last-child { border-right: none; }
 .overview-table thead th {
-  background: #fff; position: sticky; top: var(--thead-top, 0px); z-index: 10;
+  background: #fff; position: sticky; top: var(--thead-top, 48px); z-index: 10;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700; font-size: .82rem;
   text-transform: uppercase; letter-spacing: .04em;
@@ -81,11 +81,13 @@
 }
 .overview-table thead .col-match { z-index: 11; }
 
-/* Sticky tab row */
-.overview-nav-tabs {
-  position: sticky; top: 0; z-index: 20;
-  background: var(--bg); padding-bottom: 0;
-  margin-bottom: 0 !important;
+/* Sticky K.o.-Zusammenfassung (Spiel-Header + 2 Summen-Zeilen) */
+.ko-summary-sticky {
+  position: sticky;
+  top: var(--tabs-h, 48px);
+  z-index: 30;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
 }
 .overview-table tr:hover td { background: #f8fbff; }
 .overview-table tr:hover .col-match { background: #f8fbff; }
@@ -141,7 +143,7 @@
 </style>
 
 <!-- Tabs -->
-<ul class="nav nav-tabs mb-0 flex-wrap overview-nav-tabs" id="overviewTabs" role="tablist">
+<ul class="nav nav-tabs mb-0 flex-wrap sticky-tabs" id="overviewTabs" role="tablist">
   {% for dk in sorted_dates %}
   <li class="nav-item">
     <button class="nav-link {% if dk == active_section %}active{% endif %}"
@@ -166,7 +168,7 @@
 
   {% if dk == 'ko' %}
   {# ── K.o.-Phase: Punkte-Zusammenfassung + einklappbare Runden ── #}
-  <div class="overview-wrap mb-3">
+  <div class="overview-wrap ko-summary-sticky mb-3">
     <table class="overview-table">
       <thead>
         <tr>
@@ -639,16 +641,17 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Sticky thead: setzt --thead-top auf Höhe der klebenden Tab-Leiste
+// Sticky: --tabs-h = Höhe der Tab-Leiste, --thead-top = Tab-Leiste + 4px Abstand
 (function() {
-  function setTheadTop() {
+  function setStickyVars() {
     const tabs = document.getElementById('overviewTabs');
-    if (tabs) {
-      document.documentElement.style.setProperty('--thead-top', tabs.offsetHeight + 'px');
-    }
+    if (!tabs) return;
+    const h = tabs.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--tabs-h', h + 'px');
+    document.documentElement.style.setProperty('--thead-top', (h + 4) + 'px');
   }
-  document.addEventListener('DOMContentLoaded', setTheadTop);
-  window.addEventListener('resize', setTheadTop);
+  document.addEventListener('DOMContentLoaded', setStickyVars);
+  window.addEventListener('resize', setStickyVars);
 })();
 </script>
 {% endblock %}

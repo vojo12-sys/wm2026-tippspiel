@@ -91,7 +91,7 @@
 
 
 
-<ul class="nav nav-tabs mb-4" id="phaseTabs" role="tablist">
+<ul class="nav nav-tabs mb-0 sticky-tabs" id="phaseTabs" role="tablist">
 
   {% set first_tab = namespace(done=false) %}
 
@@ -291,7 +291,7 @@
 
     {% if phase_key == 'group' %}
 
-      <ul class="nav nav-pills nav-sm mb-2 gap-1" id="stTabs" role="tablist">
+      <ul class="nav nav-pills nav-sm mb-2 gap-1 sticky-subtabs" id="stTabs" role="tablist">
         {% for st in [1, 2, 3] %}
         {% if spieltage.get(st) %}
         <li class="nav-item" role="presentation">
@@ -516,6 +516,18 @@ document.querySelectorAll('.tipp-form').forEach(form => {
 </script>
 
 {% endif %}
+
+<script>
+// Setzt --phase-tabs-h damit Spieltag-Sub-Tabs direkt darunter kleben
+(function() {
+  function setPhaseTabsHeight() {
+    const t = document.getElementById('phaseTabs');
+    if (t) document.documentElement.style.setProperty('--phase-tabs-h', (t.getBoundingClientRect().height + 4) + 'px');
+  }
+  document.addEventListener('DOMContentLoaded', setPhaseTabsHeight);
+  window.addEventListener('resize', setPhaseTabsHeight);
+})();
+</script>
 
 {% endblock %}
 
