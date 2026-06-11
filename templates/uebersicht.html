@@ -649,8 +649,8 @@
       // restore saved width
       if (saved[cKey]) setColWidth(table, i, parseInt(saved[cKey]));
 
-      // drag handle
-      th.style.position = 'relative';
+      // drag handle – position nur auf relative setzen wenn nicht bereits sticky/absolute
+      if (getComputedStyle(th).position === 'static') th.style.position = 'relative';
       const handle = document.createElement('span');
       handle.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:6px;cursor:col-resize;z-index:10;';
       th.appendChild(handle);
