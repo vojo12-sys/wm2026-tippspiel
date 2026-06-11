@@ -98,7 +98,22 @@
     position: sticky; top: var(--tabs-h, 48px); z-index: 10;
   }
   .overview-table thead .col-match { z-index: 11; }
-  /* K.o.-Zusammenfassung (Spiel + Pkt K.o. + Gesamt) klebt unter Tabs */
+
+  /* Spieltag-Tabs: Summenzeilen sticky direkt unter Spalten-Header */
+  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.total-row td {
+    position: sticky; top: var(--total-row-top, 88px); z-index: 9; background: #fff;
+  }
+  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.total-row td.col-match {
+    z-index: 10;
+  }
+  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.grand-row td {
+    position: sticky; top: var(--grand-row-top, 122px); z-index: 8; background: #fff;
+  }
+  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.grand-row td.col-match {
+    z-index: 9;
+  }
+
+  /* K.o.-Zusammenfassung (Spiel + Pkt K.o. + Gesamt) klebt als Block unter Tabs */
   .ko-summary-sticky {
     position: sticky;
     top: var(--tabs-h, 48px);
@@ -669,20 +684,31 @@
     if (!vp || !tabs) return;
     if (window.innerWidth < 768) { vp.style.height = ''; return; }
 
-    // Viewport füllt verbleibende Fensterhöhe ab seiner Oberkante
-    const top = vp.getBoundingClientRect().top;
-    const h = Math.max(300, window.innerHeight - top - 24);
-    vp.style.height = h + 'px';
+    // Viewport füllt verbleibende Fensterhöhe
+    const vpTop = vp.getBoundingClientRect().top;
+    vp.style.height = Math.max(300, window.innerHeight - vpTop - 24) + 'px';
 
-    // Tab-Höhe für sticky thead + ko-summary
     requestAnimationFrame(() => {
       const tabsH = tabs.getBoundingClientRect().height;
       document.documentElement.style.setProperty('--tabs-h', tabsH + 'px');
+
+      // Summenzeilen-Tops: tabs + thead-Höhe (+ total-Höhe für grand)
+      const activePane = vp.querySelector('.tab-pane.show.active');
+      if (!activePane) return;
+      // Nur für Spieltag-Wraps (nicht ko-summary-sticky)
+      const wrap = activePane.querySelector('.overview-wrap:not(.ko-summary-sticky)');
+      if (!wrap) return;
+      const theadRow = wrap.querySelector('.overview-table thead tr');
+      const totalRow = wrap.querySelector('.overview-table tbody tr.total-row');
+      const grandRow = wrap.querySelector('.overview-table tbody tr.grand-row');
+      const theadH  = theadRow  ? theadRow.getBoundingClientRect().height  : 36;
+      const totalH  = totalRow  ? totalRow.getBoundingClientRect().height  : 32;
+      document.documentElement.style.setProperty('--total-row-top', (tabsH + theadH) + 'px');
+      document.documentElement.style.setProperty('--grand-row-top', (tabsH + theadH + totalH) + 'px');
     });
   }
   document.addEventListener('DOMContentLoaded', initViewport);
   window.addEventListener('resize', initViewport);
-  // Nach Tab-Wechsel neu messen (Tab kann Höhe ändern)
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(b =>
     b.addEventListener('shown.bs.tab', initViewport)
   );
