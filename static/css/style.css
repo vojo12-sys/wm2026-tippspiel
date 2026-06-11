@@ -12,8 +12,8 @@
   --surface: #ffffff;
 }
 
-body { font-family: 'Hanken Grotesk', sans-serif; background: var(--bg); color: #16202b; overflow-x: hidden; }
-.col-12.col-md-10 { overflow-x: hidden; }
+body { font-family: 'Hanken Grotesk', sans-serif; background: var(--bg); color: #16202b; }
+.col-12.col-md-10 { overflow-x: clip; }
 h1,h2,h3,h4,h5 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; }
 
 .brand-title { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.25rem; line-height: 1.2; }
@@ -62,8 +62,15 @@ h1,h2,h3,h4,h5 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 80
 .border-success { border-color: #1E4E8C !important; }
 .border-success-subtle { border-color: rgba(30,78,140,.35) !important; }
 
+.mobile-topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 52px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
 @media (max-width: 767px) {
-  .sidebar { min-height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  body { padding-top: 52px; }
   .score-input { width: 52px !important; font-size: 1rem; }
 }
 

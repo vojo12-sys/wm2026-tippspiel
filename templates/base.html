@@ -11,11 +11,95 @@
   <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
+
+{% if user %}
+<!-- Mobile Top Bar -->
+<nav class="mobile-topbar d-flex d-md-none align-items-center justify-content-between px-3">
+  <div class="d-flex align-items-center gap-2">
+    <img src="/static/img/lew_logo.png" style="height:32px;width:auto" alt="LEW">
+    <span class="brand-title" style="font-size:.95rem;line-height:1">WM 2026 Tippspiel</span>
+  </div>
+  <button class="btn p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-label="Navigation öffnen">
+    <i class="bi bi-list" style="font-size:1.6rem;color:#16202b"></i>
+  </button>
+</nav>
+
+<!-- Mobile Offcanvas Nav -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileNav" style="max-width:280px">
+  <div class="offcanvas-header border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <img src="/static/img/lew_logo.png" style="height:40px;width:auto" alt="LEW">
+      <div>
+        <div class="brand-title" style="font-size:1rem">WM 2026 Tippspiel</div>
+        <div class="brand-sub">LEW Automotive · Kanada · Mexiko · USA</div>
+      </div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-3 d-flex flex-column gap-2">
+    <div class="mb-2">
+      <div class="small text-muted mb-1">Angemeldet als <strong>{{ user.display_name }}</strong></div>
+      <div class="d-flex gap-2">
+        <a href="/profil" class="btn btn-outline-secondary btn-sm">Profil</a>
+        <a href="/logout" class="btn btn-accent btn-sm">Abmelden</a>
+      </div>
+    </div>
+    <hr class="my-1">
+    <nav class="nav flex-column gap-1">
+      <a href="/tipps" class="nav-link {% if active == 'tipps' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-pencil-square me-2"></i>Tipps abgeben
+      </a>
+      <a href="/langfrist" class="nav-link {% if active == 'langfrist' %}active{% endif %} {% if user and get_bonus_tips_incomplete(user.id) %}nav-glow-gold{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-trophy me-2"></i>Bonus Tipps
+      </a>
+      <a href="/spielplan" class="nav-link {% if active == 'spielplan' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-calendar3 me-2"></i>Spielplan
+      </a>
+      <a href="/leaderboard" class="nav-link {% if active == 'leaderboard' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-bar-chart me-2"></i>Leaderboard
+      </a>
+      <a href="/uebersicht" class="nav-link {% if active == 'uebersicht' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-table me-2"></i>Tipp-Übersicht
+      </a>
+      <a href="/torschuetzen" class="nav-link {% if active == 'torschuetzen' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-person-badge me-2"></i>Torschützen
+      </a>
+      <a href="/stats" class="nav-link {% if active == 'stats' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-graph-up me-2"></i>Meine Statistik
+      </a>
+      <a href="/teams" class="nav-link {% if active == 'teams' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-globe me-2"></i>Teams & Spielorte
+      </a>
+      <a href="https://www.sportschau.de/fussball/fifa-wm-2026" target="_blank" rel="noopener" class="nav-link">
+        <i class="bi bi-newspaper me-2"></i>News
+      </a>
+      <a href="/regeln" class="nav-link {% if active == 'regeln' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-info-circle me-2"></i>Spielregeln
+      </a>
+      {% if user.is_admin %}
+      <a href="/admin" class="nav-link {% if active == 'admin' %}active{% endif %}" data-bs-dismiss="offcanvas">
+        <i class="bi bi-gear me-2"></i>Admin
+      </a>
+      {% endif %}
+    </nav>
+    {% set _pot = get_pot_info() %}
+    {% if _pot.enabled %}
+    <div class="mt-2 px-1 py-2 rounded" style="background:rgba(192,138,18,.08);border:1px solid rgba(192,138,18,.25)">
+      <div class="small text-muted" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.07em">Aktueller Topf</div>
+      <div class="fw-bold" style="color:var(--gold);font-size:1.1rem">{{ _pot.pot_total }} {{ _pot.currency }}</div>
+      <div class="small text-muted" style="font-size:.7rem">{{ _pot.payers }} Einzahler · {{ _pot.buy_in | int }} € Einsatz · <a href="/leaderboard" style="color:inherit">Details →</a></div>
+      <div class="mt-1"><a href="/profil#pool" style="font-size:.7rem;color:var(--gold)">Einzahlung anmelden →</a></div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 <div class="container-fluid">
   <div class="row">
-    <!-- Sidebar -->
-    <div class="col-12 col-md-2 sidebar py-3 px-3 d-flex flex-column gap-2">
-      <div class="d-none d-md-flex align-items-center gap-2 mb-1">
+    <!-- Sidebar (Desktop only) -->
+    <div class="d-none d-md-flex col-md-2 sidebar py-3 px-3 flex-column gap-2">
+      <div class="d-flex align-items-center gap-2 mb-1">
         <img src="/static/img/lew_logo.png" class="brand-logo" alt="LEW">
         <div>
           <div class="brand-title">WM 2026 Tippspiel</div>
@@ -81,7 +165,7 @@
       {% endif %}
     </div>
     <!-- Main Content -->
-    <div class="col-12 col-md-10 py-4 px-4">
+    <div class="col-12 col-md-10 py-4 px-3 px-md-4">
       {% if flash %}
       <div class="alert alert-{{ flash.type }} alert-dismissible fade show" role="alert">
         {{ flash.message }}
@@ -103,9 +187,7 @@
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw.js'); }
 (function(){
   const btn = document.getElementById('back-to-top');
-  const scrollEl = () => document.querySelector('.col-12.col-md-10') || window;
-  function onScroll() { btn.style.display = (scrollEl().scrollTop || window.scrollY) > 200 ? 'block' : 'none'; }
-  scrollEl().addEventListener('scroll', onScroll);
+  function onScroll() { btn.style.display = window.scrollY > 200 ? 'block' : 'none'; }
   window.addEventListener('scroll', onScroll);
 })();
 </script>
