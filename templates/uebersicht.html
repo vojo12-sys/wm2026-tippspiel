@@ -69,7 +69,7 @@
 }
 .overview-table th:last-child, .overview-table td:last-child { border-right: none; }
 .overview-table thead th {
-  background: #fff; position: sticky; top: var(--thead-top, 48px); z-index: 10;
+  background: #fff;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700; font-size: .82rem;
   text-transform: uppercase; letter-spacing: .04em;
@@ -81,13 +81,31 @@
 }
 .overview-table thead .col-match { z-index: 11; }
 
-/* Sticky K.o.-Zusammenfassung (Spiel-Header + 2 Summen-Zeilen) */
-.ko-summary-sticky {
-  position: sticky;
-  top: var(--tabs-h, 48px);
-  z-index: 30;
-  background: var(--surface);
-  border-bottom: 2px solid var(--border);
+/* Desktop: Viewport-Container füllt verbleibende Höhe, scrollt intern */
+@media (min-width: 768px) {
+  #overviewViewport {
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  #overviewViewport .ov-tabs {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--bg);
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    padding: 8px 8px 0;
+  }
+  .overview-table thead th {
+    position: sticky; top: var(--tabs-h, 48px); z-index: 10;
+  }
+  .overview-table thead .col-match { z-index: 11; }
+  /* K.o.-Zusammenfassung (Spiel + Pkt K.o. + Gesamt) klebt unter Tabs */
+  .ko-summary-sticky {
+    position: sticky;
+    top: var(--tabs-h, 48px);
+    z-index: 30;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+  }
 }
 .overview-table tr:hover td { background: #f8fbff; }
 .overview-table tr:hover .col-match { background: #f8fbff; }
@@ -143,7 +161,8 @@
 </style>
 
 <!-- Tabs -->
-<ul class="nav nav-tabs mb-0 flex-wrap sticky-tabs" id="overviewTabs" role="tablist">
+<div id="overviewViewport">
+<ul class="nav nav-tabs mb-0 flex-wrap ov-tabs" id="overviewTabs" role="tablist">
   {% for dk in sorted_dates %}
   <li class="nav-item">
     <button class="nav-link {% if dk == active_section %}active{% endif %}"
@@ -561,6 +580,7 @@
 </div>
 
 </div>
+</div><!-- /overviewViewport -->
 
 <script>
 (function() {
@@ -641,17 +661,31 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Sticky: --tabs-h = Höhe der Tab-Leiste, --thead-top = Tab-Leiste + 4px Abstand
+// Viewport-Höhe + Sticky-CSS-Vars
 (function() {
-  function setStickyVars() {
+  function initViewport() {
+    const vp = document.getElementById('overviewViewport');
     const tabs = document.getElementById('overviewTabs');
-    if (!tabs) return;
-    const h = tabs.getBoundingClientRect().height;
-    document.documentElement.style.setProperty('--tabs-h', h + 'px');
-    document.documentElement.style.setProperty('--thead-top', (h + 4) + 'px');
+    if (!vp || !tabs) return;
+    if (window.innerWidth < 768) { vp.style.height = ''; return; }
+
+    // Viewport füllt verbleibende Fensterhöhe ab seiner Oberkante
+    const top = vp.getBoundingClientRect().top;
+    const h = Math.max(300, window.innerHeight - top - 24);
+    vp.style.height = h + 'px';
+
+    // Tab-Höhe für sticky thead + ko-summary
+    requestAnimationFrame(() => {
+      const tabsH = tabs.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--tabs-h', tabsH + 'px');
+    });
   }
-  document.addEventListener('DOMContentLoaded', setStickyVars);
-  window.addEventListener('resize', setStickyVars);
+  document.addEventListener('DOMContentLoaded', initViewport);
+  window.addEventListener('resize', initViewport);
+  // Nach Tab-Wechsel neu messen (Tab kann Höhe ändern)
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(b =>
+    b.addEventListener('shown.bs.tab', initViewport)
+  );
 })();
 </script>
 {% endblock %}
