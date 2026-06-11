@@ -687,62 +687,80 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Sticky-Spalten + Header-Zeilen per Inline-Style (zuverlässiger als CSS-Klassen)
+// Sticky-Spalten + Header-Zeilen per Inline-Style + exakte Höhenberechnung
 (function() {
+
+  // Tabellenhöhe exakt berechnen, damit .spieltag-table intern scrollt (nicht die Seite)
+  function setTableHeights() {
+    if (window.innerWidth < 768) {
+      document.querySelectorAll('.spieltag-table').forEach(function(w) { w.style.maxHeight = ''; });
+      return;
+    }
+    var activeWrap = document.querySelector('.tab-pane.active.show .spieltag-table');
+    if (!activeWrap) return;
+    var rect = activeWrap.getBoundingClientRect();
+    var h = Math.max(200, window.innerHeight - rect.top - 16);
+    document.querySelectorAll('.spieltag-table').forEach(function(w) {
+      w.style.maxHeight = h + 'px';
+    });
+  }
+
   function applySticky(wrap) {
     var table = wrap.querySelector('.overview-table');
     if (!table) return;
 
-    // col-match Breite messen (nach Rendering)
+    // col-match Breite messen
     var firstColMatch = table.querySelector('th.col-match, td.col-match');
     var matchW = firstColMatch ? firstColMatch.offsetWidth : 210;
+    if (matchW === 0) matchW = 210;
 
-    // Alle Zeilen durchgehen
+    // Horizontales Sticky: alle col-match und col-result Zellen
     table.querySelectorAll('tr').forEach(function(row) {
       row.querySelectorAll('td, th').forEach(function(c) {
         if (c.classList.contains('col-match')) {
           c.style.position = 'sticky';
-          c.style.left = '0';
+          c.style.left = '0px';
           c.style.zIndex = c.tagName === 'TH' ? '13' : '3';
-          if (!c.style.background) c.style.background = '#fff';
+          c.style.background = '#fff';
         } else if (c.classList.contains('col-result')) {
           c.style.position = 'sticky';
           c.style.left = matchW + 'px';
           c.style.zIndex = c.tagName === 'TH' ? '12' : '2';
-          if (!c.style.background) c.style.background = '#fff';
+          c.style.background = '#fff';
         }
       });
     });
 
-    // Header-Zeile sticky-top
+    // Vertikales Sticky: Kopfzeile + total/grand-row (nur Desktop)
+    if (window.innerWidth < 768) return;
     var hdr = table.querySelector('thead tr:first-child');
     if (!hdr) return;
-    var h1 = hdr.offsetHeight;
+    var h1 = hdr.offsetHeight || 38;
+
     hdr.querySelectorAll('th').forEach(function(c) {
-      c.style.position = 'sticky';
-      c.style.top = '0';
+      c.style.top = '0px';
+      // position und background bereits gesetzt (col-match/result) oder jetzt:
+      if (!c.style.position) { c.style.position = 'sticky'; c.style.background = '#fff'; }
     });
 
-    // total-row sticky-top
     var totRow = table.querySelector('thead tr.total-row');
     if (totRow) {
-      var h2 = totRow.offsetHeight;
+      var h2 = totRow.offsetHeight || 36;
       totRow.querySelectorAll('td, th').forEach(function(c) {
         c.style.position = 'sticky';
         c.style.top = h1 + 'px';
-        c.style.background = c.style.background || '#fff';
+        c.style.background = '#fff';
         if (c.classList.contains('col-match')) c.style.zIndex = '13';
         else if (c.classList.contains('col-result')) c.style.zIndex = '12';
         else c.style.zIndex = '9';
       });
 
-      // grand-row sticky-top
       var grdRow = table.querySelector('thead tr.grand-row');
       if (grdRow) {
         grdRow.querySelectorAll('td, th').forEach(function(c) {
           c.style.position = 'sticky';
           c.style.top = (h1 + h2) + 'px';
-          c.style.background = c.style.background || '#fff';
+          c.style.background = '#fff';
           if (c.classList.contains('col-match')) c.style.zIndex = '13';
           else if (c.classList.contains('col-result')) c.style.zIndex = '12';
           else c.style.zIndex = '8';
@@ -750,11 +768,11 @@
       }
     }
 
-    // CSS-Variable für eventuelle restliche Nutzung
     document.documentElement.style.setProperty('--col-match-w', matchW + 'px');
   }
 
   function applyAll() {
+    setTableHeights();
     document.querySelectorAll('.spieltag-table, .collapse .overview-wrap, .ko-summary-sticky').forEach(applySticky);
   }
 
@@ -764,9 +782,7 @@
     b.addEventListener('shown.bs.tab', applyAll);
   });
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(b) {
-    b.addEventListener('shown.bs.collapse', function() {
-      applyAll();
-    });
+    b.addEventListener('shown.bs.collapse', applyAll);
   });
 })();
 </script>
