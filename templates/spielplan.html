@@ -175,7 +175,9 @@
             </div>
             <div class="gr-score">
               {% set _glive = get_live_scores().get(m.id) %}
-              {% if _glive %}<span style="color:#dc3545;font-weight:800">{{ _glive.home }}:{{ _glive.away }}</span>
+              {% if _glive %}
+                <span style="display:block;color:#dc3545;font-size:.62rem;font-weight:700;line-height:1.3;animation:livepulse 1.2s infinite">●{% if _glive.status == 'PAUSED' %} HZ{% elif _glive.minute %} {{ _glive.minute }}'{% else %} LIVE{% endif %}</span>
+                <span style="display:block;color:#dc3545;font-weight:800;font-size:.95rem">{{ _glive.home }}:{{ _glive.away }}</span>
               {% elif m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}
               {% else %}vs.{% endif %}
             </div>
