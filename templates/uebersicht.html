@@ -94,24 +94,13 @@
     box-shadow: 0 2px 6px rgba(0,0,0,.08);
     padding: 8px 8px 0;
   }
-  .overview-table thead th {
+  /* Sticky Spalten-Header: NUR Spieltag-Haupttabellen und K.o.-Rundentabellen */
+  .spieltag-table .overview-table thead th,
+  .collapse .overview-table thead th {
     position: sticky; top: var(--tabs-h, 48px); z-index: 10;
   }
-  .overview-table thead .col-match { z-index: 11; }
-
-  /* Spieltag-Tabs: Summenzeilen sticky direkt unter Spalten-Header */
-  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.total-row td {
-    position: sticky; top: var(--total-row-top, 88px); z-index: 9; background: #fff;
-  }
-  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.total-row td.col-match {
-    z-index: 10;
-  }
-  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.grand-row td {
-    position: sticky; top: var(--grand-row-top, 122px); z-index: 8; background: #fff;
-  }
-  .overview-wrap:not(.ko-summary-sticky) .overview-table tbody tr.grand-row td.col-match {
-    z-index: 9;
-  }
+  .spieltag-table .overview-table thead .col-match,
+  .collapse .overview-table thead .col-match { z-index: 11; }
 
   /* K.o.-Zusammenfassung (Spiel + Pkt K.o. + Gesamt) klebt als Block unter Tabs */
   .ko-summary-sticky {
@@ -303,7 +292,7 @@
 
   {% else %}
   {# ── Spieltag 1/2/3: alle Spiele mit Gruppen-Headern ── #}
-  <div class="overview-wrap">
+  <div class="overview-wrap spieltag-table">
     <table class="overview-table">
       <thead>
         <tr>
@@ -676,7 +665,7 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Viewport-Höhe + Sticky-CSS-Vars
+// Viewport-Höhe + sticky Summenzeilen
 (function() {
   function initViewport() {
     const vp = document.getElementById('overviewViewport');
@@ -689,22 +678,37 @@
     vp.style.height = Math.max(300, window.innerHeight - vpTop - 24) + 'px';
 
     requestAnimationFrame(() => {
-      const tabsH = tabs.getBoundingClientRect().height;
+      const tabsH = tabs.offsetHeight;
       document.documentElement.style.setProperty('--tabs-h', tabsH + 'px');
 
-      // Summenzeilen-Tops: tabs + thead-Höhe (+ total-Höhe für grand)
-      const activePane = vp.querySelector('.tab-pane.show.active');
-      if (!activePane) return;
-      // Nur für Spieltag-Wraps (nicht ko-summary-sticky)
-      const wrap = activePane.querySelector('.overview-wrap:not(.ko-summary-sticky)');
-      if (!wrap) return;
-      const theadRow = wrap.querySelector('.overview-table thead tr');
-      const totalRow = wrap.querySelector('.overview-table tbody tr.total-row');
-      const grandRow = wrap.querySelector('.overview-table tbody tr.grand-row');
-      const theadH  = theadRow  ? theadRow.getBoundingClientRect().height  : 36;
-      const totalH  = totalRow  ? totalRow.getBoundingClientRect().height  : 32;
-      document.documentElement.style.setProperty('--total-row-top', (tabsH + theadH) + 'px');
-      document.documentElement.style.setProperty('--grand-row-top', (tabsH + theadH + totalH) + 'px');
+      // Summenzeilen in Spieltag-Tabellen direkt per JS sticky setzen
+      vp.querySelectorAll('.spieltag-table .overview-table').forEach(function(table) {
+        const theadRow = table.querySelector('thead tr');
+        if (!theadRow) return;
+        const theadH = theadRow.offsetHeight;
+
+        const totalRow = table.querySelector('tbody tr.total-row');
+        if (totalRow) {
+          const topTotal = tabsH + theadH;
+          totalRow.querySelectorAll('td').forEach(function(td) {
+            td.style.position = 'sticky';
+            td.style.top = topTotal + 'px';
+            td.style.zIndex = td.classList.contains('col-match') ? '10' : '9';
+            td.style.background = '#fff';
+          });
+
+          const grandRow = table.querySelector('tbody tr.grand-row');
+          if (grandRow) {
+            const topGrand = topTotal + totalRow.offsetHeight;
+            grandRow.querySelectorAll('td').forEach(function(td) {
+              td.style.position = 'sticky';
+              td.style.top = topGrand + 'px';
+              td.style.zIndex = td.classList.contains('col-match') ? '9' : '8';
+              td.style.background = '#fff';
+            });
+          }
+        }
+      });
     });
   }
   document.addEventListener('DOMContentLoaded', initViewport);
