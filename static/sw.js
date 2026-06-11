@@ -1,4 +1,4 @@
-const CACHE = 'wm2026-v19';
+const CACHE = 'wm2026-v20';
 const STATIC = ['/static/css/style.css'];
 
 self.addEventListener('install', e => {

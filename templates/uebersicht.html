@@ -83,37 +83,36 @@
 .overview-table .col-result {
   width: 80px; min-width: 80px; max-width: 80px;
   position: sticky; left: var(--col-match-w, 210px); background: #fff; z-index: 2;
-  border-right: 2px solid var(--border);
+  border-right: 2px solid var(--border); text-align: center;
 }
 .overview-table thead .col-result { z-index: 11; }
 .overview-table tr:hover .col-result { background: #f8fbff; }
 
-/* Desktop: Viewport-Container füllt verbleibende Höhe, scrollt intern */
+/* Desktop: Tabs außerhalb des Scroll-Viewports – kein Jitter beim horizontalen Scrollen */
 @media (min-width: 768px) {
-  #overviewViewport {
-    overflow: auto;
+  #overviewContainer {
     border: 1px solid var(--border);
     border-radius: 8px;
   }
-  #overviewViewport .ov-tabs {
-    position: sticky; top: 0; z-index: 50;
+  .ov-tabs {
     background: var(--bg);
     box-shadow: 0 2px 6px rgba(0,0,0,.08);
     padding: 8px 8px 0;
+    border-radius: 8px 8px 0 0;
   }
-  /* Gesamter thead klebt unter Tabs – alle Kopfzeilen als Block */
+  #overviewViewport {
+    overflow: auto;
+  }
+  /* thead klebt oben im Viewport – keine Verschiebung durch Tab-Höhe mehr nötig */
   .spieltag-table .overview-table thead {
-    position: sticky; top: var(--tabs-h, 48px); z-index: 10;
+    position: sticky; top: 0; z-index: 10;
   }
   .collapse .overview-table thead {
-    position: sticky; top: var(--tabs-h, 48px); z-index: 10;
+    position: sticky; top: 0; z-index: 10;
   }
-
-  /* K.o.-Zusammenfassung (Spiel + Pkt K.o. + Gesamt) klebt als Block unter Tabs */
+  /* K.o.-Zusammenfassung klebt oben im Viewport */
   .ko-summary-sticky {
-    position: sticky;
-    top: var(--tabs-h, 48px);
-    z-index: 30;
+    position: sticky; top: 0; z-index: 30;
     background: var(--surface);
     border-bottom: 2px solid var(--border);
   }
@@ -171,8 +170,8 @@
 .collapse-toggle[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
 </style>
 
-<!-- Tabs -->
-<div id="overviewViewport">
+<!-- Tabs + Viewport Container -->
+<div id="overviewContainer">
 <ul class="nav nav-tabs mb-0 flex-wrap ov-tabs" id="overviewTabs" role="tablist">
   {% for dk in sorted_dates %}
   <li class="nav-item">
@@ -190,6 +189,7 @@
   </li>
 </ul>
 
+<div id="overviewViewport">
 <div class="tab-content">
 
 <!-- ════ SPIELTAG-TABS ════ -->
@@ -591,7 +591,9 @@
 </div>
 
 </div>
+</div><!-- /tab-content -->
 </div><!-- /overviewViewport -->
+</div><!-- /overviewContainer -->
 
 <script>
 (function() {
@@ -672,33 +674,18 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Viewport-Höhe, sticky thead, horizontale Tab-Fixierung
+// Viewport-Höhe + col-match-Breite für horizontale sticky-Spalten
 (function() {
-  var vp   = document.getElementById('overviewViewport');
-  var tabs = document.getElementById('overviewTabs');
-
-  function fixTabsX() {
-    if (!vp || !tabs || window.innerWidth < 768) return;
-    tabs.style.transform = 'translateX(' + vp.scrollLeft + 'px)';
-  }
+  var vp = document.getElementById('overviewViewport');
 
   function initViewport() {
-    if (!vp || !tabs) return;
-    if (window.innerWidth < 768) {
-      vp.style.height = '';
-      tabs.style.transform = '';
-      tabs.style.width = '';
-      return;
-    }
+    if (!vp) return;
+    if (window.innerWidth < 768) { vp.style.height = ''; return; }
+
     var vpTop = vp.getBoundingClientRect().top;
     vp.style.height = Math.max(300, window.innerHeight - vpTop - 24) + 'px';
 
     requestAnimationFrame(function() {
-      // Tabs-Leiste auf sichtbare Viewport-Breite begrenzen
-      tabs.style.width = vp.clientWidth + 'px';
-      document.documentElement.style.setProperty('--tabs-h', tabs.offsetHeight + 'px');
-
-      // Tatsächliche col-match-Breite für col-result left-Offset messen
       var colMatch = vp.querySelector('.overview-table th.col-match');
       if (colMatch) {
         document.documentElement.style.setProperty('--col-match-w', colMatch.offsetWidth + 'px');
@@ -706,7 +693,6 @@
     });
   }
 
-  if (vp) vp.addEventListener('scroll', fixTabsX);
   document.addEventListener('DOMContentLoaded', initViewport);
   window.addEventListener('resize', initViewport);
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(b) {
