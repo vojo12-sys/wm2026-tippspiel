@@ -8,6 +8,7 @@ from database import get_session
 from deps import require_user, templates
 from models import Match, Prediction, TopScorer, User
 from live_preview import calc_live_preview
+from settings import get_scoring
 from standings import compute_pool, compute_standings
 
 router = APIRouter()
@@ -113,6 +114,17 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
                 away = jm.away_team.name if jm.away_team else (jm.away_placeholder or "?")
                 joker_match_map[int(u.id)] = f"{home} – {away}"
 
+    # ── Max. mögliche Punkte pro Nutzer (Gruppe=exact, KO=exact+bonus) ──
+    scoring_cfg = get_scoring()
+    exact_pts = scoring_cfg.get("exact", 4)
+    ko_bonus = scoring_cfg.get("ko_advance_bonus", 1)
+
+    user_max_pts: dict[int, int] = {}
+    for uid, ph, pa, rh, ra, phase, mn in phase_pred_rows:
+        uid = int(uid)
+        max_game = exact_pts if phase == "group" else (exact_pts + ko_bonus)
+        user_max_pts[uid] = user_max_pts.get(uid, 0) + max_game
+
     # ── Statistiken pro Nutzer aufbauen ──────────────────────────
     tipped_count: dict[int, int] = {}
 
@@ -125,15 +137,16 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         uid = r.user_id
         tc = tipped_count.get(uid, 0)
         total_match_pts = sum(r.phase_points.values())
-        tq = round(total_match_pts / tc, 1) if tc > 0 else 0.0
+        max_pts = user_max_pts.get(uid, 0)
+        rating = round(total_match_pts / max_pts, 2) if max_pts > 0 else 0.0
         stats[uid] = {
-            "trefferquote": tq,
+            "rating": rating,
             "tipped_count": tc,
             "joker_pts": joker_pts_map.get(uid),
             "joker_match": joker_match_map.get(uid),
         }
 
-    rows_trefferquote = sorted(rows, key=lambda r: stats[r.user_id]["trefferquote"], reverse=True)
+    rows_trefferquote = sorted(rows, key=lambda r: stats[r.user_id]["rating"], reverse=True)
 
     def _grp(r):
         return r.phase_points.get("st1", 0) + r.phase_points.get("st2", 0) + r.phase_points.get("st3", 0)

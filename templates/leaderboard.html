@@ -50,7 +50,7 @@
   <li class="nav-item"><button class="nav-link" data-tab="st3">Spieltag 3</button></li>
   <li class="nav-item"><button class="nav-link" data-tab="gruppe">Gruppe gesamt</button></li>
   <li class="nav-item"><button class="nav-link" data-tab="ko">K.o.-Phase</button></li>
-  <li class="nav-item"><button class="nav-link" data-tab="statistiken">Zahlen & Fakten</button></li>
+  <li class="nav-item"><button class="nav-link" data-tab="statistiken">Experten Rating</button></li>
 </ul>
 
 <!-- Tab: Gesamt -->
@@ -231,7 +231,7 @@
 
 <!-- 1. Trefferquote -->
 <div class="stat-card shadow-sm mb-4">
-  <h6><i class="bi bi-bullseye me-2"></i>Trefferquote · Punkte pro Spiel</h6>
+  <h6><i class="bi bi-trophy me-2"></i>Experten Rating · Punkte pro Spiel</h6>
   <div class="table-responsive">
     <table class="table table-hover table-sm mb-0">
       <thead class="table-light">
@@ -240,20 +240,32 @@
           <th>Teilnehmer</th>
           <th class="text-center">Getippte Spiele</th>
           <th class="text-center">Spiel-Punkte</th>
-          <th class="text-center fw-bold">Pkt / Spiel</th>
+          <th class="text-center fw-bold">Rating (0–1)</th>
+          <th class="text-center">entspricht Trainer</th>
         </tr>
       </thead>
       <tbody>
         {% set ns = namespace(rank=0, last=-1) %}
         {% for row in rows_trefferquote %}
-        {% set tq = stats[row.user_id].trefferquote %}
-        {% if tq != ns.last %}{% set ns.rank = loop.index %}{% set ns.last = tq %}{% endif %}
+        {% set rt = stats[row.user_id].rating %}
+        {% if rt != ns.last %}{% set ns.rank = loop.index %}{% set ns.last = rt %}{% endif %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
           <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}">{{ ns.rank }}</td>
           <td>{{ row.display_name }}</td>
           <td class="text-center text-muted">{{ stats[row.user_id].tipped_count }}</td>
           <td class="text-center text-muted">{{ row.phase_points.values()|sum }}</td>
-          <td class="text-center fw-bold" style="color:#1E4E8C">{{ "%.2f"|format(tq) }}</td>
+          <td class="text-center fw-bold" style="color:#1E4E8C">{{ "%.2f"|format(rt) }}</td>
+          <td class="text-center" style="font-size:.85rem">
+            {% if rt >= 0.88 %}🇩🇪 Helmut Schön
+            {% elif rt >= 0.72 %}🇪🇸 Vicente del Bosque
+            {% elif rt >= 0.56 %}🇫🇷 Didier Deschamps
+            {% elif rt >= 0.42 %}👑 Franz – der Kaiser
+            {% elif rt >= 0.30 %}🌟 Joachim Löw 2014
+            {% elif rt >= 0.22 %}🧬 Christoph „DNA" Daum
+            {% elif rt >= 0.15 %}🗺️ Berti Vogts auf Weltreise
+            {% else %}👨‍🌾 Bauer sucht Frau
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
