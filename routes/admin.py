@@ -287,6 +287,29 @@ async def manual_sync(request: Request, user: dict = Depends(require_admin)):
     return RedirectResponse("/admin", status_code=303)
 
 
+@router.post("/test-api")
+async def test_api(request: Request, user: dict = Depends(require_admin)):
+    import os
+    import httpx
+    key = os.environ.get("FOOTBALL_API_KEY", "")
+    if not key:
+        request.session["flash"] = {"message": "FOOTBALL_API_KEY ist nicht gesetzt.", "type": "danger"}
+        return RedirectResponse("/admin", status_code=303)
+    try:
+        resp = httpx.get(
+            "https://api.football-data.org/v4/competitions/2000/matches?status=LIVE",
+            headers={"X-Auth-Token": key},
+            timeout=10,
+        )
+        msg = f"API Status: {resp.status_code} – {resp.text[:300]}"
+        ftype = "success" if resp.status_code == 200 else "danger"
+    except Exception as e:
+        msg = f"Verbindungsfehler: {e}"
+        ftype = "danger"
+    request.session["flash"] = {"message": msg, "type": ftype}
+    return RedirectResponse("/admin", status_code=303)
+
+
 # ── Siegerurkunden ────────────────────────────────────────────────────────────
 
 @router.post("/demo/simulate")

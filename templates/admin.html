@@ -378,9 +378,14 @@
       <div class="card-body">
         <h5>Automatische Ergebnisse</h5>
         <p class="text-muted small mb-3">Ergebnisse werden alle 5 Minuten automatisch von football-data.org geholt, sofern <code>FOOTBALL_API_KEY</code> gesetzt ist.</p>
-        <form method="post" action="/admin/sync">
-          <button type="submit" class="btn btn-outline-secondary">Jetzt manuell synchronisieren</button>
-        </form>
+        <div class="d-flex gap-2 flex-wrap">
+          <form method="post" action="/admin/sync">
+            <button type="submit" class="btn btn-outline-secondary">Jetzt manuell synchronisieren</button>
+          </form>
+          <form method="post" action="/admin/test-api">
+            <button type="submit" class="btn btn-outline-danger">API-Key testen</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
