@@ -5,7 +5,7 @@
 <p class="text-muted mb-4">Alle Spiele · Bonus Tipps · Punkte</p>
 
 <style>
-.overview-wrap { overflow-x: visible; }
+.overview-wrap { overflow-x: clip; }
 .overview-table { border-collapse: separate; border-spacing: 0; min-width: max-content; table-layout: fixed; }
 .overview-table .col-match { width: 180px; min-width: 180px; }
 .overview-table .col-user  { width: 110px;  min-width: 110px; max-width: 110px; }
@@ -361,7 +361,7 @@
               <span class="fw-semibold">{{ away }}</span>
             </div>
           </td>
-          <td class="text-center">
+          <td class="text-center col-result">
             {% if m.has_result %}<span class="result-badge">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</span>
             {% else %}<span class="text-muted">—</span>{% endif %}
           </td>
@@ -687,52 +687,86 @@
   document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('shown.bs.collapse', initAll));
 })();
 
-// Sticky-Messung: col-result left-Offset + total/grand-row Positionen
+// Sticky-Spalten + Header-Zeilen per Inline-Style (zuverlässiger als CSS-Klassen)
 (function() {
-  function measureAndStick() {
-    // col-match Breite für col-result left-Offset (CSS-Variable)
-    var activePane = document.querySelector('.tab-pane.active.show');
-    var colMatch = activePane && activePane.querySelector('.overview-table th.col-match');
-    if (colMatch) {
-      document.documentElement.style.setProperty('--col-match-w', colMatch.offsetWidth + 'px');
+  function applySticky(wrap) {
+    var table = wrap.querySelector('.overview-table');
+    if (!table) return;
+
+    // col-match Breite messen (nach Rendering)
+    var firstColMatch = table.querySelector('th.col-match, td.col-match');
+    var matchW = firstColMatch ? firstColMatch.offsetWidth : 210;
+
+    // Alle Zeilen durchgehen
+    table.querySelectorAll('tr').forEach(function(row) {
+      row.querySelectorAll('td, th').forEach(function(c) {
+        if (c.classList.contains('col-match')) {
+          c.style.position = 'sticky';
+          c.style.left = '0';
+          c.style.zIndex = c.tagName === 'TH' ? '13' : '3';
+          if (!c.style.background) c.style.background = '#fff';
+        } else if (c.classList.contains('col-result')) {
+          c.style.position = 'sticky';
+          c.style.left = matchW + 'px';
+          c.style.zIndex = c.tagName === 'TH' ? '12' : '2';
+          if (!c.style.background) c.style.background = '#fff';
+        }
+      });
+    });
+
+    // Header-Zeile sticky-top
+    var hdr = table.querySelector('thead tr:first-child');
+    if (!hdr) return;
+    var h1 = hdr.offsetHeight;
+    hdr.querySelectorAll('th').forEach(function(c) {
+      c.style.position = 'sticky';
+      c.style.top = '0';
+    });
+
+    // total-row sticky-top
+    var totRow = table.querySelector('thead tr.total-row');
+    if (totRow) {
+      var h2 = totRow.offsetHeight;
+      totRow.querySelectorAll('td, th').forEach(function(c) {
+        c.style.position = 'sticky';
+        c.style.top = h1 + 'px';
+        c.style.background = c.style.background || '#fff';
+        if (c.classList.contains('col-match')) c.style.zIndex = '13';
+        else if (c.classList.contains('col-result')) c.style.zIndex = '12';
+        else c.style.zIndex = '9';
+      });
+
+      // grand-row sticky-top
+      var grdRow = table.querySelector('thead tr.grand-row');
+      if (grdRow) {
+        grdRow.querySelectorAll('td, th').forEach(function(c) {
+          c.style.position = 'sticky';
+          c.style.top = (h1 + h2) + 'px';
+          c.style.background = c.style.background || '#fff';
+          if (c.classList.contains('col-match')) c.style.zIndex = '13';
+          else if (c.classList.contains('col-result')) c.style.zIndex = '12';
+          else c.style.zIndex = '8';
+        });
+      }
     }
 
-    // total-row und grand-row sticky (relativ zum .spieltag-table Scroll-Container)
-    document.querySelectorAll('.spieltag-table .overview-table').forEach(function(table) {
-      if (!table.offsetParent) return;
-      var hdr = table.querySelector('thead tr:first-child');
-      if (!hdr) return;
-      var h1 = hdr.offsetHeight;
-
-      var totRow = table.querySelector('thead tr.total-row');
-      if (totRow) {
-        var h2 = totRow.offsetHeight;
-        totRow.querySelectorAll('td, th').forEach(function(c) {
-          c.style.position = 'sticky';
-          c.style.top = h1 + 'px';
-          c.style.background = '#fff';
-          c.style.zIndex = c.classList.contains('col-match') ? '13' :
-                           c.classList.contains('col-result') ? '12' : '9';
-        });
-
-        var grdRow = table.querySelector('thead tr.grand-row');
-        if (grdRow) {
-          grdRow.querySelectorAll('td, th').forEach(function(c) {
-            c.style.position = 'sticky';
-            c.style.top = (h1 + h2) + 'px';
-            c.style.background = '#fff';
-            c.style.zIndex = c.classList.contains('col-match') ? '13' :
-                             c.classList.contains('col-result') ? '12' : '8';
-          });
-        }
-      }
-    });
+    // CSS-Variable für eventuelle restliche Nutzung
+    document.documentElement.style.setProperty('--col-match-w', matchW + 'px');
   }
 
-  document.addEventListener('DOMContentLoaded', measureAndStick);
-  window.addEventListener('resize', measureAndStick);
+  function applyAll() {
+    document.querySelectorAll('.spieltag-table, .collapse .overview-wrap, .ko-summary-sticky').forEach(applySticky);
+  }
+
+  document.addEventListener('DOMContentLoaded', applyAll);
+  window.addEventListener('resize', applyAll);
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(b) {
-    b.addEventListener('shown.bs.tab', measureAndStick);
+    b.addEventListener('shown.bs.tab', applyAll);
+  });
+  document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(b) {
+    b.addEventListener('shown.bs.collapse', function() {
+      applyAll();
+    });
   });
 })();
 </script>
