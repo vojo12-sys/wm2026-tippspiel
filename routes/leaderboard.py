@@ -7,7 +7,6 @@ from sqlalchemy import select
 from database import get_session
 from deps import require_user, templates
 from models import Match, Prediction, TopScorer, User
-from settings import get_scoring
 from standings import compute_pool, compute_standings
 
 router = APIRouter()
@@ -34,9 +33,10 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         ).all()) if all_finished_ids else []
 
         # ── Exakt/Tordiff/Tendenz pro Phase ──────────────────────
-        _sc = get_scoring()
         phase_pred_rows = list(s.execute(
-            select(Prediction.user_id, Prediction.points_awarded,
+            select(Prediction.user_id,
+                   Prediction.pred_home, Prediction.pred_away,
+                   Match.result_home, Match.result_away,
                    Match.phase, Match.match_number)
             .join(Match, Prediction.match_id == Match.id)
             .where(Match.is_finished.is_(True))
@@ -50,15 +50,23 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
                 return "st3"
             return phase
 
+        def _sign(x: int) -> int:
+            return 1 if x > 0 else (-1 if x < 0 else 0)
+
         # phase_counts[uid][phase_key] = {"e": exact, "d": diff, "t": tendency}
         phase_counts: dict[int, dict[str, dict[str, int]]] = {}
-        for uid, pts, phase, mn in phase_pred_rows:
-            uid = int(uid); pts = int(pts or 0)
+        for uid, ph, pa, rh, ra, phase, mn in phase_pred_rows:
+            uid = int(uid)
             key = _phase_key(phase, mn)
             c = phase_counts.setdefault(uid, {}).setdefault(key, {"e": 0, "d": 0, "t": 0})
-            if pts >= _sc.get("exact", 4):          c["e"] += 1
-            elif pts >= _sc.get("goal_diff", 2):   c["d"] += 1
-            elif pts >= _sc.get("tendency", 1):    c["t"] += 1
+            if ph is None or pa is None or rh is None or ra is None:
+                continue
+            if ph == rh and pa == ra:
+                c["e"] += 1
+            elif (ph - pa) == (rh - ra):
+                c["d"] += 1
+            elif _sign(ph - pa) == _sign(rh - ra):
+                c["t"] += 1
 
         # ── Joker-Rendite ─────────────────────────────────────────
         users_raw = list(s.scalars(select(User)).all())

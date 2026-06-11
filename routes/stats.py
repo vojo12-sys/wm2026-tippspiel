@@ -68,13 +68,16 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         if p:
             if pts >= 8 or (is_joker and pts >= 4):
                 joker_used = pts if is_joker else joker_used
-            base_pts = pts // 2 if is_joker and pts > 0 else pts
-            if base_pts == 4:
-                exact += 1
-            elif base_pts == 3:
-                goal_diff += 1
-            elif base_pts >= 2:
-                tendency += 1
+            ph, pa, rh, ra = p.pred_home, p.pred_away, m.result_home, m.result_away
+            if ph is not None and pa is not None and rh is not None and ra is not None:
+                if ph == rh and pa == ra:
+                    exact += 1
+                elif (ph - pa) == (rh - ra):
+                    goal_diff += 1
+                elif (1 if ph > pa else -1 if ph < pa else 0) == (1 if rh > ra else -1 if rh < ra else 0):
+                    tendency += 1
+                else:
+                    wrong += 1
             else:
                 wrong += 1
 
@@ -112,13 +115,16 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
                 pts_list.append(c)
                 if p2:
                     u2_tipped += 1
-                    base = pts2 // 2 if (u2_joker and m.id == u2_joker and pts2 > 0) else pts2
-                    if base >= 4:
-                        u2_exact += 1
-                    elif base == 3:
-                        u2_goal_diff += 1
-                    elif base >= 2:
-                        u2_tendency += 1
+                    ph2, pa2, rh2, ra2 = p2.pred_home, p2.pred_away, m.result_home, m.result_away
+                    if ph2 is not None and pa2 is not None and rh2 is not None and ra2 is not None:
+                        if ph2 == rh2 and pa2 == ra2:
+                            u2_exact += 1
+                        elif (ph2 - pa2) == (rh2 - ra2):
+                            u2_goal_diff += 1
+                        elif (1 if ph2 > pa2 else -1 if ph2 < pa2 else 0) == (1 if rh2 > ra2 else -1 if rh2 < ra2 else 0):
+                            u2_tendency += 1
+                        else:
+                            u2_wrong += 1
                     else:
                         u2_wrong += 1
             all_users_cum[u2.display_name] = pts_list

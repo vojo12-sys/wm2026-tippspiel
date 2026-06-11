@@ -84,6 +84,9 @@ def compute_standings() -> list[Standing]:
         goal_diff_c: dict[int, int] = {}
         tendency_c: dict[int, int] = {}
 
+        def _sign(x: int) -> int:
+            return 1 if x > 0 else (-1 if x < 0 else 0)
+
         for uid, pts, mid, ph, pa in rows:
             info = match_info.get(mid)
             raw_phase = info[0] if info else "group"
@@ -94,13 +97,14 @@ def compute_standings() -> list[Standing]:
             match_pts.setdefault(uid, {}).setdefault(phase, 0)
             match_pts[uid][phase] += pts or 0
 
-            if rh is not None and ra is not None:
-                base = (pts or 0)
-                if base >= _sc["exact"]:
+            # Klassifizierung direkt aus Tipp vs. Ergebnis – unabhängig von
+            # KO-Bonus oder Joker, die in points_awarded eingerechnet sind.
+            if rh is not None and ra is not None and ph is not None and pa is not None:
+                if ph == rh and pa == ra:
                     exact_c[uid] = exact_c.get(uid, 0) + 1
-                elif base >= _sc["goal_diff"]:
+                elif (ph - pa) == (rh - ra):
                     goal_diff_c[uid] = goal_diff_c.get(uid, 0) + 1
-                elif base >= _sc["tendency"] and base > 0:
+                elif _sign(ph - pa) == _sign(rh - ra):
                     tendency_c[uid] = tendency_c.get(uid, 0) + 1
 
         # Langfrist: Gruppen-Tipps
