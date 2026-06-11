@@ -852,7 +852,7 @@ SQUADS: dict[str, list[dict]] = {
     ("Issa Diop","DF","Fulham FC (ENG)"),
     ("Samir El Mourabet","MF","RC Strasbourg (FRA)"),
     ("Gessime Yassine","MF","RC Strasbourg (FRA)"),
-    ("Abde Ezzalzouli","FW","Real Betis (ESP)"),
+    ("Amine Sbai","FW","Angers SCO (FRA)"),
     ("Chadi Riad","DF","Crystal Palace FC (ENG)"),
     ("Youssef Belammari","DF","Al Ahly FC (EGY)"),
     ("Ayoub El Kaabi","FW","Olympiacos FC (GRE)"),
