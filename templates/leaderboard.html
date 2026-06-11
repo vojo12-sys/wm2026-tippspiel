@@ -241,7 +241,7 @@
           <th class="text-center">Getippte Spiele</th>
           <th class="text-center">Spiel-Punkte</th>
           <th class="text-center fw-bold">Rating (0–1)</th>
-          <th class="text-center">entspricht Trainer</th>
+          <th class="text-center">vergleichbar mit ...</th>
         </tr>
       </thead>
       <tbody>
@@ -256,13 +256,15 @@
           <td class="text-center text-muted">{{ row.phase_points.values()|sum }}</td>
           <td class="text-center fw-bold" style="color:#1E4E8C">{{ "%.2f"|format(rt) }}</td>
           <td class="text-center" style="font-size:.85rem">
-            {% if rt >= 0.88 %}🇩🇪 Helmut Schön
-            {% elif rt >= 0.72 %}🇪🇸 Vicente del Bosque
-            {% elif rt >= 0.56 %}🇫🇷 Didier Deschamps
-            {% elif rt >= 0.42 %}👑 Franz – der Kaiser
-            {% elif rt >= 0.30 %}🌟 Joachim Löw 2014
-            {% elif rt >= 0.22 %}🧬 Christoph „DNA" Daum
-            {% elif rt >= 0.15 %}🗺️ Berti Vogts auf Weltreise
+            {% if rt >= 0.88 %}🇩🇪 Helmut „die Mütze" Schön
+            {% elif rt >= 0.80 %}🇪🇸 Vicente del Bosque
+            {% elif rt >= 0.71 %}🇫🇷 Didier Deschamps
+            {% elif rt >= 0.63 %}👑 Franz „der Kaiser" Beckenbauer
+            {% elif rt >= 0.54 %}🌟 Joachim „der Schnüffler" Löw 2014
+            {% elif rt >= 0.46 %}🧬 Christoph „DNA" Daum
+            {% elif rt >= 0.37 %}😤 Berti „Wadenbeißer" Vogts
+            {% elif rt >= 0.29 %}💥 Thorsten „Kasalla" Legath
+            {% elif rt >= 0.20 %}🐟 Heiner „Lachsfisch" Lauterbach
             {% else %}👨‍🌾 Bauer sucht Frau
             {% endif %}
           </td>
