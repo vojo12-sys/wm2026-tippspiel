@@ -77,9 +77,16 @@
 }
 .overview-table .col-match {
   position: sticky; left: 0; background: #fff; z-index: 2;
-  border-right: 2px solid var(--border); min-width: 210px;
+  border-right: 1px solid var(--border); min-width: 210px;
 }
 .overview-table thead .col-match { z-index: 11; }
+.overview-table .col-result {
+  width: 80px; min-width: 80px; max-width: 80px;
+  position: sticky; left: 210px; background: #fff; z-index: 2;
+  border-right: 2px solid var(--border);
+}
+.overview-table thead .col-result { z-index: 11; }
+.overview-table tr:hover .col-result { background: #f8fbff; }
 
 /* Desktop: Viewport-Container füllt verbleibende Höhe, scrollt intern */
 @media (min-width: 768px) {
@@ -196,21 +203,21 @@
       <thead>
         <tr>
           <th class="col-match">Spiel</th>
-          <th class="text-center">Ergebnis</th>
+          <th class="text-center col-result">Ergebnis</th>
           {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
         </tr>
       </thead>
       <tbody>
         <tr class="total-row">
           <td class="col-match" style="font-size:.75rem">Pkt K.o.-Phase</td>
-          <td></td>
+          <td class="col-result"></td>
           {% for u in users %}
           <td class="text-center total-pts col-user">{{ date_pts.get('ko', {}).get(u.id, 0) }}</td>
           {% endfor %}
         </tr>
         <tr class="grand-row">
           <td class="col-match" style="font-size:.75rem">Gesamt Spiel-Pkt</td>
-          <td></td>
+          <td class="col-result"></td>
           {% for u in users %}
           <td class="text-center grand-pts col-user">{{ match_pts.get(u.id, 0) }}</td>
           {% endfor %}
@@ -235,7 +242,7 @@
           <thead>
             <tr>
               <th class="col-match">Spiel</th>
-              <th class="text-center">Ergebnis</th>
+              <th class="text-center col-result">Ergebnis</th>
               {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
             </tr>
           </thead>
@@ -258,7 +265,7 @@
                   <span class="fw-semibold">{{ away }}</span>
                 </div>
               </td>
-              <td class="text-center">
+              <td class="text-center col-result">
                 {% if m.has_result %}<span class="result-badge">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</span>
                 {% else %}<span class="text-muted">—</span>{% endif %}
               </td>
@@ -297,19 +304,19 @@
       <thead>
         <tr>
           <th class="col-match">Spiel</th>
-          <th class="text-center">Ergebnis</th>
+          <th class="text-center col-result">Ergebnis</th>
           {% for u in users %}<th class="col-user">{{ u.display_name }}</th>{% endfor %}
         </tr>
         <tr class="total-row">
           <td class="col-match" style="font-size:.75rem">Pkt {{ date_labels[dk] }}</td>
-          <td></td>
+          <td class="col-result"></td>
           {% for u in users %}
           <td class="text-center total-pts col-user">{{ date_pts.get(dk, {}).get(u.id, 0) }}</td>
           {% endfor %}
         </tr>
         <tr class="grand-row">
           <td class="col-match" style="font-size:.75rem">Gesamt Spiel-Pkt</td>
-          <td></td>
+          <td class="col-result"></td>
           {% for u in users %}
           <td class="text-center grand-pts col-user">{{ match_pts.get(u.id, 0) }}</td>
           {% endfor %}
