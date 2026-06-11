@@ -127,7 +127,7 @@ SQUADS: dict[str, list[dict]] = {
     ("Phillip Mwene","DF","1. FSV Mainz 05 (GER)"),
     ("Carney Chukwuemeka","MF","Borussia Dortmund (GER)"),
     ("Romano Schmid","MF","SV Werder Bremen (GER)"),
-    ("Christoph Baumgartner","MF","RB Leipzig (GER)"),
+    ("Dejan Ljubicic","MF","FC Schalke 04 (GER)"),
     ("Konrad Laimer","MF","FC Bayern München (GER)"),
     ("Patrick Wimmer","FW","VfL Wolfsburg (GER)"),
     ("Alexander Prass","MF","TSG Hoffenheim (GER)"),
