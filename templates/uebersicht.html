@@ -144,6 +144,7 @@
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 800; font-size: .88rem;
   padding: 8px 12px 4px; border-bottom: none;
+  position: sticky; left: 0; z-index: 3;
 }
 .total-row td {
   background: #fff; font-weight: 700;
@@ -709,44 +710,30 @@
     var table = wrap.querySelector('.overview-table');
     if (!table) return;
 
-    // col-match Breite messen
-    var firstColMatch = table.querySelector('th.col-match, td.col-match');
+    // col-match Breite messen (für --col-match-w CSS-Variable und total/grand left)
+    var firstColMatch = table.querySelector('th.col-match');
     var matchW = firstColMatch ? firstColMatch.offsetWidth : 210;
     if (matchW === 0) matchW = 210;
+    document.documentElement.style.setProperty('--col-match-w', matchW + 'px');
 
-    // Horizontales Sticky: alle col-match und col-result Zellen
-    table.querySelectorAll('tr').forEach(function(row) {
-      row.querySelectorAll('td, th').forEach(function(c) {
-        if (c.classList.contains('col-match')) {
-          c.style.position = 'sticky';
-          c.style.left = '0px';
-          c.style.zIndex = c.tagName === 'TH' ? '13' : '3';
-          c.style.background = '#fff';
-        } else if (c.classList.contains('col-result')) {
-          c.style.position = 'sticky';
-          c.style.left = matchW + 'px';
-          c.style.zIndex = c.tagName === 'TH' ? '12' : '2';
-          c.style.background = '#fff';
-        }
-      });
+    // Horizontales Sticky: col-result body-Zellen (col-match via CSS, col-result braucht left-Wert)
+    table.querySelectorAll('tbody td.col-result').forEach(function(c) {
+      c.style.position = 'sticky';
+      c.style.left = matchW + 'px';
+      c.style.zIndex = '2';
+      c.style.background = '#fff';
     });
 
-    // Vertikales Sticky: Kopfzeile + total/grand-row (nur Desktop)
+    // Vertikales Sticky: total/grand-row (nur Desktop; Header-Zeile übernimmt CSS)
     if (window.innerWidth < 768) return;
     var hdr = table.querySelector('thead tr:first-child');
     if (!hdr) return;
     var h1 = hdr.offsetHeight || 38;
 
-    hdr.querySelectorAll('th').forEach(function(c) {
-      c.style.top = '0px';
-      // position und background bereits gesetzt (col-match/result) oder jetzt:
-      if (!c.style.position) { c.style.position = 'sticky'; c.style.background = '#fff'; }
-    });
-
     var totRow = table.querySelector('thead tr.total-row');
     if (totRow) {
       var h2 = totRow.offsetHeight || 36;
-      totRow.querySelectorAll('td, th').forEach(function(c) {
+      totRow.querySelectorAll('td').forEach(function(c) {
         c.style.position = 'sticky';
         c.style.top = h1 + 'px';
         c.style.background = '#fff';
@@ -757,7 +744,7 @@
 
       var grdRow = table.querySelector('thead tr.grand-row');
       if (grdRow) {
-        grdRow.querySelectorAll('td, th').forEach(function(c) {
+        grdRow.querySelectorAll('td').forEach(function(c) {
           c.style.position = 'sticky';
           c.style.top = (h1 + h2) + 'px';
           c.style.background = '#fff';
@@ -767,8 +754,6 @@
         });
       }
     }
-
-    document.documentElement.style.setProperty('--col-match-w', matchW + 'px');
   }
 
   function applyAll() {
