@@ -7,6 +7,7 @@ from sqlalchemy import select
 from database import get_session
 from deps import require_user, templates
 from models import Match, Prediction, TopScorer, User
+from live_preview import calc_live_preview
 from standings import compute_pool, compute_standings
 
 router = APIRouter()
@@ -17,7 +18,28 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
     if isinstance(user, RedirectResponse):
         return user
     rows = compute_standings()
-    pool = compute_pool(rows)
+    pool = compute_pool(rows)  # Pool immer auf Basis offizieller Punkte
+
+    # ── Live-Vorschau: Punkte für laufende Spiele einrechnen ─────────
+    live_preview = calc_live_preview()
+    live_user_pts: dict[int, int] = {}
+    for match_pts_map in live_preview.values():
+        for uid, pts in match_pts_map.items():
+            live_user_pts[uid] = live_user_pts.get(uid, 0) + pts
+    has_live = bool(live_preview)
+
+    if has_live:
+        import copy
+        rows = copy.deepcopy(rows)
+        for r in rows:
+            r.total_points += live_user_pts.get(r.user_id, 0)
+        rows.sort(key=lambda r: (-r.total_points, r.display_name.lower()))
+        last_pts, last_rank = None, 0
+        for i, r in enumerate(rows, 1):
+            if r.total_points != last_pts:
+                last_rank = i
+                last_pts = r.total_points
+            r.rank = last_rank
 
     with get_session() as s:
         top5 = list(s.scalars(select(TopScorer).order_by(TopScorer.rank).limit(5)).all())
@@ -125,6 +147,8 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
     return templates.TemplateResponse(request, "leaderboard.html", {
         "user": user, "active": "leaderboard",
         "rows": rows,
+        "has_live": has_live,
+        "live_user_pts": live_user_pts,
         "rows_group": rows_group,
         "rows_ko": rows_ko,
         "rows_st1": rows_st1,

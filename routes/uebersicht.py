@@ -195,6 +195,31 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
 
     groups_with_results = sorted(group_results.keys())
 
+    # ── Live-Vorschau ─────────────────────────────────────────────────
+    from live_preview import calc_live_preview
+    live_pred_pts = calc_live_preview()   # {match_id: {user_id: pts}}
+    live_match_ids = set(live_pred_pts.keys())
+
+    # Live-Bonus in Abschnitts-Summen einrechnen
+    match_id_to_section: dict[int, str] = {}
+    for dk in sorted_dates:
+        for m in by_date[dk]:
+            match_id_to_section[int(m.id)] = dk
+
+    for mid, user_pts_map in live_pred_pts.items():
+        dk = match_id_to_section.get(mid)
+        if dk is None:
+            continue
+        for uid, pts in user_pts_map.items():
+            if uid in date_pts.get(dk, {}):
+                date_pts[dk][uid] += pts
+
+    # match_pts neu summieren (inkl. Live)
+    match_pts = {
+        uid: sum(date_pts[dk].get(uid, 0) for dk in sorted_dates)
+        for uid in uid_list
+    }
+
     _tournament_started = datetime.now(timezone.utc) >= datetime.fromisoformat(TOURNAMENT_START_UTC)
     _any_result = any(m.result_home is not None for m in locked_matches)
     langfrist_visible = _tournament_started or _any_result
@@ -228,4 +253,6 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
         "locked_set": locked_set,
         "active_section": active_section,
         "ko_by_phase": ko_by_phase,
+        "live_pred_pts": live_pred_pts,
+        "live_match_ids": live_match_ids,
     })

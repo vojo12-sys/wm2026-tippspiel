@@ -4,6 +4,8 @@
 
 {% if rows %}
 <style>
+@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
 .podium-wrap { display:flex; align-items:flex-end; justify-content:center; gap:8px; margin-bottom:2rem; }
 .podium-col  { display:flex; flex-direction:column; align-items:center; flex:1; max-width:200px; }
 .podium-name { font-family:'Bricolage Grotesque',sans-serif; font-weight:800; font-size:1rem; text-align:center; margin-bottom:6px; word-break:break-word; }
@@ -65,7 +67,7 @@
           <th class="text-center lb-col-badge">Tendenz</th>
           <th class="text-center lb-col-pts">Spiel-Punkte</th>
           <th class="text-center lb-col-pts">Bonus-Punkte</th>
-          <th class="text-center lb-col-pts fw-bold">Gesamtpunkte</th>
+          <th class="text-center lb-col-pts fw-bold">Gesamtpunkte{% if has_live %} <span style="color:#dc3545;animation:livepulse 1.2s infinite;font-size:.75rem" title="Inkl. laufende Spiele">● live</span>{% endif %}</th>
         </tr>
       </thead>
       <tbody>
