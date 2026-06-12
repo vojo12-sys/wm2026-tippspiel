@@ -49,7 +49,7 @@ def import_schedule() -> tuple[int, int]:
     with get_session() as s:
         # Tipps + Spiele zurücksetzen (Neuaufbau vor Turnierstart)
         s.execute(delete(Prediction))
-        s.execute(delete(GroupPrediction))   # bleiben inhaltlich gültig, aber sauberer Neustart optional
+        # GroupPredictions werden NICHT gelöscht – sie bleiben auch nach Spielplan-Import gültig
         s.execute(delete(Match))
 
     grp = ko = 0

@@ -6,9 +6,11 @@ from sqlalchemy import select
 
 from auth import create_user, hash_password
 from config import TOTAL_MATCHES
+from data_players import dropdown_options, option_to_name
+from data_teams import GROUPS
 from database import get_session
 from deps import require_admin, templates
-from models import Match, Prediction, User
+from models import GroupPrediction, Match, Prediction, SpecialTip, Team, User
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
 from scoring import recalculate_match
 from standings import compute_standings
@@ -332,6 +334,91 @@ async def demo_reset(request: Request, user: dict = Depends(require_admin)):
     except Exception as e:
         request.session["flash"] = {"message": f"Fehler beim Reset: {e}", "type": "danger"}
     return RedirectResponse("/admin#tab-demo", status_code=303)
+
+
+@router.get("/bonus")
+async def bonus_admin_get(request: Request, uid: int | None = None, user: dict = Depends(require_admin)):
+    with get_session() as s:
+        users = list(s.scalars(select(User).order_by(User.display_name)).all())
+        selected_user = None
+        gpreds: dict[str, tuple] = {}
+        special = None
+        teams_by_group: dict[str, list] = {}
+
+        if uid:
+            selected_user = s.get(User, uid)
+            if selected_user:
+                for gp in s.scalars(select(GroupPrediction).where(GroupPrediction.user_id == uid)).all():
+                    gpreds[gp.group_letter] = (gp.predicted_1st, gp.predicted_2nd)
+                special = s.scalar(select(SpecialTip).where(SpecialTip.user_id == uid))
+                if special and special.champion_team:
+                    _ = special.champion_team
+
+        for t in s.scalars(select(Team).order_by(Team.group_letter, Team.name)).all():
+            teams_by_group.setdefault(t.group_letter, []).append(t)
+
+    return templates.TemplateResponse(request, "admin_bonus.html", {
+        "user": user, "active": "admin",
+        "users": users,
+        "selected_user": selected_user,
+        "uid": uid,
+        "gpreds": gpreds,
+        "special": special,
+        "teams_by_group": teams_by_group,
+        "groups": sorted(GROUPS.keys()),
+        "scorer_opts": dropdown_options(),
+        "flash": request.session.pop("flash", None),
+    })
+
+
+@router.post("/bonus/{user_id}")
+async def bonus_admin_save(request: Request, user_id: int, user: dict = Depends(require_admin)):
+    form = await request.form()
+    with get_session() as s:
+        target = s.get(User, user_id)
+        if not target:
+            request.session["flash"] = {"message": "Nutzer nicht gefunden.", "type": "danger"}
+            return RedirectResponse(f"/admin/bonus?uid={user_id}", status_code=303)
+
+        # Sonder-Tipps
+        try:
+            champ = int(form.get("champion") or 0) or None
+        except (ValueError, TypeError):
+            champ = None
+        scorer_opt = form.get("scorer", "")
+        scorer = option_to_name(scorer_opt) if scorer_opt else None
+        try:
+            total = int(form.get("total_goals") or 0)
+        except (ValueError, TypeError):
+            total = 0
+
+        sp = s.scalar(select(SpecialTip).where(SpecialTip.user_id == user_id))
+        if not sp:
+            sp = SpecialTip(user_id=user_id)
+            s.add(sp)
+        sp.champion_team_id = champ
+        sp.top_scorer = scorer
+        sp.total_goals = total
+
+        # Gruppen-Tipps
+        for letter in GROUPS.keys():
+            try:
+                first = int(form.get(f"g1_{letter}") or 0) or None
+                second = int(form.get(f"g2_{letter}") or 0) or None
+            except (ValueError, TypeError):
+                first = second = None
+            gp = s.scalar(select(GroupPrediction).where(
+                GroupPrediction.user_id == user_id,
+                GroupPrediction.group_letter == letter,
+            ))
+            if not gp:
+                gp = GroupPrediction(user_id=user_id, group_letter=letter)
+                s.add(gp)
+            gp.predicted_1st = first
+            gp.predicted_2nd = second
+
+    request.session["flash"] = {"message": f"Bonus Tipps für '{target.display_name}' gespeichert.", "type": "success"}
+    return RedirectResponse(f"/admin/bonus?uid={user_id}", status_code=303)
 
 
 @router.get("/urkunden")

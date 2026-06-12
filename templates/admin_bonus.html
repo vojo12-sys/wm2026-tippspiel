@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-1">Admin · Bonus Tipps</h1>
+<p class="text-muted mb-4">Gruppen-Tipps und Sonder-Tipps für beliebige Nutzer erfassen oder korrigieren.</p>
+
+{% if flash %}
+<div class="alert alert-{{ flash.type }} alert-dismissible fade show">
+  {{ flash.message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="row g-4">
+
+  <!-- ── Nutzer-Auswahl ── -->
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">Teilnehmer wählen</h6>
+        <div class="list-group list-group-flush">
+          {% for u in users %}
+          <a href="/admin/bonus?uid={{ u.id }}"
+             class="list-group-item list-group-item-action py-2 {% if uid and uid == u.id %}active{% endif %}">
+            {{ u.display_name }}
+          </a>
+          {% endfor %}
+        </div>
+        <div class="mt-3">
+          <a href="/admin" class="btn btn-outline-secondary btn-sm w-100">← Admin</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Formular ── -->
+  <div class="col-md-9">
+    {% if selected_user %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="mb-4">
+          Bonus Tipps für <strong>{{ selected_user.display_name }}</strong>
+        </h5>
+
+        <form method="post" action="/admin/bonus/{{ selected_user.id }}">
+
+          <!-- Sonder-Tipps -->
+          <div class="mb-4 pb-3 border-bottom">
+            <h6 class="fw-bold mb-3">Titel-Tipps</h6>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Weltmeister</label>
+                <select name="champion" class="form-select">
+                  <option value="">— auswählen —</option>
+                  {% for letter in groups %}
+                  {% set grp_teams = teams_by_group.get(letter, []) %}
+                  <optgroup label="Gruppe {{ letter }}">
+                    {% for t in grp_teams %}
+                    <option value="{{ t.id }}"
+                      {% if special and special.champion_team_id == t.id %}selected{% endif %}>
+                      {{ t.name }}
+                    </option>
+                    {% endfor %}
+                  </optgroup>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Torschützenkönig</label>
+                <select name="scorer" class="form-select">
+                  <option value="">— auswählen —</option>
+                  {% for opt in scorer_opts %}
+                  <option value="{{ opt }}"
+                    {% if special and special.top_scorer and opt.startswith(special.top_scorer + ' (') %}selected{% endif %}>
+                    {{ opt }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Gesamttore</label>
+                <input type="number" name="total_goals" class="form-control"
+                       value="{{ special.total_goals if special and special.total_goals else 0 }}"
+                       min="0" max="400">
+              </div>
+            </div>
+          </div>
+
+          <!-- Gruppen-Tipps -->
+          <div class="mb-4">
+            <h6 class="fw-bold mb-3">Gruppen-Platzierungen (1. und 2. Platz je Gruppe)</h6>
+            <div class="row g-3">
+              {% for letter in groups %}
+              {% set grp_teams = teams_by_group.get(letter, []) %}
+              {% set saved = gpreds.get(letter, (none, none)) %}
+              <div class="col-6 col-md-4 col-lg-3">
+                <strong>Gruppe {{ letter }}</strong>
+                <select name="g1_{{ letter }}" class="form-select form-select-sm mt-1 mb-1">
+                  <option value="">1. Platz</option>
+                  {% for t in grp_teams %}
+                  <option value="{{ t.id }}"
+                    {% if saved[0] == t.id %}selected{% endif %}>{{ t.name }}</option>
+                  {% endfor %}
+                </select>
+                <select name="g2_{{ letter }}" class="form-select form-select-sm">
+                  <option value="">2. Platz</option>
+                  {% for t in grp_teams %}
+                  <option value="{{ t.id }}"
+                    {% if saved[1] == t.id %}selected{% endif %}>{{ t.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-accent px-4">Bonus Tipps speichern</button>
+        </form>
+
+      </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body text-muted py-5 text-center">
+        <i class="bi bi-person-circle" style="font-size:2rem"></i>
+        <div class="mt-2">Bitte einen Teilnehmer aus der Liste wählen.</div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
