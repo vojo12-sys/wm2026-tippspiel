@@ -313,22 +313,22 @@
           <td class="text-center text-muted">{{ row.phase_points.values()|sum - joker_bonus_map.get(row.user_id, 0) }}</td>
           <td class="text-center fw-bold" style="color:#1E4E8C">{{ "%.2f"|format(rt) }}</td>
           <td class="text-center" style="font-size:.85rem">
-            {% if rt > 0.88 %}Helmut „die Mütze" Schön
-            {% elif rt >= 0.83 %}Vicente del Bosque
-            {% elif rt >= 0.78 %}Pep Guardiola
-            {% elif rt >= 0.73 %}Didier Deschamps
-            {% elif rt >= 0.68 %}Franz „der Kaiser" Beckenbauer
-            {% elif rt >= 0.63 %}Rudi „Tante Käthe" Völler
-            {% elif rt >= 0.58 %}Jogi „der Schnüffler" Löw
-            {% elif rt >= 0.53 %}Christoph „DNA" Daum
-            {% elif rt >= 0.48 %}Berti „Wadenbeißer" Vogts
-            {% elif rt >= 0.43 %}Marcel „Fähnchen" Reif
-            {% elif rt >= 0.38 %}Andy „Hauptsache Italien" Möller
-            {% elif rt >= 0.33 %}Fritz „wir 2 sind'n gutes Trio" Walter
-            {% elif rt >= 0.28 %}Thorsten „Kasalla" Legath
-            {% elif rt >= 0.23 %}Klaus „halt doch die Fresse" Kinski
-            {% elif rt >= 0.18 %}Karl „Lachsfisch" Lauterbach
-            {% elif rt >= 0.13 %}Michael „wo bin ich?" Wendler
+            {% if rt > 0.70 %}Helmut „die Mütze" Schön
+            {% elif rt >= 0.66 %}Vicente del Bosque
+            {% elif rt >= 0.62 %}Pep Guardiola
+            {% elif rt >= 0.58 %}Didier Deschamps
+            {% elif rt >= 0.54 %}Franz „der Kaiser" Beckenbauer
+            {% elif rt >= 0.50 %}Rudi „Tante Käthe" Völler
+            {% elif rt >= 0.46 %}Jogi „der Schnüffler" Löw
+            {% elif rt >= 0.42 %}Christoph „DNA" Daum
+            {% elif rt >= 0.38 %}Berti „Wadenbeißer" Vogts
+            {% elif rt >= 0.34 %}Marcel „Fähnchen" Reif
+            {% elif rt >= 0.30 %}Andy „Hauptsache Italien" Möller
+            {% elif rt >= 0.26 %}Fritz „wir 2 sind'n gutes Trio" Walter
+            {% elif rt >= 0.22 %}Thorsten „Kasalla" Legath
+            {% elif rt >= 0.18 %}Klaus „halt doch die Fresse" Kinski
+            {% elif rt >= 0.14 %}Karl „Lachsfisch" Lauterbach
+            {% elif rt >= 0.10 %}Michael „wo bin ich?" Wendler
             {% else %}Bauer sucht Frau
             {% endif %}
           </td>
