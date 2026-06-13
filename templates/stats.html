@@ -101,131 +101,103 @@
 
 
 
-<!-- Trefferquote als Kuchendiagramm -->
-{% if tipped_finished > 0 %}
-<div class="card border-0 shadow-sm mb-4">
-  <div class="card-body">
-    <h5 class="mb-3">Trefferquote</h5>
-    <div class="row align-items-center g-3">
-      <div class="col-5 col-md-3 mx-auto mx-md-0">
-        <canvas id="hitsChart" style="max-height:180px"></canvas>
-      </div>
-      <div class="col-12 col-md-9">
-        <div class="d-flex flex-column gap-2" style="font-size:.9rem">
-          <div class="d-flex align-items-center gap-2">
-            <span style="width:12px;height:12px;border-radius:50%;background:var(--accent);flex-shrink:0;display:inline-block"></span>
-            <span>Exakt: <strong>{{ exact }}</strong> ({{ (exact/tipped_finished*100)|round|int }}%)</span>
+<!-- Trefferquote / Punkte nach Phase / Bestes Spiel – eine Reihe -->
+<div class="row g-3 mb-4">
+
+  <!-- Trefferquote -->
+  {% if tipped_finished > 0 %}
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Trefferquote</h5>
+        <div class="row align-items-center g-2">
+          <div class="col-5">
+            <canvas id="hitsChart" style="max-height:140px"></canvas>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <span style="width:12px;height:12px;border-radius:50%;background:#3b82f6;flex-shrink:0;display:inline-block"></span>
-            <span>Tordifferenz: <strong>{{ goal_diff }}</strong> ({{ (goal_diff/tipped_finished*100)|round|int }}%)</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span style="width:12px;height:12px;border-radius:50%;background:#8b5cf6;flex-shrink:0;display:inline-block"></span>
-            <span>Tendenz: <strong>{{ tendency }}</strong> ({{ (tendency/tipped_finished*100)|round|int }}%)</span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span style="width:12px;height:12px;border-radius:50%;background:#d1d5db;flex-shrink:0;display:inline-block"></span>
-            <span>Falsch: <strong>{{ wrong }}</strong> ({{ (wrong/tipped_finished*100)|round|int }}%)</span>
+          <div class="col-7">
+            <div class="d-flex flex-column gap-1" style="font-size:.82rem">
+              <div class="d-flex align-items-center gap-2">
+                <span style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;display:inline-block"></span>
+                <span>Exakt: <strong>{{ exact }}</strong> ({{ (exact/tipped_finished*100)|round|int }}%)</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;flex-shrink:0;display:inline-block"></span>
+                <span>Tordifferenz: <strong>{{ goal_diff }}</strong> ({{ (goal_diff/tipped_finished*100)|round|int }}%)</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;flex-shrink:0;display:inline-block"></span>
+                <span>Tendenz: <strong>{{ tendency }}</strong> ({{ (tendency/tipped_finished*100)|round|int }}%)</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span style="width:10px;height:10px;border-radius:50%;background:#d1d5db;flex-shrink:0;display:inline-block"></span>
+                <span>Falsch: <strong>{{ wrong }}</strong> ({{ (wrong/tipped_finished*100)|round|int }}%)</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-<script>
-new Chart(document.getElementById('hitsChart'), {
-  type: 'pie',
-  data: {
-    labels: ['Exakt', 'Tordifferenz', 'Tendenz', 'Falsch'],
-    datasets: [{ data: [{{ exact }}, {{ goal_diff }}, {{ tendency }}, {{ wrong }}],
-      backgroundColor: ['#7EC8E3','#3b82f6','#8b5cf6','#d1d5db'],
-      borderWidth: 2, borderColor: '#fff' }]
-  },
-  options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: {
-    label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/{{ tipped_finished }}*100) + '%)'
-  }}}}
-});
-</script>
-{% endif %}
+  <script>
+  new Chart(document.getElementById('hitsChart'), {
+    type: 'pie',
+    data: {
+      labels: ['Exakt', 'Tordifferenz', 'Tendenz', 'Falsch'],
+      datasets: [{ data: [{{ exact }}, {{ goal_diff }}, {{ tendency }}, {{ wrong }}],
+        backgroundColor: ['#7EC8E3','#3b82f6','#8b5cf6','#d1d5db'],
+        borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: {
+      label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/{{ tipped_finished }}*100) + '%)'
+    }}}}
+  });
+  </script>
+  {% endif %}
 
-
-
-<!-- Punkte nach Phase -->
-
-{% if phase_pts %}
-
-<div class="card border-0 shadow-sm mb-4">
-
-  <div class="card-body">
-
-    <h5 class="mb-3">Punkte nach Phase</h5>
-
-    <div class="d-flex flex-wrap gap-3">
-
-      {% for key, label in phase_labels.items() %}
-
-      {% if phase_pts.get(key, 0) > 0 %}
-
-      <div class="text-center">
-
-        <div class="fw-bold fs-5" style="color:var(--accent)">{{ phase_pts.get(key, 0) }}</div>
-
-        <div class="text-muted" style="font-size:.75rem">{{ label }}</div>
-
-      </div>
-
-      {% endif %}
-
-      {% endfor %}
-
-    </div>
-
-  </div>
-
-</div>
-
-{% endif %}
-
-
-
-<!-- Bestes Spiel -->
-
-{% if best_match and best_pts > 0 %}
-
-<div class="card border-0 shadow-sm mb-4">
-
-  <div class="card-body">
-
-    <h5 class="mb-1">Bestes Spiel</h5>
-
-    {% set home = best_match.home_team.name if best_match.home_team else (best_match.home_placeholder or 'TBD') %}
-
-    {% set away = best_match.away_team.name if best_match.away_team else (best_match.away_placeholder or 'TBD') %}
-
-    <div class="d-flex align-items-center gap-3 mt-2">
-
-      <div class="fs-2 fw-bold rank-1">{{ best_pts }} Pkt</div>
-
-      <div>
-
-        <div class="fw-semibold">{{ home }} vs. {{ away }}</div>
-
-        <div class="text-muted small">Sp.{{ best_match.match_number }}
-
-          {% if best_match.id == joker_match_id %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker{% endif %}
-
+  <!-- Punkte nach Phase -->
+  {% if phase_pts %}
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Punkte nach Phase</h5>
+        <div class="d-flex flex-wrap gap-3">
+          {% for key, label in phase_labels.items() %}
+          {% if phase_pts.get(key, 0) > 0 %}
+          <div class="text-center">
+            <div class="fw-bold fs-5" style="color:var(--accent)">{{ phase_pts.get(key, 0) }}</div>
+            <div class="text-muted" style="font-size:.75rem">{{ label }}</div>
+          </div>
+          {% endif %}
+          {% endfor %}
         </div>
-
       </div>
-
     </div>
-
   </div>
+  {% endif %}
+
+  <!-- Bestes Spiel -->
+  {% if best_match and best_pts > 0 %}
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-1">Bestes Spiel</h5>
+        {% set home = best_match.home_team.name if best_match.home_team else (best_match.home_placeholder or 'TBD') %}
+        {% set away = best_match.away_team.name if best_match.away_team else (best_match.away_placeholder or 'TBD') %}
+        <div class="d-flex align-items-center gap-3 mt-2">
+          <div class="fs-2 fw-bold rank-1">{{ best_pts }} Pkt</div>
+          <div>
+            <div class="fw-semibold">{{ home }} vs. {{ away }}</div>
+            <div class="text-muted small">Sp.{{ best_match.match_number }}
+              {% if best_match.id == joker_match_id %} · <i class="bi bi-suit-diamond-fill text-danger"></i> Joker{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
 </div>
-
-{% endif %}
 
 <!-- ── Neue Stats ─────────────────────────────────────────── -->
 
