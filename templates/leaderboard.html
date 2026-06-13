@@ -288,7 +288,19 @@
 
 <!-- 1. Trefferquote -->
 <div class="stat-card shadow-sm mb-4">
-  <h6><i class="bi bi-trophy me-2"></i>Experten Rating · Punkte pro Spiel</h6>
+  <h6>
+    <i class="bi bi-trophy me-2"></i>Experten Rating · Punkte pro Spiel
+    <span tabindex="0"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          data-bs-placement="right"
+          data-bs-html="true"
+          data-bs-title="Experten Quotient"
+          data-bs-content="<strong>Formel:</strong> Spiel-Punkte ÷ maximal erreichbare Punkte<br><br><strong>Nur getippte Spiele zählen:</strong><br>· Gruppenphase: max. 4 Pkt./Spiel<br>· K.o.-Phase: max. 5 Pkt./Spiel<br><br><strong>Nicht eingerechnet:</strong><br>· Joker-Bonuspunkte<br>· Langfrist-Tipps<br><br>Wert 1,000 = alle Tipps perfekt."
+          style="cursor:pointer;color:var(--accent);font-size:.8rem;vertical-align:middle;margin-left:.4rem">
+      <i class="bi bi-info-circle"></i>
+    </span>
+  </h6>
   <div class="table-responsive">
     <table class="table table-hover table-sm mb-0">
       <thead class="table-light">
@@ -430,5 +442,6 @@ document.querySelectorAll('[data-tab]').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab).classList.remove('d-none');
   });
 });
+document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => new bootstrap.Popover(el));
 </script>
 {% endblock %}
