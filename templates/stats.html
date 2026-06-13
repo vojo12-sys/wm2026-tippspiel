@@ -240,7 +240,7 @@
         <div class="dropdown">
           <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
                   data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-            <i class="bi bi-people me-1"></i><span id="dropdownLabel">Nur ich</span>
+            <i class="bi bi-people me-1"></i>Auswahl
           </button>
           <ul class="dropdown-menu" style="max-height:320px;overflow-y:auto;min-width:220px">
             <li class="px-3 py-1 d-flex gap-2">
@@ -252,8 +252,7 @@
             <li>
               <label class="dropdown-item d-flex align-items-center gap-2 py-1" style="cursor:pointer">
                 <input type="checkbox" class="player-check form-check-input mt-0 flex-shrink-0"
-                       value="{{ name }}"
-                       {% if name == current_user_name %}checked{% endif %}>
+                       value="{{ name }}" checked>
                 <span style="font-size:.85rem{% if name == current_user_name %};font-weight:600;color:var(--accent){% endif %}">{{ name }}</span>
               </label>
             </li>
@@ -281,7 +280,7 @@ const datasets = Object.entries(allData).map(([name, pts], i) => ({
   pointRadius: name === currentUser ? 4 : 0,
   tension: 0.3,
   order: name === currentUser ? 0 : 1,
-  hidden: name !== currentUser,
+  hidden: false,
 }));
 const formChart = new Chart(document.getElementById('formChart'), {
   type: 'line',
@@ -289,10 +288,7 @@ const formChart = new Chart(document.getElementById('formChart'), {
   options: {
     responsive: true,
     plugins: {
-      legend: { position: 'bottom', labels: {
-        boxWidth: 12, font: { size: 11 },
-        filter: item => !formChart.data.datasets[item.datasetIndex].hidden
-      }},
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
       tooltip: { mode: 'index', intersect: false }
     },
     scales: {
@@ -302,26 +298,22 @@ const formChart = new Chart(document.getElementById('formChart'), {
   }
 });
 
+// Resize wenn Tab aktiviert wird (Chart hat sonst 0-Dimensionen)
+document.querySelector('[data-bs-target="#tab-chart"]').addEventListener('shown.bs.tab', () => { formChart.resize(); });
+
 const checks = document.querySelectorAll('.player-check');
 const btnAll = document.getElementById('btnSelectAll');
 const btnMe = document.getElementById('btnSelectMe');
-const dropdownLabel = document.getElementById('dropdownLabel');
 
 function updateChart() {
   const selected = new Set([...checks].filter(c => c.checked).map(c => c.value));
   formChart.data.datasets.forEach(ds => { ds.hidden = !selected.has(ds.label); });
   formChart.update();
-  const count = selected.size;
-  if (count === 0) dropdownLabel.textContent = 'Niemand';
-  else if (count === 1 && selected.has(currentUser)) dropdownLabel.textContent = 'Nur ich';
-  else if (count === Object.keys(allData).length) dropdownLabel.textContent = 'Alle Spieler';
-  else dropdownLabel.textContent = count + ' Spieler';
 }
 
 checks.forEach(c => c.addEventListener('change', updateChart));
-btnAll.addEventListener('click', () => { checks.forEach(c => c.checked = true); updateChart(); });
-btnMe.addEventListener('click', () => { checks.forEach(c => c.checked = c.value === currentUser); updateChart(); });
-updateChart();
+btnAll.addEventListener('click', e => { e.stopPropagation(); checks.forEach(c => c.checked = true); updateChart(); });
+btnMe.addEventListener('click', e => { e.stopPropagation(); checks.forEach(c => c.checked = c.value === currentUser); updateChart(); });
 </script>
 {% else %}
 <div class="alert alert-info mt-2">Noch keine Daten für die Formkurve.</div>
