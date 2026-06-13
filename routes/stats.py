@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
@@ -96,6 +96,67 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
     tipped_finished = exact + goal_diff + tendency + wrong
     total_pts = cum
 
+    # ── Tipp-Zeitverteilung ────────────────────────────────────────────────
+    hour_counts = [0] * 24
+    for m in finished:
+        p = preds_map.get(m.id)
+        if p and p.created_at:
+            dt = p.created_at
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            hour_counts[dt.astimezone(DISPLAY_TIMEZONE).hour] += 1
+
+    time_blocks = {
+        "Morgen\n(6–11)":  sum(hour_counts[h] for h in range(6, 12)),
+        "Mittag\n(12–17)": sum(hour_counts[h] for h in range(12, 18)),
+        "Abend\n(18–21)":  sum(hour_counts[h] for h in range(18, 22)),
+        "Nacht\n(22–5)":   sum(hour_counts[h] for h in list(range(22, 24)) + list(range(0, 6))),
+    }
+    peak_block = max(time_blocks, key=time_blocks.get) if any(time_blocks.values()) else None
+
+    # ── Korrekturen-Analyse ───────────────────────────────────────────────
+    corr_pts: list[int] = []
+    uncorr_pts: list[int] = []
+    for m in finished:
+        p = preds_map.get(m.id)
+        if p and p.created_at and p.updated_at:
+            if (p.updated_at - p.created_at).total_seconds() > 300:
+                corr_pts.append(p.points_awarded or 0)
+            else:
+                uncorr_pts.append(p.points_awarded or 0)
+
+    corr_avg  = round(sum(corr_pts)   / len(corr_pts),   2) if corr_pts   else None
+    uncorr_avg = round(sum(uncorr_pts) / len(uncorr_pts), 2) if uncorr_pts else None
+
+    # ── Frühzünder vs. Spätzünder ─────────────────────────────────────────
+    early_pts_list: list[int] = []
+    late_pts_list:  list[int] = []
+    lead_hours_list: list[float] = []
+    for m in finished:
+        p = preds_map.get(m.id)
+        if p and m.kickoff_utc and p.created_at:
+            koff    = m.kickoff_utc if m.kickoff_utc.tzinfo else m.kickoff_utc.replace(tzinfo=timezone.utc)
+            created = p.created_at  if p.created_at.tzinfo  else p.created_at.replace(tzinfo=timezone.utc)
+            hours   = (koff - created).total_seconds() / 3600
+            if 0 < hours < 8760:
+                lead_hours_list.append(hours)
+                (early_pts_list if hours > 24 else late_pts_list).append(p.points_awarded or 0)
+
+    avg_lead_h = round(sum(lead_hours_list) / len(lead_hours_list), 1) if lead_hours_list else None
+    early_avg  = round(sum(early_pts_list)  / len(early_pts_list),  2) if early_pts_list  else None
+    late_avg   = round(sum(late_pts_list)   / len(late_pts_list),   2) if late_pts_list   else None
+
+    # ── Treffersträhne ────────────────────────────────────────────────────
+    streak = max_streak = 0
+    for m in finished:
+        p = preds_map.get(m.id)
+        if p and (p.points_awarded or 0) > 0:
+            streak += 1
+            max_streak = max(max_streak, streak)
+        else:
+            streak = 0
+    current_streak = streak
+
     # Formkurve + Vergleichstabelle für alle Nutzer
     all_users_cum: dict[str, list[int]] = {}
     all_users_stats: list[dict] = []
@@ -159,4 +220,18 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         "all_users_cum": all_users_cum,
         "all_users_stats": all_users_stats,
         "current_user_name": user["display_name"],
+        # Neue Stats
+        "time_blocks": time_blocks,
+        "peak_block": (peak_block or "").replace("\n", " ") if peak_block else None,
+        "corr_count": len(corr_pts),
+        "uncorr_count": len(uncorr_pts),
+        "corr_avg": corr_avg,
+        "uncorr_avg": uncorr_avg,
+        "early_count": len(early_pts_list),
+        "late_count": len(late_pts_list),
+        "early_avg": early_avg,
+        "late_avg": late_avg,
+        "avg_lead_h": avg_lead_h,
+        "max_streak": max_streak,
+        "current_streak": current_streak,
     })

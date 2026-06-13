@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <h1 class="mb-3">Statistik</h1>
 
@@ -90,60 +91,52 @@
 
 
 
-<!-- Trefferquote -->
-
+<!-- Trefferquote als Kuchendiagramm -->
 {% if tipped_finished > 0 %}
-
 <div class="card border-0 shadow-sm mb-4">
-
   <div class="card-body">
-
     <h5 class="mb-3">Trefferquote</h5>
-
-    <div class="d-flex gap-1 mb-2" style="height:24px;border-radius:8px;overflow:hidden">
-
-      {% if exact > 0 %}
-
-      <div style="flex:{{ exact }};background:var(--accent)" title="Exakt: {{ exact }}"></div>
-
-      {% endif %}
-
-      {% if goal_diff > 0 %}
-
-      <div style="flex:{{ goal_diff }};background:#3b82f6" title="Tordiff.: {{ goal_diff }}"></div>
-
-      {% endif %}
-
-      {% if tendency > 0 %}
-
-      <div style="flex:{{ tendency }};background:#8b5cf6" title="Tendenz: {{ tendency }}"></div>
-
-      {% endif %}
-
-      {% if wrong > 0 %}
-
-      <div style="flex:{{ wrong }};background:#e5e7eb" title="Falsch: {{ wrong }}"></div>
-
-      {% endif %}
-
+    <div class="row align-items-center g-3">
+      <div class="col-5 col-md-3 mx-auto mx-md-0">
+        <canvas id="hitsChart" style="max-height:180px"></canvas>
+      </div>
+      <div class="col-12 col-md-9">
+        <div class="d-flex flex-column gap-2" style="font-size:.9rem">
+          <div class="d-flex align-items-center gap-2">
+            <span style="width:12px;height:12px;border-radius:50%;background:var(--accent);flex-shrink:0;display:inline-block"></span>
+            <span>Exakt: <strong>{{ exact }}</strong> ({{ (exact/tipped_finished*100)|round|int }}%)</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span style="width:12px;height:12px;border-radius:50%;background:#3b82f6;flex-shrink:0;display:inline-block"></span>
+            <span>Tordifferenz: <strong>{{ goal_diff }}</strong> ({{ (goal_diff/tipped_finished*100)|round|int }}%)</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span style="width:12px;height:12px;border-radius:50%;background:#8b5cf6;flex-shrink:0;display:inline-block"></span>
+            <span>Tendenz: <strong>{{ tendency }}</strong> ({{ (tendency/tipped_finished*100)|round|int }}%)</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span style="width:12px;height:12px;border-radius:50%;background:#d1d5db;flex-shrink:0;display:inline-block"></span>
+            <span>Falsch: <strong>{{ wrong }}</strong> ({{ (wrong/tipped_finished*100)|round|int }}%)</span>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div class="d-flex gap-3 flex-wrap" style="font-size:.8rem">
-
-      <span style="color:var(--accent)"><i class="bi bi-suit-diamond-fill text-warning"></i> Exakt: {{ exact }} ({{ (exact/tipped_finished*100)|round|int }}%)</span>
-
-      <span style="color:#3b82f6"><i class="bi bi-suit-diamond-fill text-warning"></i> Tordiff.: {{ goal_diff }} ({{ (goal_diff/tipped_finished*100)|round|int }}%)</span>
-
-      <span style="color:#8b5cf6"><i class="bi bi-suit-diamond-fill text-warning"></i> Tendenz: {{ tendency }} ({{ (tendency/tipped_finished*100)|round|int }}%)</span>
-
-      <span style="color:#9ca3af"><i class="bi bi-suit-diamond-fill text-warning"></i> Falsch: {{ wrong }} ({{ (wrong/tipped_finished*100)|round|int }}%)</span>
-
-    </div>
-
   </div>
-
 </div>
-
+<script>
+new Chart(document.getElementById('hitsChart'), {
+  type: 'pie',
+  data: {
+    labels: ['Exakt', 'Tordifferenz', 'Tendenz', 'Falsch'],
+    datasets: [{ data: [{{ exact }}, {{ goal_diff }}, {{ tendency }}, {{ wrong }}],
+      backgroundColor: ['#7EC8E3','#3b82f6','#8b5cf6','#d1d5db'],
+      borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: {
+    label: ctx => ' ' + ctx.label + ': ' + ctx.raw + ' (' + Math.round(ctx.raw/{{ tipped_finished }}*100) + '%)'
+  }}}}
+});
+</script>
 {% endif %}
 
 
@@ -224,7 +217,139 @@
 
 {% endif %}
 
+<!-- ── Neue Stats ─────────────────────────────────────────── -->
 
+<!-- Strähne-Kacheln -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold" style="color:var(--gold)">{{ max_streak }}</div>
+      <div class="text-muted small">Längste Treffer-Strähne</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold" style="color:{% if current_streak > 0 %}#28a745{% else %}#9ca3af{% endif %}">{{ current_streak }}</div>
+      <div class="text-muted small">Aktuelle Strähne</div>
+    </div>
+  </div>
+  {% if avg_lead_h is not none %}
+  <div class="col-6 col-md-4">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="fs-2 fw-bold" style="color:var(--accent)">
+        {% if avg_lead_h >= 24 %}{{ (avg_lead_h / 24)|round(1) }}T{% else %}{{ avg_lead_h }}h{% endif %}
+      </div>
+      <div class="text-muted small">Ø Vorlauf vor Anpfiff</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Wann tippst du? -->
+{% if time_blocks and time_blocks.values()|sum > 0 %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-1">Wann tippst du?</h5>
+    {% if peak_block %}<p class="text-muted small mb-3">Du tippst am liebsten <strong>{{ peak_block }}</strong></p>{% endif %}
+    <canvas id="timeChart" style="max-height:160px"></canvas>
+  </div>
+</div>
+<script>
+new Chart(document.getElementById('timeChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Morgen\n(6–11)', 'Mittag\n(12–17)', 'Abend\n(18–21)', 'Nacht\n(22–5)'],
+    datasets: [{ label: 'Tipps',
+      data: [{{ time_blocks['Morgen\n(6–11)'] }}, {{ time_blocks['Mittag\n(12–17)'] }}, {{ time_blocks['Abend\n(18–21)'] }}, {{ time_blocks['Nacht\n(22–5)'] }}],
+      backgroundColor: ['#f59e0b','#7EC8E3','#1E4E8C','#4b5563'],
+      borderRadius: 6, borderWidth: 0 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: {
+    label: ctx => ' ' + ctx.raw + ' Tipps'
+  }}}, scales: { y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } } }
+});
+</script>
+{% endif %}
+
+<!-- Korrekturen-Analyse -->
+{% if corr_count > 0 or uncorr_count > 0 %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Korrekturen-Analyse</h5>
+    <div class="row g-3">
+      <div class="col-6">
+        <div class="text-center p-3 rounded" style="background:#f8f9fa">
+          <div class="fs-3 fw-bold" style="color:#1E4E8C">{{ uncorr_count }}</div>
+          <div class="small text-muted mb-1">Direkt getippt</div>
+          {% if uncorr_avg is not none %}
+          <div class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="text-center p-3 rounded" style="background:#f8f9fa">
+          <div class="fs-3 fw-bold" style="color:#f59e0b">{{ corr_count }}</div>
+          <div class="small text-muted mb-1">Nachträglich korrigiert</div>
+          {% if corr_avg is not none %}
+          <div class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if corr_avg is not none and uncorr_avg is not none %}
+    <p class="text-muted small mt-3 mb-0">
+      {% if corr_avg > uncorr_avg %}
+      <i class="bi bi-arrow-up-circle-fill text-success me-1"></i>Korrekturen haben sich gelohnt (+{{ "%.2f"|format(corr_avg - uncorr_avg) }} Pkt. im Schnitt)
+      {% elif corr_avg < uncorr_avg %}
+      <i class="bi bi-arrow-down-circle-fill text-danger me-1"></i>Der erste Tipp war meistens besser (+{{ "%.2f"|format(uncorr_avg - corr_avg) }} Pkt. ohne Korrektur)
+      {% else %}
+      <i class="bi bi-dash-circle me-1"></i>Korrigiert oder nicht – kein Unterschied
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Frühzünder vs. Spätzünder -->
+{% if early_count > 0 or late_count > 0 %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Frühzünder vs. Spätzünder</h5>
+    <div class="row g-3">
+      <div class="col-6">
+        <div class="text-center p-3 rounded" style="background:#f8f9fa">
+          <div class="fs-3 fw-bold" style="color:#14b8a6">{{ early_count }}</div>
+          <div class="small text-muted mb-1">Früh getippt<br><span style="font-size:.7rem">&gt; 24 Std. vorher</span></div>
+          {% if early_avg is not none %}
+          <div class="badge" style="background:#14b8a6">Ø {{ early_avg }} Pkt.</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="text-center p-3 rounded" style="background:#f8f9fa">
+          <div class="fs-3 fw-bold" style="color:#ef4444">{{ late_count }}</div>
+          <div class="small text-muted mb-1">Spät getippt<br><span style="font-size:.7rem">≤ 24 Std. vorher</span></div>
+          {% if late_avg is not none %}
+          <div class="badge" style="background:#ef4444">Ø {{ late_avg }} Pkt.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if early_avg is not none and late_avg is not none %}
+    <p class="text-muted small mt-3 mb-0">
+      {% if early_avg > late_avg %}
+      <i class="bi bi-clock-fill text-success me-1"></i>Frühe Tipps bringen mehr (+{{ "%.2f"|format(early_avg - late_avg) }} Pkt. im Schnitt)
+      {% elif late_avg > early_avg %}
+      <i class="bi bi-lightning-fill text-warning me-1"></i>Last-Minute-Tipps lohnen sich (+{{ "%.2f"|format(late_avg - early_avg) }} Pkt. im Schnitt)
+      {% else %}
+      <i class="bi bi-dash-circle me-1"></i>Kein Unterschied zwischen früh und spät
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 
 {% endif %}{# end total_finished == 0 #}
 </div>{# end tab-me #}
@@ -264,7 +389,6 @@
     <canvas id="formChart" style="max-height:320px"></canvas>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
 const labels = {{ date_labels | tojson }};
 const allData = {{ all_users_cum | tojson }};

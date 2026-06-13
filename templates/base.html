@@ -234,6 +234,9 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw
 
   setInterval(pollLive, 90000);
 })();
+
+// Popovers global initialisieren (nach Bootstrap-Load)
+document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => new bootstrap.Popover(el));
 </script>
 </body>
 </html>
