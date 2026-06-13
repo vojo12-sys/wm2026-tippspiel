@@ -40,6 +40,7 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         all_preds = list(s.scalars(select(Prediction)).all())
         u = s.get(User, user_id)
         joker_match_id = u.joker_match_id if u else None
+        show_behavior_stats = u.show_behavior_stats if u else True
 
     # ── Basis-Statistiken ──────────────────────────────────────────────────
     total_finished = len(finished)
@@ -96,64 +97,7 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
     tipped_finished = exact + goal_diff + tendency + wrong
     total_pts = cum
 
-    # ── Tipp-Zeitverteilung ────────────────────────────────────────────────
-    hour_counts = [0] * 24
-    for m in finished:
-        p = preds_map.get(m.id)
-        if p and p.created_at:
-            dt = p.created_at
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            hour_counts[dt.astimezone(DISPLAY_TIMEZONE).hour] += 1
-
-    time_blocks = {
-        "Morgens": sum(hour_counts[h] for h in range(6, 12)),
-        "Mittags": sum(hour_counts[h] for h in range(12, 18)),
-        "Abends":  sum(hour_counts[h] for h in range(18, 22)),
-        "Nachts":  sum(hour_counts[h] for h in list(range(22, 24)) + list(range(0, 6))),
-    }
-    _block_labels = {
-        "Morgens": "Morgens (6–11 Uhr)",
-        "Mittags": "Mittags (12–17 Uhr)",
-        "Abends":  "Abends (18–21 Uhr)",
-        "Nachts":  "Nachts (22–5 Uhr)",
-    }
-    _peak_key = max(time_blocks, key=time_blocks.get) if any(time_blocks.values()) else None
-    peak_block = _block_labels.get(_peak_key) if _peak_key else None
-
-    # ── Korrekturen-Analyse ───────────────────────────────────────────────
-    corr_pts: list[int] = []
-    uncorr_pts: list[int] = []
-    for m in finished:
-        p = preds_map.get(m.id)
-        if p and p.created_at and p.updated_at:
-            if (p.updated_at - p.created_at).total_seconds() > 300:
-                corr_pts.append(p.points_awarded or 0)
-            else:
-                uncorr_pts.append(p.points_awarded or 0)
-
-    corr_avg  = round(sum(corr_pts)   / len(corr_pts),   2) if corr_pts   else None
-    uncorr_avg = round(sum(uncorr_pts) / len(uncorr_pts), 2) if uncorr_pts else None
-
-    # ── Frühzünder vs. Spätzünder ─────────────────────────────────────────
-    early_pts_list: list[int] = []
-    late_pts_list:  list[int] = []
-    lead_hours_list: list[float] = []
-    for m in finished:
-        p = preds_map.get(m.id)
-        if p and m.kickoff_utc and p.created_at:
-            koff    = m.kickoff_utc if m.kickoff_utc.tzinfo else m.kickoff_utc.replace(tzinfo=timezone.utc)
-            created = p.created_at  if p.created_at.tzinfo  else p.created_at.replace(tzinfo=timezone.utc)
-            hours   = (koff - created).total_seconds() / 3600
-            if 0 < hours < 8760:
-                lead_hours_list.append(hours)
-                (early_pts_list if hours > 24 else late_pts_list).append(p.points_awarded or 0)
-
-    avg_lead_h = round(sum(lead_hours_list) / len(lead_hours_list), 1) if lead_hours_list else None
-    early_avg  = round(sum(early_pts_list)  / len(early_pts_list),  2) if early_pts_list  else None
-    late_avg   = round(sum(late_pts_list)   / len(late_pts_list),   2) if late_pts_list   else None
-
-    # ── Treffersträhne ────────────────────────────────────────────────────
+    # ── Treffersträhne (immer berechnen) ─────────────────────────────────
     streak = max_streak = 0
     for m in finished:
         p = preds_map.get(m.id)
@@ -163,6 +107,66 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         else:
             streak = 0
     current_streak = streak
+
+    # ── Verhaltens-Statistiken (nur wenn aktiviert) ───────────────────────
+    time_blocks = peak_block = None
+    corr_pts: list[int] = []
+    uncorr_pts: list[int] = []
+    corr_avg = uncorr_avg = None
+    early_pts_list: list[int] = []
+    late_pts_list:  list[int] = []
+    avg_lead_h = early_avg = late_avg = None
+
+    if show_behavior_stats:
+        hour_counts = [0] * 24
+        for m in finished:
+            p = preds_map.get(m.id)
+            if p and p.created_at:
+                dt = p.created_at
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                hour_counts[dt.astimezone(DISPLAY_TIMEZONE).hour] += 1
+
+        time_blocks = {
+            "Morgens": sum(hour_counts[h] for h in range(6, 12)),
+            "Mittags": sum(hour_counts[h] for h in range(12, 18)),
+            "Abends":  sum(hour_counts[h] for h in range(18, 22)),
+            "Nachts":  sum(hour_counts[h] for h in list(range(22, 24)) + list(range(0, 6))),
+        }
+        _block_labels = {
+            "Morgens": "Morgens (6–11 Uhr)",
+            "Mittags": "Mittags (12–17 Uhr)",
+            "Abends":  "Abends (18–21 Uhr)",
+            "Nachts":  "Nachts (22–5 Uhr)",
+        }
+        _peak_key = max(time_blocks, key=time_blocks.get) if any(time_blocks.values()) else None
+        peak_block = _block_labels.get(_peak_key) if _peak_key else None
+
+        for m in finished:
+            p = preds_map.get(m.id)
+            if p and p.created_at and p.updated_at:
+                if (p.updated_at - p.created_at).total_seconds() > 300:
+                    corr_pts.append(p.points_awarded or 0)
+                else:
+                    uncorr_pts.append(p.points_awarded or 0)
+
+        corr_avg   = round(sum(corr_pts)   / len(corr_pts),   2) if corr_pts   else None
+        uncorr_avg = round(sum(uncorr_pts) / len(uncorr_pts), 2) if uncorr_pts else None
+
+        lead_hours_list: list[float] = []
+        for m in finished:
+            p = preds_map.get(m.id)
+            if p and m.kickoff_utc and p.created_at:
+                koff    = m.kickoff_utc if m.kickoff_utc.tzinfo else m.kickoff_utc.replace(tzinfo=timezone.utc)
+                created = p.created_at  if p.created_at.tzinfo  else p.created_at.replace(tzinfo=timezone.utc)
+                hours   = (koff - created).total_seconds() / 3600
+                if 0 < hours < 8760:
+                    lead_hours_list.append(hours)
+                    (early_pts_list if hours > 24 else late_pts_list).append(p.points_awarded or 0)
+
+        avg_lead_h = round(sum(lead_hours_list) / len(lead_hours_list), 1) if lead_hours_list else None
+        early_avg  = round(sum(early_pts_list)  / len(early_pts_list),  2) if early_pts_list  else None
+        late_avg   = round(sum(late_pts_list)   / len(late_pts_list),   2) if late_pts_list   else None
 
     # ── Joker-Info (Paarung, Phase, Ergebnis, Punkte) ────────────────────
     joker_info = None
@@ -177,7 +181,24 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
                 "match_number": jm.match_number,
                 "result": f"{jm.result_home}:{jm.result_away}" if jm.has_result else None,
                 "pts": jp.points_awarded if jp else 0,
+                "is_finished": True,
             }
+        else:
+            # Joker gesetzt, Spiel noch nicht beendet → aus DB nachladen
+            from models import Match as _Match
+            with get_session() as sj:
+                jm2 = sj.get(_Match, joker_match_id)
+                if jm2:
+                    _ = jm2.home_team, jm2.away_team
+                    joker_info = {
+                        "home": jm2.home_team.name if jm2.home_team else (jm2.home_placeholder or "TBD"),
+                        "away": jm2.away_team.name if jm2.away_team else (jm2.away_placeholder or "TBD"),
+                        "phase": PHASES.get(jm2.phase, jm2.phase),
+                        "match_number": jm2.match_number,
+                        "result": None,
+                        "pts": None,
+                        "is_finished": False,
+                    }
 
     # Formkurve + Vergleichstabelle für alle Nutzer
     all_users_cum: dict[str, list[int]] = {}
@@ -246,6 +267,7 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         "time_blocks": time_blocks,
         "peak_block": peak_block,
         "joker_info": joker_info,
+        "show_behavior_stats": show_behavior_stats,
         "corr_count": len(corr_pts),
         "uncorr_count": len(uncorr_pts),
         "corr_avg": corr_avg,

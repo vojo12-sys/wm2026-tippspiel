@@ -49,6 +49,8 @@ class User(Base):
     # Joker: verdoppelt die Punkte für ein Spiel (einmalig, unwiderruflich)
     joker_match_id: Mapped[int | None] = mapped_column(ForeignKey("matches.id"), nullable=True)
 
+    show_behavior_stats: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, server_default="1")
+
     in_pool: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     has_paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     # Einsatz dieses Teilnehmers (Standard = konfigurierter Buy-in).
