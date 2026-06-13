@@ -234,7 +234,34 @@
 {% if date_labels %}
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
-    <h5 class="mb-3">Formkurve – Punkte im Turnierverlauf</h5>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <h5 class="mb-0">Formkurve – Punkte im Turnierverlauf</h5>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+            <i class="bi bi-people me-1"></i><span id="dropdownLabel">Nur ich</span>
+          </button>
+          <ul class="dropdown-menu" style="max-height:320px;overflow-y:auto;min-width:220px">
+            <li class="px-3 py-1 d-flex gap-2">
+              <button class="btn btn-sm btn-outline-secondary flex-fill" id="btnSelectAll" type="button">Alle</button>
+              <button class="btn btn-sm btn-accent flex-fill" id="btnSelectMe" type="button">Nur ich</button>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            {% for name in all_users_cum.keys() %}
+            <li>
+              <label class="dropdown-item d-flex align-items-center gap-2 py-1" style="cursor:pointer">
+                <input type="checkbox" class="player-check form-check-input mt-0 flex-shrink-0"
+                       value="{{ name }}"
+                       {% if name == current_user_name %}checked{% endif %}>
+                <span style="font-size:.85rem{% if name == current_user_name %};font-weight:600;color:var(--accent){% endif %}">{{ name }}</span>
+              </label>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
     <canvas id="formChart" style="max-height:320px"></canvas>
   </div>
 </div>
@@ -254,14 +281,18 @@ const datasets = Object.entries(allData).map(([name, pts], i) => ({
   pointRadius: name === currentUser ? 4 : 0,
   tension: 0.3,
   order: name === currentUser ? 0 : 1,
+  hidden: name !== currentUser,
 }));
-new Chart(document.getElementById('formChart'), {
+const formChart = new Chart(document.getElementById('formChart'), {
   type: 'line',
   data: { labels, datasets },
   options: {
     responsive: true,
     plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      legend: { position: 'bottom', labels: {
+        boxWidth: 12, font: { size: 11 },
+        filter: item => !formChart.data.datasets[item.datasetIndex].hidden
+      }},
       tooltip: { mode: 'index', intersect: false }
     },
     scales: {
@@ -270,6 +301,27 @@ new Chart(document.getElementById('formChart'), {
     }
   }
 });
+
+const checks = document.querySelectorAll('.player-check');
+const btnAll = document.getElementById('btnSelectAll');
+const btnMe = document.getElementById('btnSelectMe');
+const dropdownLabel = document.getElementById('dropdownLabel');
+
+function updateChart() {
+  const selected = new Set([...checks].filter(c => c.checked).map(c => c.value));
+  formChart.data.datasets.forEach(ds => { ds.hidden = !selected.has(ds.label); });
+  formChart.update();
+  const count = selected.size;
+  if (count === 0) dropdownLabel.textContent = 'Niemand';
+  else if (count === 1 && selected.has(currentUser)) dropdownLabel.textContent = 'Nur ich';
+  else if (count === Object.keys(allData).length) dropdownLabel.textContent = 'Alle Spieler';
+  else dropdownLabel.textContent = count + ' Spieler';
+}
+
+checks.forEach(c => c.addEventListener('change', updateChart));
+btnAll.addEventListener('click', () => { checks.forEach(c => c.checked = true); updateChart(); });
+btnMe.addEventListener('click', () => { checks.forEach(c => c.checked = c.value === currentUser); updateChart(); });
+updateChart();
 </script>
 {% else %}
 <div class="alert alert-info mt-2">Noch keine Daten für die Formkurve.</div>

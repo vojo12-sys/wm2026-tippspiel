@@ -61,11 +61,46 @@ def _get_flash(request: Request) -> dict | None:
     return request.session.pop("flash", None)
 
 
+_MONTHS_DE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]
+
+
 @router.get("/")
 async def index(request: Request):
     if request.session.get("user"):
         return RedirectResponse("/tipps", status_code=302)
-    return templates.TemplateResponse(request, "landing.html", {})
+
+    from datetime import datetime, timezone as _tz
+    from sqlalchemy import select as _sel
+    from database import get_session as _gs
+    from models import Match as _Match
+    from config import DISPLAY_TIMEZONE
+
+    next_match = None
+    with _gs() as s:
+        now = datetime.now(_tz.utc)
+        m = s.scalar(
+            _sel(_Match)
+            .where(_Match.kickoff_utc > now, _Match.is_finished == False)
+            .order_by(_Match.kickoff_utc)
+            .limit(1)
+        )
+        if m:
+            home = m.home_team.name if m.home_team else (m.home_placeholder or "TBD")
+            away = m.away_team.name if m.away_team else (m.away_placeholder or "TBD")
+            koff = m.kickoff_utc
+            if koff.tzinfo is None:
+                koff = koff.replace(tzinfo=_tz.utc)
+            local_dt = koff.astimezone(DISPLAY_TIMEZONE)
+            date_de = f"{local_dt.day}. {_MONTHS_DE[local_dt.month - 1]} {local_dt.year}"
+            next_match = {
+                "home": home,
+                "away": away,
+                "kickoff_iso": koff.isoformat(),
+                "date_de": date_de,
+                "time_de": local_dt.strftime("%H:%M Uhr"),
+            }
+
+    return templates.TemplateResponse(request, "landing.html", {"next_match": next_match})
 
 
 @router.get("/login")
