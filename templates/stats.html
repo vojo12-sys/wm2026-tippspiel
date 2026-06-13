@@ -77,11 +77,19 @@
 
     <div class="card border-0 shadow-sm text-center p-3 h-100">
 
-      {% if joker_match_id %}<div class="fs-2 fw-bold"><i class="bi bi-suit-diamond-fill text-danger"></i> gesetzt</div>
-
-      {% else %}<div class="fs-2 fw-bold text-muted"><i class="bi bi-suit-diamond-fill text-danger"></i> offen</div>{% endif %}
-
-      <div class="text-muted small">Joker</div>
+      {% if joker_match_id %}
+        <div class="fw-bold mb-1" style="color:#dc3545"><i class="bi bi-suit-diamond-fill"></i> Joker gesetzt</div>
+        {% if joker_info %}
+          <div class="small fw-semibold lh-sm">{{ joker_info.home }}<br>vs. {{ joker_info.away }}</div>
+          <div class="text-muted" style="font-size:.7rem;margin-top:.25rem">{{ joker_info.phase }} · Sp.{{ joker_info.match_number }}</div>
+          {% if joker_info.result %}
+          <div class="mt-1" style="font-size:.75rem">Ergebnis: <strong>{{ joker_info.result }}</strong> · <strong style="color:{% if joker_info.pts > 0 %}#dc3545{% else %}#6b7280{% endif %}">{{ joker_info.pts }} Pkt.</strong></div>
+          {% endif %}
+        {% endif %}
+      {% else %}
+        <div class="fs-2 fw-bold text-muted"><i class="bi bi-suit-diamond-fill text-danger"></i> offen</div>
+        <div class="text-muted small">Joker</div>
+      {% endif %}
 
     </div>
 
@@ -239,7 +247,8 @@ new Chart(document.getElementById('hitsChart'), {
       <div class="fs-2 fw-bold" style="color:var(--accent)">
         {% if avg_lead_h >= 24 %}{{ (avg_lead_h / 24)|round(1) }}T{% else %}{{ avg_lead_h }}h{% endif %}
       </div>
-      <div class="text-muted small">Ø Vorlauf vor Anpfiff</div>
+      <div class="text-muted small">Ø wie früh getippt</div>
+      <div class="text-muted" style="font-size:.65rem">Ø Zeit zwischen Tipp und Anpfiff</div>
     </div>
   </div>
   {% endif %}
@@ -258,9 +267,9 @@ new Chart(document.getElementById('hitsChart'), {
 new Chart(document.getElementById('timeChart'), {
   type: 'bar',
   data: {
-    labels: ['Morgen\n(6–11)', 'Mittag\n(12–17)', 'Abend\n(18–21)', 'Nacht\n(22–5)'],
+    labels: ['Morgens\n6–11 Uhr', 'Mittags\n12–17 Uhr', 'Abends\n18–21 Uhr', 'Nachts\n22–5 Uhr'],
     datasets: [{ label: 'Tipps',
-      data: [{{ time_blocks['Morgen\n(6–11)'] }}, {{ time_blocks['Mittag\n(12–17)'] }}, {{ time_blocks['Abend\n(18–21)'] }}, {{ time_blocks['Nacht\n(22–5)'] }}],
+      data: [{{ time_blocks['Morgens'] }}, {{ time_blocks['Mittags'] }}, {{ time_blocks['Abends'] }}, {{ time_blocks['Nachts'] }}],
       backgroundColor: ['#f59e0b','#7EC8E3','#1E4E8C','#4b5563'],
       borderRadius: 6, borderWidth: 0 }]
   },
@@ -277,21 +286,27 @@ new Chart(document.getElementById('timeChart'), {
   <div class="card-body">
     <h5 class="mb-3">Korrekturen-Analyse</h5>
     <div class="row g-3">
-      <div class="col-6">
-        <div class="text-center p-3 rounded" style="background:#f8f9fa">
-          <div class="fs-3 fw-bold" style="color:#1E4E8C">{{ uncorr_count }}</div>
-          <div class="small text-muted mb-1">Direkt getippt</div>
+      <div class="col-6 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+          <div>
+            <div class="fs-3 fw-bold" style="color:#1E4E8C">{{ uncorr_count }}</div>
+            <div class="small fw-semibold mb-1">Direkt abgegeben</div>
+            <div class="text-muted" style="font-size:.72rem">Tipp wurde nicht mehr geändert</div>
+          </div>
           {% if uncorr_avg is not none %}
-          <div class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</div>
+          <div class="mt-2"><span class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</span></div>
           {% endif %}
         </div>
       </div>
-      <div class="col-6">
-        <div class="text-center p-3 rounded" style="background:#f8f9fa">
-          <div class="fs-3 fw-bold" style="color:#f59e0b">{{ corr_count }}</div>
-          <div class="small text-muted mb-1">Nachträglich korrigiert</div>
+      <div class="col-6 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+          <div>
+            <div class="fs-3 fw-bold" style="color:#f59e0b">{{ corr_count }}</div>
+            <div class="small fw-semibold mb-1">Nachträglich geändert</div>
+            <div class="text-muted" style="font-size:.72rem">Korrektur mehr als 5 Min. nach Erstabgabe</div>
+          </div>
           {% if corr_avg is not none %}
-          <div class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</div>
+          <div class="mt-2"><span class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</span></div>
           {% endif %}
         </div>
       </div>
@@ -317,21 +332,27 @@ new Chart(document.getElementById('timeChart'), {
   <div class="card-body">
     <h5 class="mb-3">Frühzünder vs. Spätzünder</h5>
     <div class="row g-3">
-      <div class="col-6">
-        <div class="text-center p-3 rounded" style="background:#f8f9fa">
-          <div class="fs-3 fw-bold" style="color:#14b8a6">{{ early_count }}</div>
-          <div class="small text-muted mb-1">Früh getippt<br><span style="font-size:.7rem">&gt; 24 Std. vorher</span></div>
+      <div class="col-6 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+          <div>
+            <div class="fs-3 fw-bold" style="color:#14b8a6">{{ early_count }}</div>
+            <div class="small fw-semibold mb-1">Frühzünder</div>
+            <div class="text-muted" style="font-size:.72rem">Tipp mehr als 24 Stunden vor Anpfiff abgegeben</div>
+          </div>
           {% if early_avg is not none %}
-          <div class="badge" style="background:#14b8a6">Ø {{ early_avg }} Pkt.</div>
+          <div class="mt-2"><span class="badge" style="background:#14b8a6">Ø {{ early_avg }} Pkt.</span></div>
           {% endif %}
         </div>
       </div>
-      <div class="col-6">
-        <div class="text-center p-3 rounded" style="background:#f8f9fa">
-          <div class="fs-3 fw-bold" style="color:#ef4444">{{ late_count }}</div>
-          <div class="small text-muted mb-1">Spät getippt<br><span style="font-size:.7rem">≤ 24 Std. vorher</span></div>
+      <div class="col-6 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+          <div>
+            <div class="fs-3 fw-bold" style="color:#ef4444">{{ late_count }}</div>
+            <div class="small fw-semibold mb-1">Kurzfristig</div>
+            <div class="text-muted" style="font-size:.72rem">Tipp weniger als 24 Stunden vor Anpfiff abgegeben</div>
+          </div>
           {% if late_avg is not none %}
-          <div class="badge" style="background:#ef4444">Ø {{ late_avg }} Pkt.</div>
+          <div class="mt-2"><span class="badge" style="background:#ef4444">Ø {{ late_avg }} Pkt.</span></div>
           {% endif %}
         </div>
       </div>

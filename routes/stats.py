@@ -107,12 +107,19 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
             hour_counts[dt.astimezone(DISPLAY_TIMEZONE).hour] += 1
 
     time_blocks = {
-        "Morgen\n(6–11)":  sum(hour_counts[h] for h in range(6, 12)),
-        "Mittag\n(12–17)": sum(hour_counts[h] for h in range(12, 18)),
-        "Abend\n(18–21)":  sum(hour_counts[h] for h in range(18, 22)),
-        "Nacht\n(22–5)":   sum(hour_counts[h] for h in list(range(22, 24)) + list(range(0, 6))),
+        "Morgens": sum(hour_counts[h] for h in range(6, 12)),
+        "Mittags": sum(hour_counts[h] for h in range(12, 18)),
+        "Abends":  sum(hour_counts[h] for h in range(18, 22)),
+        "Nachts":  sum(hour_counts[h] for h in list(range(22, 24)) + list(range(0, 6))),
     }
-    peak_block = max(time_blocks, key=time_blocks.get) if any(time_blocks.values()) else None
+    _block_labels = {
+        "Morgens": "Morgens (6–11 Uhr)",
+        "Mittags": "Mittags (12–17 Uhr)",
+        "Abends":  "Abends (18–21 Uhr)",
+        "Nachts":  "Nachts (22–5 Uhr)",
+    }
+    _peak_key = max(time_blocks, key=time_blocks.get) if any(time_blocks.values()) else None
+    peak_block = _block_labels.get(_peak_key) if _peak_key else None
 
     # ── Korrekturen-Analyse ───────────────────────────────────────────────
     corr_pts: list[int] = []
@@ -156,6 +163,21 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         else:
             streak = 0
     current_streak = streak
+
+    # ── Joker-Info (Paarung, Phase, Ergebnis, Punkte) ────────────────────
+    joker_info = None
+    if joker_match_id:
+        jm = next((m for m in finished if m.id == joker_match_id), None)
+        if jm:
+            jp = preds_map.get(joker_match_id)
+            joker_info = {
+                "home": jm.home_team.name if jm.home_team else (jm.home_placeholder or "TBD"),
+                "away": jm.away_team.name if jm.away_team else (jm.away_placeholder or "TBD"),
+                "phase": PHASES.get(jm.phase, jm.phase),
+                "match_number": jm.match_number,
+                "result": f"{jm.result_home}:{jm.result_away}" if jm.has_result else None,
+                "pts": jp.points_awarded if jp else 0,
+            }
 
     # Formkurve + Vergleichstabelle für alle Nutzer
     all_users_cum: dict[str, list[int]] = {}
@@ -222,7 +244,8 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         "current_user_name": user["display_name"],
         # Neue Stats
         "time_blocks": time_blocks,
-        "peak_block": (peak_block or "").replace("\n", " ") if peak_block else None,
+        "peak_block": peak_block,
+        "joker_info": joker_info,
         "corr_count": len(corr_pts),
         "uncorr_count": len(uncorr_pts),
         "corr_avg": corr_avg,
