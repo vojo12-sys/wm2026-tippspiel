@@ -80,7 +80,7 @@
       {% if joker_match_id %}
         <div class="fw-bold mb-1" style="color:#dc3545"><i class="bi bi-suit-diamond-fill"></i> Joker gesetzt</div>
         {% if joker_info %}
-          <div class="small fw-semibold lh-sm">{{ joker_info.home }}<br>vs. {{ joker_info.away }}</div>
+          <div class="small fw-semibold lh-sm">{{ joker_info.home }} vs. {{ joker_info.away }}</div>
           <div class="text-muted" style="font-size:.7rem;margin-top:.25rem">{{ joker_info.phase }} · Sp.{{ joker_info.match_number }}</div>
           {% if joker_info.result %}
             <div class="mt-1" style="font-size:.75rem">Ergebnis: <strong>{{ joker_info.result }}</strong> · <strong style="color:{% if joker_info.pts > 0 %}#dc3545{% else %}#6b7280{% endif %}">{{ joker_info.pts }} Pkt.</strong></div>
@@ -293,51 +293,74 @@ new Chart(document.getElementById('timeChart'), {
 {% endif %}
 
 <!-- Korrekturen-Analyse -->
-{% if corr_count > 0 or uncorr_count > 0 %}
+{% set total_corr = hist_gained_count + hist_lost_count + hist_neutral %}
+{% if hist_direct > 0 or total_corr > 0 %}
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
     <h5 class="mb-3">Korrekturen-Analyse</h5>
+    <p class="text-muted small mb-3">Vergleich des Original-Tipps mit dem tatsächlich abgegebenen Tipp nach einer Änderung – hat das Korrigieren unter dem Strich mehr Punkte gebracht?</p>
     <div class="row g-3">
-      <div class="col-6 d-flex">
-        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+      <!-- Block 1: Direkt abgegeben -->
+      <div class="col-6 col-lg-3 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f0f4ff">
           <div>
-            <div class="fs-3 fw-bold" style="color:#1E4E8C">{{ uncorr_count }}</div>
+            <div class="fs-3 fw-bold" style="color:#1E4E8C">{{ hist_direct }}</div>
             <div class="small fw-semibold mb-1">Direkt abgegeben</div>
-            <div class="text-muted" style="font-size:.72rem">Tipp wurde nicht mehr geändert</div>
+            <div class="text-muted" style="font-size:.72rem">Erster Tipp blieb unverändert bis Spielende</div>
           </div>
           {% if uncorr_avg is not none %}
           <div class="mt-2"><span class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</span></div>
           {% endif %}
         </div>
       </div>
-      <div class="col-6 d-flex">
-        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+      <!-- Block 2: Korrigiert + geholfen -->
+      <div class="col-6 col-lg-3 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f0fff4">
           <div>
-            <div class="fs-3 fw-bold" style="color:#f59e0b">{{ corr_count }}</div>
-            <div class="small fw-semibold mb-1">Nachträglich geändert</div>
-            <div class="text-muted" style="font-size:.72rem">Korrektur mehr als 5 Min. nach Erstabgabe</div>
+            <div class="fs-3 fw-bold text-success">{{ hist_gained_count }}</div>
+            <div class="small fw-semibold mb-1">Korrektur hat geholfen</div>
+            <div class="text-muted" style="font-size:.72rem">Nach Änderung mehr Punkte als mit dem Original-Tipp</div>
           </div>
-          {% if corr_avg is not none %}
-          <div class="mt-2"><span class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</span></div>
+          {% if hist_gained_count > 0 %}
+          <div class="mt-2"><span class="badge bg-success">+{{ hist_gained_pts }} Pkt. insgesamt</span></div>
           {% endif %}
         </div>
       </div>
-    </div>
-    {% if corr_avg is not none and uncorr_avg is not none %}
-    <div class="mt-3 p-3 rounded" style="background:#f0f4ff;border-left:4px solid #1E4E8C">
-      <div class="fw-semibold mb-1" style="font-size:.9rem">Hat das Korrigieren geholfen?</div>
-      <div class="d-flex align-items-center gap-3 flex-wrap">
-        <span style="font-size:.85rem">Direkt: <strong style="font-size:1.1rem">Ø {{ uncorr_avg }}</strong> Pkt.</span>
-        <span class="text-muted">vs.</span>
-        <span style="font-size:.85rem">Korrigiert: <strong style="font-size:1.1rem">Ø {{ corr_avg }}</strong> Pkt.</span>
+      <!-- Block 3: Korrigiert + geschadet -->
+      <div class="col-6 col-lg-3 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#fff5f5">
+          <div>
+            <div class="fs-3 fw-bold text-danger">{{ hist_lost_count }}</div>
+            <div class="small fw-semibold mb-1">Korrektur hat geschadet</div>
+            <div class="text-muted" style="font-size:.72rem">Nach Änderung weniger Punkte als mit dem Original-Tipp</div>
+          </div>
+          {% if hist_lost_count > 0 %}
+          <div class="mt-2"><span class="badge bg-danger">{{ hist_lost_pts }} Pkt. insgesamt</span></div>
+          {% endif %}
+        </div>
       </div>
-      <div class="mt-2" style="font-size:.82rem">
-        {% if corr_avg > uncorr_avg %}
-        <i class="bi bi-arrow-up-circle-fill text-success me-1"></i><strong>Ja, Korrekturen haben sich gelohnt</strong> – im Schnitt {{ "%.2f"|format(corr_avg - uncorr_avg) }} Pkt. mehr als beim ersten Tipp
-        {% elif corr_avg < uncorr_avg %}
-        <i class="bi bi-arrow-down-circle-fill text-danger me-1"></i><strong>Eher nicht</strong> – der erste Tipp war im Schnitt {{ "%.2f"|format(uncorr_avg - corr_avg) }} Pkt. besser als die Korrektur
+      <!-- Block 4: Korrigiert + kein Unterschied -->
+      <div class="col-6 col-lg-3 d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
+          <div>
+            <div class="fs-3 fw-bold text-muted">{{ hist_neutral }}</div>
+            <div class="small fw-semibold mb-1">Kein Unterschied</div>
+            <div class="text-muted" style="font-size:.72rem">Original-Tipp und Korrektur hätten gleich viele Punkte ergeben</div>
+          </div>
+          <div class="mt-2"><span class="badge bg-secondary">± 0 Pkt.</span></div>
+        </div>
+      </div>
+    </div>
+    {% if total_corr > 0 %}
+    <div class="mt-3 p-3 rounded" style="background:#f0f4ff;border-left:4px solid #1E4E8C">
+      <div class="fw-semibold mb-1" style="font-size:.9rem">Bilanz aller Korrekturen</div>
+      <div class="mt-1" style="font-size:.85rem">
+        {% if hist_net > 0 %}
+        <i class="bi bi-arrow-up-circle-fill text-success me-1"></i><strong>Korrekturen haben sich gelohnt</strong> – netto <strong class="text-success">+{{ hist_net }} Punkte</strong> durch Änderungen gewonnen
+        {% elif hist_net < 0 %}
+        <i class="bi bi-arrow-down-circle-fill text-danger me-1"></i><strong>Erster Instinkt war besser</strong> – durch Korrekturen netto <strong class="text-danger">{{ hist_net }} Punkte</strong> verloren
         {% else %}
-        <i class="bi bi-dash-circle text-muted me-1"></i><strong>Kein Unterschied</strong> – Korrekturen haben weder geholfen noch geschadet
+        <i class="bi bi-dash-circle text-muted me-1"></i><strong>Ausgeglichen</strong> – Korrekturen haben unterm Strich weder geholfen noch geschadet
         {% endif %}
       </div>
     </div>

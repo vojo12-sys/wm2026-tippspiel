@@ -10,7 +10,7 @@ from config import DISPLAY_TIMEZONE, PHASES, TOTAL_MATCHES
 from database import get_session
 from deps import require_user, templates
 from datetime import timezone
-from models import Match, Prediction, User
+from models import Match, Prediction, PredictionHistory, User
 
 router = APIRouter()
 
@@ -195,7 +195,21 @@ async def tipps_post(request: Request, user: dict = Depends(require_user)):
                 pred = Prediction(user_id=user["id"], match_id=match_id,
                                   pred_home=sides["home"], pred_away=sides["away"])
                 s.add(pred)
+                s.flush()  # pred.id verfügbar machen
+                # Baseline-Snapshot als erste History
+                s.add(PredictionHistory(
+                    prediction_id=pred.id,
+                    pred_home=sides["home"],
+                    pred_away=sides["away"],
+                ))
             else:
+                # Nur History speichern wenn sich der Tipp tatsächlich ändert
+                if pred.pred_home != sides["home"] or pred.pred_away != sides["away"]:
+                    s.add(PredictionHistory(
+                        prediction_id=pred.id,
+                        pred_home=pred.pred_home,
+                        pred_away=pred.pred_away,
+                    ))
                 pred.pred_home = sides["home"]
                 pred.pred_away = sides["away"]
             saved += 1

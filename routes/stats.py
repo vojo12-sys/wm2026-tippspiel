@@ -10,7 +10,7 @@ from sqlalchemy import select
 from config import DISPLAY_TIMEZONE, PHASES
 from database import get_session
 from deps import require_user, templates
-from models import Match, Prediction, User
+from models import Match, Prediction, PredictionHistory, User
 
 router = APIRouter()
 
@@ -41,6 +41,20 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         u = s.get(User, user_id)
         joker_match_id = u.joker_match_id if u else None
         show_behavior_stats = u.show_behavior_stats if u else True
+
+        # History für diesen User laden (prediction_id → erste Einträge = Baseline)
+        user_pred_ids = [p.id for p in preds_map.values()]
+        all_history: list[PredictionHistory] = []
+        if user_pred_ids:
+            all_history = list(s.scalars(
+                select(PredictionHistory)
+                .where(PredictionHistory.prediction_id.in_(user_pred_ids))
+                .order_by(PredictionHistory.saved_at)
+            ).all())
+        # Gruppieren: pred_id → [history_entries]
+        hist_by_pred: dict[int, list[PredictionHistory]] = {}
+        for h in all_history:
+            hist_by_pred.setdefault(h.prediction_id, []).append(h)
 
     # ── Basis-Statistiken ──────────────────────────────────────────────────
     total_finished = len(finished)
@@ -116,6 +130,11 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
     early_pts_list: list[int] = []
     late_pts_list:  list[int] = []
     avg_lead_h = early_avg = late_avg = None
+    hist_gained: list[int] = []
+    hist_lost:   list[int] = []
+    hist_neutral: int = 0
+    hist_direct:  int = 0
+    hist_net: int = 0
 
     if show_behavior_stats:
         hour_counts = [0] * 24
@@ -142,16 +161,55 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         _peak_key = max(time_blocks, key=time_blocks.get) if any(time_blocks.values()) else None
         peak_block = _block_labels.get(_peak_key) if _peak_key else None
 
+        # Scoring-Hilfsfunktion
+        from settings import get_scoring as _get_scoring
+        _cfg = _get_scoring()
+        _exact = _cfg.get("exact", 4)
+        _gdiff = _cfg.get("goal_diff", 2)
+        _tend  = _cfg.get("tendency", 1)
+        _kobon = _cfg.get("ko_advance_bonus", 1)
+
+        def _calc(ph: int, pa: int, rh: int, ra: int, phase: str) -> int:
+            if ph == rh and pa == ra:
+                base = _exact
+            elif (ph - pa) == (rh - ra):
+                base = _gdiff
+            else:
+                def _sgn(x): return 1 if x > 0 else (-1 if x < 0 else 0)
+                if _sgn(ph - pa) == _sgn(rh - ra) and _sgn(ph - pa) != 0:
+                    base = _tend
+                else:
+                    return 0
+            return base + (_kobon if phase != "group" else 0)
+
+        # History-basierte Korrektur-Auswertung
         for m in finished:
             p = preds_map.get(m.id)
-            if p and p.created_at and p.updated_at:
-                if (p.updated_at - p.created_at).total_seconds() > 300:
-                    corr_pts.append(p.points_awarded or 0)
-                else:
-                    uncorr_pts.append(p.points_awarded or 0)
+            if p is None or not m.has_result:
+                continue
+            entries = hist_by_pred.get(p.id, [])
+            if len(entries) <= 1:
+                # Nur Baseline = nie korrigiert (oder kein History-Eintrag)
+                hist_direct += 1
+                uncorr_pts.append(p.points_awarded or 0)
+                continue
+            # Korrigiert: erstes Entry = Baseline/Original
+            orig = entries[0]
+            orig_pts = _calc(orig.pred_home, orig.pred_away,
+                             m.result_home, m.result_away, m.phase)
+            actual_pts = p.points_awarded or 0
+            diff = actual_pts - orig_pts
+            if diff > 0:
+                hist_gained.append(diff)
+            elif diff < 0:
+                hist_lost.append(diff)
+            else:
+                hist_neutral += 1
+            corr_pts.append(actual_pts)
 
         corr_avg   = round(sum(corr_pts)   / len(corr_pts),   2) if corr_pts   else None
         uncorr_avg = round(sum(uncorr_pts) / len(uncorr_pts), 2) if uncorr_pts else None
+        hist_net = sum(hist_gained) + sum(hist_lost)
 
         lead_hours_list: list[float] = []
         for m in finished:
@@ -279,4 +337,11 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         "avg_lead_h": avg_lead_h,
         "max_streak": max_streak,
         "current_streak": current_streak,
+        "hist_gained_count": len(hist_gained),
+        "hist_gained_pts": sum(hist_gained),
+        "hist_lost_count": len(hist_lost),
+        "hist_lost_pts": sum(hist_lost),
+        "hist_neutral": hist_neutral,
+        "hist_direct": hist_direct,
+        "hist_net": hist_net,
     })

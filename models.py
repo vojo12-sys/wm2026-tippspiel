@@ -160,6 +160,25 @@ class Prediction(Base):
 
     user: Mapped["User"] = relationship(back_populates="predictions")
     match: Mapped["Match"] = relationship()
+    history: Mapped[list["PredictionHistory"]] = relationship(
+        back_populates="prediction", order_by="PredictionHistory.saved_at"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tipp-Änderungs-History
+# ---------------------------------------------------------------------------
+
+class PredictionHistory(Base):
+    __tablename__ = "prediction_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    prediction_id: Mapped[int] = mapped_column(ForeignKey("predictions.id"), nullable=False)
+    pred_home: Mapped[int] = mapped_column(Integer, nullable=False)
+    pred_away: Mapped[int] = mapped_column(Integer, nullable=False)
+    saved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    prediction: Mapped["Prediction"] = relationship(back_populates="history")
 
 
 # ---------------------------------------------------------------------------
