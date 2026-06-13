@@ -94,6 +94,8 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         # ── Joker-Rendite ─────────────────────────────────────────
         users_raw = list(s.scalars(select(User)).all())
         joker_pts_map: dict[int, int] = {}
+        joker_bonus_map: dict[int, int] = {}
+        joker_phase_key_map: dict[int, str] = {}
         joker_match_map: dict[int, str] = {}
         joker_phase_map: dict[int, str] = {}
         joker_result_map: dict[int, str] = {}
@@ -120,7 +122,10 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
                 uid = int(u.id)
                 home = jm.home_team.name if jm.home_team else (jm.home_placeholder or "?")
                 away = jm.away_team.name if jm.away_team else (jm.away_placeholder or "?")
-                joker_pts_map[uid] = int(jpred.points_awarded or 0)
+                full_pts = int(jpred.points_awarded or 0)
+                joker_pts_map[uid] = full_pts
+                joker_bonus_map[uid] = full_pts // 2
+                joker_phase_key_map[uid] = _phase_key(jm.phase, jm.match_number)
                 joker_match_map[uid] = f"{home} – {away}"
                 joker_phase_map[uid] = _phase_label.get(jm.phase, jm.phase)
                 pen = " n.E." if jm.went_to_penalties else ""
@@ -164,14 +169,28 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
 
     rows_trefferquote = sorted(rows, key=lambda r: stats[r.user_id]["rating"], reverse=True)
 
-    def _grp(r):
-        return r.phase_points.get("st1", 0) + r.phase_points.get("st2", 0) + r.phase_points.get("st3", 0)
+    def _base(r, key: str) -> int:
+        """Phase-Punkte ohne Joker-Bonus."""
+        bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) == key else 0
+        return r.phase_points.get(key, 0) - bonus
 
-    rows_group = sorted(rows, key=_grp, reverse=True)
-    rows_ko    = sorted(rows, key=lambda r: sum(r.phase_points.values()) - _grp(r), reverse=True)
-    rows_st1   = sorted(rows, key=lambda r: r.phase_points.get("st1", 0), reverse=True)
-    rows_st2   = sorted(rows, key=lambda r: r.phase_points.get("st2", 0), reverse=True)
-    rows_st3   = sorted(rows, key=lambda r: r.phase_points.get("st3", 0), reverse=True)
+    def _grp_base(r) -> int:
+        grp_keys = ("st1", "st2", "st3")
+        raw = r.phase_points.get("st1", 0) + r.phase_points.get("st2", 0) + r.phase_points.get("st3", 0)
+        bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) in grp_keys else 0
+        return raw - bonus
+
+    def _ko_base(r) -> int:
+        ko_raw = sum(r.phase_points.values()) - r.phase_points.get("st1", 0) - r.phase_points.get("st2", 0) - r.phase_points.get("st3", 0)
+        grp_keys = ("st1", "st2", "st3")
+        bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) not in grp_keys and joker_phase_key_map.get(r.user_id) is not None else 0
+        return ko_raw - bonus
+
+    rows_group = sorted(rows, key=_grp_base, reverse=True)
+    rows_ko    = sorted(rows, key=_ko_base, reverse=True)
+    rows_st1   = sorted(rows, key=lambda r: _base(r, "st1"), reverse=True)
+    rows_st2   = sorted(rows, key=lambda r: _base(r, "st2"), reverse=True)
+    rows_st3   = sorted(rows, key=lambda r: _base(r, "st3"), reverse=True)
 
     return templates.TemplateResponse(request, "leaderboard.html", {
         "user": user, "active": "leaderboard",
@@ -185,6 +204,8 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         "rows_st3": rows_st3,
         "rows_trefferquote": rows_trefferquote,
         "stats": stats,
+        "joker_bonus_map": joker_bonus_map,
+        "joker_phase_key_map": joker_phase_key_map,
         "phase_counts": phase_counts,
         "pool": pool,
         "top5": top5,

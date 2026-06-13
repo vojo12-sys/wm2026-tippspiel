@@ -79,7 +79,7 @@
           <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
           <td class="text-center"><span class="tip-badge tip-diff">{{ row.goal_diff_count }}</span></td>
           <td class="text-center"><span class="tip-badge tip-tendency">{{ row.tendency_count }}</span></td>
-          <td class="text-center">{{ row.phase_points.values()|sum }}</td>
+          <td class="text-center">{{ row.phase_points.values()|sum - joker_bonus_map.get(row.user_id, 0) }}</td>
           <td class="text-center">{{ row.longterm_points }}</td>
           <td class="text-center">
             {% set jp = stats[row.user_id].joker_pts %}
@@ -120,7 +120,8 @@
       <tbody>
         {% set ns = namespace(rank=0, last=-1) %}
         {% for row in st_rows %}
-        {% set pts = row.phase_points.get(st_key, 0) %}
+        {% set joker_bonus = joker_bonus_map.get(row.user_id, 0) if joker_phase_key_map.get(row.user_id) == st_key else 0 %}
+        {% set pts = row.phase_points.get(st_key, 0) - joker_bonus %}
         {% set pc = phase_counts.get(row.user_id, {}).get(st_key, {}) %}
         {% if pts != ns.last %}{% set ns.rank = loop.index %}{% set ns.last = pts %}{% endif %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
@@ -130,11 +131,13 @@
           <td class="text-center"><span class="tip-badge tip-diff">{{ pc.get('d', 0) }}</span></td>
           <td class="text-center"><span class="tip-badge tip-tendency">{{ pc.get('t', 0) }}</span></td>
           <td class="text-center">
-            {% set jp = stats[row.user_id].joker_pts %}
-            {% if jp is not none and jp > 0 %}
-              <span style="color:#dc3545;font-weight:800;font-size:1.05rem">♦ +{{ (jp / 2)|int }}</span>
-            {% elif jp == 0 %}
-              <span class="text-muted" style="font-size:.9rem">♦ 0</span>
+            {% if joker_phase_key_map.get(row.user_id) == st_key %}
+              {% set jp = stats[row.user_id].joker_pts %}
+              {% if jp is not none and jp > 0 %}
+                <span style="color:#dc3545;font-weight:800;font-size:1.05rem">♦ +{{ (jp / 2)|int }}</span>
+              {% else %}
+                <span class="text-muted" style="font-size:.9rem">♦ 0</span>
+              {% endif %}
             {% else %}
               <span class="text-muted" style="font-size:.85rem">—</span>
             {% endif %}
@@ -169,7 +172,10 @@
       <tbody>
         {% set ns = namespace(rank=0, last=-1) %}
         {% for row in rows_group %}
-        {% set gpts = row.phase_points.get('st1',0) + row.phase_points.get('st2',0) + row.phase_points.get('st3',0) %}
+        {% set jpk = joker_phase_key_map.get(row.user_id) %}
+        {% set joker_in_grp = jpk in ('st1','st2','st3') %}
+        {% set joker_bonus_g = joker_bonus_map.get(row.user_id, 0) if joker_in_grp else 0 %}
+        {% set gpts = row.phase_points.get('st1',0) + row.phase_points.get('st2',0) + row.phase_points.get('st3',0) - joker_bonus_g %}
         {% set pc = phase_counts.get(row.user_id, {}) %}
         {% set ge = pc.get('st1',{}).get('e',0) + pc.get('st2',{}).get('e',0) + pc.get('st3',{}).get('e',0) %}
         {% set gd = pc.get('st1',{}).get('d',0) + pc.get('st2',{}).get('d',0) + pc.get('st3',{}).get('d',0) %}
@@ -182,11 +188,13 @@
           <td class="text-center"><span class="tip-badge tip-diff">{{ gd }}</span></td>
           <td class="text-center"><span class="tip-badge tip-tendency">{{ gt }}</span></td>
           <td class="text-center">
-            {% set jp = stats[row.user_id].joker_pts %}
-            {% if jp is not none and jp > 0 %}
-              <span style="color:#dc3545;font-weight:800;font-size:1.05rem">♦ +{{ (jp / 2)|int }}</span>
-            {% elif jp == 0 %}
-              <span class="text-muted" style="font-size:.9rem">♦ 0</span>
+            {% if joker_in_grp %}
+              {% set jp = stats[row.user_id].joker_pts %}
+              {% if jp is not none and jp > 0 %}
+                <span style="color:#dc3545;font-weight:800;font-size:1.05rem">♦ +{{ (jp / 2)|int }}</span>
+              {% else %}
+                <span class="text-muted" style="font-size:.9rem">♦ 0</span>
+              {% endif %}
             {% else %}
               <span class="text-muted" style="font-size:.85rem">—</span>
             {% endif %}
@@ -227,7 +235,10 @@
         {% set ko_phases = ['round32','round16','quarter','semi','third_place','final'] %}
         {% set ns2 = namespace(rank=0, last=-1) %}
         {% for row in rows_ko %}
-        {% set ko_total = (row.phase_points.values()|sum) - row.phase_points.get('st1',0) - row.phase_points.get('st2',0) - row.phase_points.get('st3',0) %}
+        {% set jpk2 = joker_phase_key_map.get(row.user_id) %}
+        {% set joker_in_ko = jpk2 is not none and jpk2 not in ('st1','st2','st3') %}
+        {% set joker_bonus_k = joker_bonus_map.get(row.user_id, 0) if joker_in_ko else 0 %}
+        {% set ko_total = (row.phase_points.values()|sum) - row.phase_points.get('st1',0) - row.phase_points.get('st2',0) - row.phase_points.get('st3',0) - joker_bonus_k %}
         {% set pc = phase_counts.get(row.user_id, {}) %}
         {% set kons = namespace(e=0, d=0, t=0) %}
         {% for ph in ko_phases %}
@@ -246,11 +257,13 @@
           <td class="text-center text-muted">{{ row.phase_points.get(ph, '—') }}</td>
           {% endfor %}
           <td class="text-center">
-            {% set jp = stats[row.user_id].joker_pts %}
-            {% if jp is not none and jp > 0 %}
-              <span style="color:#dc3545;font-weight:800;font-size:1.05rem">♦ +{{ (jp / 2)|int }}</span>
-            {% elif jp == 0 %}
-              <span class="text-muted" style="font-size:.9rem">♦ 0</span>
+            {% if joker_in_ko %}
+              {% set jp = stats[row.user_id].joker_pts %}
+              {% if jp is not none and jp > 0 %}
+                <span style="color:#dc3545;font-weight:800;font-size:1.05rem">♦ +{{ (jp / 2)|int }}</span>
+              {% else %}
+                <span class="text-muted" style="font-size:.9rem">♦ 0</span>
+              {% endif %}
             {% else %}
               <span class="text-muted" style="font-size:.85rem">—</span>
             {% endif %}
