@@ -21,6 +21,11 @@ async def lifespan(app: FastAPI):
     init_db()
     if os.environ.get("FOOTBALL_API_KEY"):
         from results_sync import sync_results
+        try:
+            sync_results()
+            logger.info("Initialer Ergebnis-Sync beim Start abgeschlossen")
+        except Exception as e:
+            logger.warning("Initialer Sync fehlgeschlagen: %s", e)
         scheduler.add_job(sync_results, "interval", minutes=5, id="results_sync")
         scheduler.start()
         logger.info("Ergebnis-Sync gestartet (alle 5 Minuten)")
