@@ -301,20 +301,33 @@ new Chart(document.getElementById('timeChart'), {
     <p class="text-muted small mb-3">Vergleich des Original-Tipps mit dem tatsächlich abgegebenen Tipp nach einer Änderung – hat das Korrigieren unter dem Strich mehr Punkte gebracht?</p>
     <div class="row g-3">
       <!-- Block 1: Direkt abgegeben -->
-      <div class="col-6 col-lg-3 d-flex">
+      <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f0f4ff">
           <div>
             <div class="fs-3 fw-bold" style="color:#1E4E8C">{{ hist_direct }}</div>
             <div class="small fw-semibold mb-1">Direkt abgegeben</div>
-            <div class="text-muted" style="font-size:.72rem">Erster Tipp blieb unverändert bis Spielende</div>
+            <div class="text-muted" style="font-size:.72rem">Erster Tipp blieb unverändert bis Spielbeginn</div>
           </div>
           {% if uncorr_avg is not none %}
           <div class="mt-2"><span class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</span></div>
           {% endif %}
         </div>
       </div>
-      <!-- Block 2: Korrigiert + geholfen -->
-      <div class="col-6 col-lg-3 d-flex">
+      <!-- Block 2: Tipps korrigiert (gesamt) -->
+      <div class="col-6 col-lg d-flex">
+        <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#fff8e1">
+          <div>
+            <div class="fs-3 fw-bold" style="color:#f59e0b">{{ total_corr }}</div>
+            <div class="small fw-semibold mb-1">Tipps korrigiert</div>
+            <div class="text-muted" style="font-size:.72rem">Tipp wurde bis Spielbeginn geändert</div>
+          </div>
+          {% if corr_avg is not none %}
+          <div class="mt-2"><span class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</span></div>
+          {% endif %}
+        </div>
+      </div>
+      <!-- Block 3: Korrigiert + geholfen -->
+      <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f0fff4">
           <div>
             <div class="fs-3 fw-bold text-success">{{ hist_gained_count }}</div>
@@ -326,8 +339,8 @@ new Chart(document.getElementById('timeChart'), {
           {% endif %}
         </div>
       </div>
-      <!-- Block 3: Korrigiert + geschadet -->
-      <div class="col-6 col-lg-3 d-flex">
+      <!-- Block 4: Korrigiert + geschadet -->
+      <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#fff5f5">
           <div>
             <div class="fs-3 fw-bold text-danger">{{ hist_lost_count }}</div>
@@ -339,8 +352,8 @@ new Chart(document.getElementById('timeChart'), {
           {% endif %}
         </div>
       </div>
-      <!-- Block 4: Korrigiert + kein Unterschied -->
-      <div class="col-6 col-lg-3 d-flex">
+      <!-- Block 5: Kein Unterschied -->
+      <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
           <div>
             <div class="fs-3 fw-bold text-muted">{{ hist_neutral }}</div>
