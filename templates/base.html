@@ -201,7 +201,7 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw
 (function(){
   const isTipps = location.pathname === '/tipps';
   let reloadReady = false;
-  setTimeout(() => { reloadReady = true; }, 60000);
+  setTimeout(() => { reloadReady = true; }, 90000);
 
   async function pollLive() {
     try {
@@ -232,7 +232,7 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw
     } catch(e) {}
   }
 
-  setInterval(pollLive, 60000);
+  setInterval(pollLive, 90000);
 })();
 </script>
 </body>
