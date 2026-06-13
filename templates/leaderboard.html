@@ -310,7 +310,7 @@
           <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}">{{ ns.rank }}</td>
           <td>{{ row.display_name }}</td>
           <td class="text-center text-muted">{{ stats[row.user_id].tipped_count }}</td>
-          <td class="text-center text-muted">{{ row.phase_points.values()|sum }}</td>
+          <td class="text-center text-muted">{{ row.phase_points.values()|sum - joker_bonus_map.get(row.user_id, 0) }}</td>
           <td class="text-center fw-bold" style="color:#1E4E8C">{{ "%.2f"|format(rt) }}</td>
           <td class="text-center" style="font-size:.85rem">
             {% if rt >= 0.88 %}Helmut „die Mütze" Schön

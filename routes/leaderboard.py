@@ -154,7 +154,7 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
     for r in rows:
         uid = r.user_id
         tc = tipped_count.get(uid, 0)
-        total_match_pts = sum(r.phase_points.values())
+        total_match_pts = sum(r.phase_points.values()) - joker_bonus_map.get(uid, 0)
         max_pts = user_max_pts.get(uid, 0)
         rating = round(total_match_pts / max_pts, 2) if max_pts > 0 else 0.0
         stats[uid] = {
