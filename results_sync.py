@@ -147,13 +147,20 @@ def _sync_matches() -> int:
             else:
                 # Abgeschlossen: in DB schreiben
                 finished_ids.add(m.id)
+                duration = score.get("duration", "REGULAR")
                 penalties = score.get("penalties") or {}
                 pen_home = penalties.get("home")
                 pen_away = penalties.get("away")
                 extra = score.get("extraTime") or {}
                 extra_home = extra.get("home")
                 extra_away = extra.get("away")
-                if pen_home is not None and pen_away is not None:
+                half = score.get("halfTime") or {}
+                ht_h = half.get("home")
+                ht_a = half.get("away")
+                if ht_h is not None and ht_a is not None:
+                    m.ht_home = ht_h
+                    m.ht_away = ht_a
+                if duration == "PENALTY_SHOOTOUT" or (pen_home is not None and pen_away is not None):
                     # Elfmeterschießen: ET-Score als offizielles Ergebnis (FIFA-Regel: Elfmeter zählen nicht)
                     if extra_home is not None and extra_away is not None:
                         m.result_home = extra_home
@@ -162,15 +169,18 @@ def _sync_matches() -> int:
                         m.result_home = home_goals
                         m.result_away = away_goals
                     m.went_to_penalties = True
-                elif extra_home is not None and extra_away is not None:
+                    m.went_to_extra_time = True
+                elif duration == "EXTRA_TIME" or (extra_home is not None and extra_away is not None):
                     # Verlängerung ohne Elfmeter
-                    m.result_home = extra_home
-                    m.result_away = extra_away
+                    m.result_home = extra_home if extra_home is not None else home_goals
+                    m.result_away = extra_away if extra_away is not None else away_goals
                     m.went_to_penalties = False
+                    m.went_to_extra_time = True
                 else:
                     m.result_home = home_goals
                     m.result_away = away_goals
                     m.went_to_penalties = False
+                    m.went_to_extra_time = False
                 m.is_finished = True
                 winner = score.get("winner")
                 if winner == "HOME_TEAM":

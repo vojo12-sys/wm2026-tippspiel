@@ -143,7 +143,12 @@
   </div>
   <div class="bm-team">{% if hf %}<img src="https://flagcdn.com/16x12/{{ hf }}.png" alt="">{% endif %}<span>{{ home }}</span></div>
   {% if _live %}<div class="bm-score" style="color:#dc3545">{{ _live.home }} : {{ _live.away }}</div>
-  {% elif m.has_result %}<div class="bm-score">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties %}<div style="font-size:.6rem;line-height:1">n.E.</div>{% endif %}</div>
+  {% elif m.has_result %}
+    <div class="bm-score">{{ m.result_home }} : {{ m.result_away }}
+      {% if m.went_to_penalties %}<div style="font-size:.6rem;line-height:1.2">n.E.</div>
+      {% elif m.went_to_extra_time %}<div style="font-size:.6rem;line-height:1.2">n.V.</div>{% endif %}
+      {% if m.ht_home is not none %}<div style="font-size:.58rem;color:#6b7280;line-height:1.2">(HZ {{ m.ht_home }}:{{ m.ht_away }})</div>{% endif %}
+    </div>
   {% else %}<div class="bm-sep">vs.</div>{% endif %}
   <div class="bm-team">{% if af %}<img src="https://flagcdn.com/16x12/{{ af }}.png" alt="">{% endif %}<span>{{ away }}</span></div>
 </div>
