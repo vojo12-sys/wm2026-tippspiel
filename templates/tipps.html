@@ -453,8 +453,49 @@ document.querySelectorAll('.tipp-form').forEach(form => {
 
 <script>
 (function(){
+  const LOCK_MS = 10 * 60 * 1000; // 10 Minuten vor Anpfiff
+
+  function autoLockForm(form) {
+    if (form.dataset.autoLocked) return;
+    form.dataset.autoLocked = '1';
+
+    const card = form.querySelector('.match-card');
+    if (card) card.classList.add('opacity-75');
+
+    // Inputs deaktivieren
+    form.querySelectorAll('.score-input').forEach(inp => inp.disabled = true);
+
+    // Speichern/Joker-Buttons ausblenden
+    const btnRow = form.querySelector('.mt-2.d-flex');
+    if (btnRow) btnRow.style.display = 'none';
+
+    // Countdown ausblenden
+    const cd = form.querySelector('.match-countdown');
+    if (cd) cd.textContent = '';
+
+    // "offen"-Badge → "gesperrt"-Badge
+    form.querySelectorAll('.badge').forEach(b => {
+      if (b.textContent.includes('offen')) {
+        b.style.background = '#d64560';
+        b.style.color = '#fff';
+        b.innerHTML = '<i class="bi bi-lock-fill me-1"></i>gesperrt';
+      }
+    });
+
+    // "Kein Tipp"-Badge entfernen (war offen, jetzt gesperrt ohne Tipp)
+    form.querySelectorAll('.tipp-badge').forEach(b => {
+      if (b.textContent.includes('Kein Tipp')) b.style.display = 'none';
+    });
+
+    // Externe Joker-Form auch verstecken
+    const jf = document.getElementById('joker-form-' + (form.querySelector('[name$="_home"]') || {}).name?.match(/match_(\d+)_home/)?.[1]);
+    if (jf) jf.remove();
+  }
+
   function updateCardCountdowns() {
     const now = Date.now();
+
+    // Countdowns aktualisieren
     document.querySelectorAll('.match-countdown[data-kickoff]').forEach(el => {
       const diff = new Date(el.dataset.kickoff) - now;
       if (diff <= 0) { el.textContent = ''; return; }
@@ -467,7 +508,16 @@ document.querySelectorAll('.tipp-form').forEach(form => {
         ? `· noch ${d} Tag${d !== 1 ? 'e' : ''} ${pad(h%24)}:${pad(m)} bis Anpfiff`
         : `· noch ${pad(h)}:${pad(m)}:${pad(s)} bis Anpfiff`;
     });
+
+    // Auto-Sperre prüfen
+    document.querySelectorAll('.tipp-form[data-kickoff]').forEach(form => {
+      if (form.dataset.autoLocked) return;
+      const kickoff = new Date(form.dataset.kickoff).getTime();
+      if (!kickoff) return;
+      if (now >= kickoff - LOCK_MS) autoLockForm(form);
+    });
   }
+
   updateCardCountdowns();
   setInterval(updateCardCountdowns, 1000);
 })();

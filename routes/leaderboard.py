@@ -95,6 +95,14 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         users_raw = list(s.scalars(select(User)).all())
         joker_pts_map: dict[int, int] = {}
         joker_match_map: dict[int, str] = {}
+        joker_phase_map: dict[int, str] = {}
+        joker_result_map: dict[int, str] = {}
+        joker_pred_map: dict[int, str] = {}
+        _phase_label = {
+            "group": "Gruppenphase", "round32": "Sechzehntelfinale",
+            "round16": "Achtelfinale", "quarter": "Viertelfinale",
+            "semi": "Halbfinale", "third_place": "Pl. 3", "final": "Finale",
+        }
         for u in users_raw:
             if not u.joker_match_id:
                 continue
@@ -109,10 +117,15 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
                 )
             )
             if jpred:
-                joker_pts_map[int(u.id)] = int(jpred.points_awarded or 0)
+                uid = int(u.id)
                 home = jm.home_team.name if jm.home_team else (jm.home_placeholder or "?")
                 away = jm.away_team.name if jm.away_team else (jm.away_placeholder or "?")
-                joker_match_map[int(u.id)] = f"{home} – {away}"
+                joker_pts_map[uid] = int(jpred.points_awarded or 0)
+                joker_match_map[uid] = f"{home} – {away}"
+                joker_phase_map[uid] = _phase_label.get(jm.phase, jm.phase)
+                pen = " n.E." if jm.went_to_penalties else ""
+                joker_result_map[uid] = f"{jm.result_home}:{jm.result_away}{pen}"
+                joker_pred_map[uid] = f"{jpred.pred_home}:{jpred.pred_away}"
 
     # ── Max. mögliche Punkte pro Nutzer (Gruppe=exact, KO=exact+bonus) ──
     scoring_cfg = get_scoring()
@@ -144,6 +157,9 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
             "tipped_count": tc,
             "joker_pts": joker_pts_map.get(uid),
             "joker_match": joker_match_map.get(uid),
+            "joker_phase": joker_phase_map.get(uid),
+            "joker_result": joker_result_map.get(uid),
+            "joker_pred": joker_pred_map.get(uid),
         }
 
     rows_trefferquote = sorted(rows, key=lambda r: stats[r.user_id]["rating"], reverse=True)

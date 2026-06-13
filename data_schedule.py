@@ -34,7 +34,7 @@ GROUP_FIXTURES = [
     (2,  "A", "Korea Republic", "Czechia", "Guadalajara", "06-11", "22:00"),
     (3,  "B", "Canada", "Bosnia and Herzegovina", "Toronto", "06-12", "15:00"),
     (4,  "D", "USA", "Paraguay", "Los Angeles", "06-12", "21:00"),
-    (5,  "D", "Australia", "Türkiye", "Vancouver", "06-13", "00:00"),
+    (5,  "D", "Australia", "Türkiye", "Vancouver", "06-14", "00:00"),
     (6,  "B", "Qatar", "Switzerland", "San Francisco", "06-13", "15:00"),
     (7,  "C", "Brazil", "Morocco", "NY-New Jersey", "06-13", "18:00"),
     (8,  "C", "Haiti", "Scotland", "Boston", "06-13", "21:00"),

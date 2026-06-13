@@ -102,6 +102,12 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
                 "goals":    tr.total_goals,
             }
 
+        # ── Joker-Match-Map: {user_id -> match_id} ───────────────────────
+        joker_mid_map: dict[int, int] = {
+            int(u.id): int(u.joker_match_id)
+            for u in users_raw if u.joker_match_id is not None
+        }
+
         # ── Joker-Info ────────────────────────────────────────────────
         joker_info = []
         for u_raw in users_raw:
@@ -255,4 +261,5 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
         "ko_by_phase": ko_by_phase,
         "live_pred_pts": live_pred_pts,
         "live_match_ids": live_match_ids,
+        "joker_mid_map": joker_mid_map,
     })

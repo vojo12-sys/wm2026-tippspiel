@@ -307,8 +307,8 @@
                   {% if tip %}
                     {% set ph, pa, pts = tip %}
                     <div class="{% if pts >= 4 %}pts-4{% elif pts == 3 %}pts-3{% elif pts == 2 %}pts-2{% elif pts == 1 %}pts-1{% elif m.has_result %}pts-0{% endif %}">{{ ph }}:{{ pa }}</div>
-                    {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>
-                    {% elif m.id in live_match_ids %}<div class="live-pts">~{{ live_pred_pts.get(m.id, {}).get(u.id, 0) }} Pkt</div>{% endif %}
+                    {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt{% if joker_mid_map.get(u.id) == m.id %} <i class="bi bi-suit-diamond-fill" style="color:#dc3545;font-size:.7rem" title="Joker eingesetzt"></i>{% endif %}</div>
+                    {% elif m.id in live_match_ids %}<div class="live-pts">~{{ live_pred_pts.get(m.id, {}).get(u.id, 0) }} Pkt</div>{% elif joker_mid_map.get(u.id) == m.id %}<div style="color:#dc3545;font-size:.7rem"><i class="bi bi-suit-diamond-fill"></i> Joker</div>{% endif %}
                   {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
                 {% else %}
                   {% if tip %}
@@ -393,8 +393,8 @@
               {% if tip %}
                 {% set ph, pa, pts = tip %}
                 <div class="{% if pts >= 4 %}pts-4{% elif pts == 3 %}pts-3{% elif pts == 2 %}pts-2{% elif pts == 1 %}pts-1{% elif m.has_result %}pts-0{% endif %}">{{ ph }}:{{ pa }}</div>
-                {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt</div>
-                {% elif m.id in live_match_ids %}<div class="live-pts">~{{ live_pred_pts.get(m.id, {}).get(u.id, 0) }} Pkt</div>{% endif %}
+                {% if m.has_result %}<div class="{% if pts > 0 %}pts-pos-num{% else %}pts-zero-num{% endif %}">{{ pts }} Pkt{% if joker_mid_map.get(u.id) == m.id %} <i class="bi bi-suit-diamond-fill" style="color:#dc3545;font-size:.7rem" title="Joker eingesetzt"></i>{% endif %}</div>
+                {% elif m.id in live_match_ids %}<div class="live-pts">~{{ live_pred_pts.get(m.id, {}).get(u.id, 0) }} Pkt</div>{% elif joker_mid_map.get(u.id) == m.id %}<div style="color:#dc3545;font-size:.7rem"><i class="bi bi-suit-diamond-fill"></i> Joker</div>{% endif %}
               {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
             {% else %}
               {% if tip %}

@@ -12,7 +12,7 @@ from database import get_session
 from deps import require_admin, templates
 from models import GroupPrediction, Match, Prediction, SpecialTip, Team, User
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
-from scoring import recalculate_match
+from scoring import recalculate_match, recalculate_everything
 from standings import compute_standings
 
 router = APIRouter(prefix="/admin")
@@ -212,7 +212,8 @@ async def save_scoring(request: Request, user: dict = Depends(require_admin)):
         "total_goals_tolerance": _int("total_goals_tolerance", 5),
     }
     set_scoring(scoring)
-    request.session["flash"] = {"message": "Punktesystem gespeichert.", "type": "success"}
+    recalculate_everything()
+    request.session["flash"] = {"message": "Punktesystem gespeichert und alle Punkte neu berechnet.", "type": "success"}
     return RedirectResponse("/admin#punktesystem", status_code=303)
 
 
