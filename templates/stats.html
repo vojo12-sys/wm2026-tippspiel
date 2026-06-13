@@ -6,7 +6,6 @@
 
 <ul class="nav nav-tabs mb-4" id="statsTabs" role="tablist">
   <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-me" type="button">Meine Stats</button></li>
-  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-all" type="button">Alle Tipper</button></li>
   <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-chart" type="button">Formkurve</button></li>
 </ul>
 
@@ -230,45 +229,6 @@
 {% endif %}{# end total_finished == 0 #}
 </div>{# end tab-me #}
 
-<div class="tab-pane fade" id="tab-all" role="tabpanel">
-{% if total_finished == 0 %}
-<div class="alert alert-info">Noch keine abgeschlossenen Spiele – komm nach dem ersten Spieltag wieder!</div>
-{% else %}
-<div class="card border-0 shadow-sm">
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0 align-middle">
-      <thead style="background:#1E4E8C;color:#fff">
-        <tr>
-          <th class="ps-3">#</th>
-          <th>Name</th>
-          <th class="text-end">Punkte</th>
-          <th class="text-end d-none d-sm-table-cell">Exakt</th>
-          <th class="text-end d-none d-sm-table-cell">Tordiff.</th>
-          <th class="text-end d-none d-sm-table-cell">Tendenz</th>
-          <th class="text-end pe-3 d-none d-md-table-cell">Getippt</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in all_users_stats %}
-        <tr {% if row.is_me %}style="background:rgba(30,78,140,.1);font-weight:600"{% endif %}>
-          <td class="ps-3 text-muted">{{ loop.index }}</td>
-          <td>
-            {{ row.name }}
-            {% if row.is_me %}<span class="badge ms-1" style="background:var(--accent);color:#fff;font-size:.7rem">ich</span>{% endif %}
-          </td>
-          <td class="text-end fw-bold" style="color:var(--accent)">{{ row.pts }}</td>
-          <td class="text-end d-none d-sm-table-cell">{{ row.exact }}</td>
-          <td class="text-end d-none d-sm-table-cell">{{ row.goal_diff }}</td>
-          <td class="text-end d-none d-sm-table-cell">{{ row.tendency }}</td>
-          <td class="text-end pe-3 d-none d-md-table-cell text-muted">{{ row.tipped }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% endif %}
-</div>{# end tab-all #}
 
 <div class="tab-pane fade" id="tab-chart" role="tabpanel">
 {% if date_labels %}
