@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import io
+import os
+import subprocess
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from sqlalchemy import select
 
 from auth import create_user, hash_password
@@ -458,3 +463,42 @@ async def urkunden_get(request: Request, user: dict = Depends(require_admin)):
         "total_matches": TOTAL_MATCHES,
         "flash": None,
     })
+
+
+@router.get("/backup")
+async def db_backup(request: Request, user: dict = Depends(require_admin)):
+    """Exportiert die DB als SQL-Dump zum Download."""
+    db_url = os.environ.get("DATABASE_URL", "")
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M")
+    filename = f"wm2026_backup_{ts}.sql"
+
+    if db_url:
+        # PostgreSQL via pg_dump
+        pg_url = db_url.replace("postgresql+psycopg://", "postgresql://").replace("postgresql+psycopg2://", "postgresql://")
+        try:
+            result = subprocess.run(
+                ["pg_dump", "--no-owner", "--no-acl", pg_url],
+                capture_output=True, text=True, timeout=60
+            )
+            if result.returncode != 0:
+                request.session["flash"] = {"message": f"pg_dump Fehler: {result.stderr[:200]}", "type": "danger"}
+                return RedirectResponse("/admin", status_code=303)
+            content = result.stdout.encode("utf-8")
+        except FileNotFoundError:
+            request.session["flash"] = {"message": "pg_dump nicht gefunden – Backup nur lokal möglich.", "type": "danger"}
+            return RedirectResponse("/admin", status_code=303)
+    else:
+        # SQLite: rohe DB-Datei als Bytes senden
+        db_path = "wm2026.db"
+        if not os.path.exists(db_path):
+            request.session["flash"] = {"message": "Keine lokale DB gefunden.", "type": "danger"}
+            return RedirectResponse("/admin", status_code=303)
+        filename = f"wm2026_backup_{ts}.db"
+        with open(db_path, "rb") as f:
+            content = f.read()
+
+    return StreamingResponse(
+        io.BytesIO(content),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
