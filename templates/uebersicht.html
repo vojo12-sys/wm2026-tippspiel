@@ -298,6 +298,7 @@
               </td>
               <td class="text-center col-result">
                 {% if m.has_result %}<span class="result-badge">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</span>
+                {% elif m.id in live_match_ids %}{% set _ls = live_scores.get(m.id) %}{% if _ls %}<span style="color:#dc3545;font-weight:800;font-size:1.1rem;animation:livepulse 1.2s infinite">{{ _ls.home }}:{{ _ls.away }}</span><div style="color:#dc3545;font-size:.62rem;font-weight:700">● LIVE{% if _ls.status == 'PAUSED' %} HZ{% elif _ls.minute %} {{ _ls.minute }}'{% endif %}</div>{% endif %}
                 {% else %}<span class="text-muted">—</span>{% endif %}
               </td>
               {% for u in users %}
@@ -384,6 +385,7 @@
           </td>
           <td class="text-center col-result">
             {% if m.has_result %}<span class="result-badge">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</span>
+            {% elif m.id in live_match_ids %}{% set _ls = live_scores.get(m.id) %}{% if _ls %}<span style="color:#dc3545;font-weight:800;font-size:1.1rem;animation:livepulse 1.2s infinite">{{ _ls.home }}:{{ _ls.away }}</span><div style="color:#dc3545;font-size:.62rem;font-weight:700">● LIVE{% if _ls.status == 'PAUSED' %} HZ{% elif _ls.minute %} {{ _ls.minute }}'{% endif %}</div>{% endif %}
             {% else %}<span class="text-muted">—</span>{% endif %}
           </td>
           {% for u in users %}

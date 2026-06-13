@@ -155,10 +155,8 @@
 
       {% set _live = get_live_scores().get(m.id) %}
       {% if _live %}
-        <span class="badge" style="background:#dc3545;color:#fff;animation:livepulse 1.2s ease-in-out infinite">
-          ● LIVE{% if _live.minute %} {{ _live.minute }}'{% endif %}{% if _live.status == 'PAUSED' %} HZ{% endif %}
-        </span>
-        <strong class="ms-2" style="color:#dc3545">{{ _live.home }}:{{ _live.away }}</strong>
+        <span class="badge live-badge" data-match-id="{{ m.id }}" style="background:#dc3545;color:#fff;animation:livepulse 1.2s ease-in-out infinite">● LIVE{% if _live.status == 'PAUSED' %} HZ{% elif _live.minute %} {{ _live.minute }}'{% endif %}</span>
+        <strong class="ms-2 live-score" data-match-id="{{ m.id }}" style="color:#dc3545">{{ _live.home }}:{{ _live.away }}</strong>
       {% elif locked %}<span class="badge" style="background:#d64560;color:#fff;font-size:.8rem"><i class="bi bi-lock-fill me-1"></i>gesperrt</span>
       {% else %}<span class="badge" style="background:#4aaec8;color:#fff;font-size:.8rem"><i class="bi bi-unlock-fill me-1"></i>offen</span>{% endif %}
 

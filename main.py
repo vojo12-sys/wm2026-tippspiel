@@ -45,7 +45,15 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+from fastapi.responses import JSONResponse
+
 from routes import auth, tipps, langfrist, spielplan, leaderboard, admin, regeln, uebersicht, torschuetzen, stats, profil, teams
+
+
+@app.get("/api/live")
+async def api_live():
+    from results_sync import get_live_scores
+    return JSONResponse(content={str(k): v for k, v in get_live_scores().items()})
 app.include_router(auth.router)
 app.include_router(tipps.router)
 app.include_router(langfrist.router)

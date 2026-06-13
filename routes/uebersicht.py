@@ -203,8 +203,10 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
 
     # ── Live-Vorschau ─────────────────────────────────────────────────
     from live_preview import calc_live_preview
+    from results_sync import get_live_scores
     live_pred_pts = calc_live_preview()   # {match_id: {user_id: pts}}
     live_match_ids = set(live_pred_pts.keys())
+    live_scores = get_live_scores()       # {match_id: {home, away, minute, status}}
 
     # Live-Bonus in Abschnitts-Summen einrechnen
     match_id_to_section: dict[int, str] = {}
@@ -261,5 +263,6 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
         "ko_by_phase": ko_by_phase,
         "live_pred_pts": live_pred_pts,
         "live_match_ids": live_match_ids,
+        "live_scores": live_scores,
         "joker_mid_map": joker_mid_map,
     })

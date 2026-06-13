@@ -190,6 +190,50 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw
   function onScroll() { btn.style.display = window.scrollY > 200 ? 'block' : 'none'; }
   window.addEventListener('scroll', onScroll);
 })();
+
+// Scroll-Position nach Auto-Reload wiederherstellen
+(function(){
+  const saved = sessionStorage.getItem('liveScrollY');
+  if (saved) { window.scrollTo(0, parseInt(saved)); sessionStorage.removeItem('liveScrollY'); }
+})();
+
+// Live-Polling: alle 60s
+(function(){
+  const isTipps = location.pathname === '/tipps';
+  let reloadReady = false;
+  setTimeout(() => { reloadReady = true; }, 60000);
+
+  async function pollLive() {
+    try {
+      const r = await fetch('/api/live');
+      if (!r.ok) return;
+      const live = await r.json();
+      const matchIds = Object.keys(live);
+
+      if (isTipps) {
+        // Nur LIVE-Badge und Score in-place updaten (Tipp-Eingaben bleiben erhalten)
+        matchIds.forEach(mid => {
+          const badge = document.querySelector('.live-badge[data-match-id="' + mid + '"]');
+          if (badge) {
+            const d = live[mid];
+            let txt = '● LIVE';
+            if (d.status === 'PAUSED') txt += ' HZ';
+            else if (d.minute) txt += ' ' + d.minute + '\'';
+            badge.textContent = txt;
+          }
+          const score = document.querySelector('.live-score[data-match-id="' + mid + '"]');
+          if (score) score.textContent = live[mid].home + ':' + live[mid].away;
+        });
+      } else if (matchIds.length > 0 && reloadReady) {
+        // Scrollposition sichern, dann Seite neu laden
+        sessionStorage.setItem('liveScrollY', window.scrollY);
+        location.reload();
+      }
+    } catch(e) {}
+  }
+
+  setInterval(pollLive, 60000);
+})();
 </script>
 </body>
 </html>
