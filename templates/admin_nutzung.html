@@ -36,7 +36,7 @@
     <div class="card border-0 shadow-sm text-center p-3">
       {% set avg_day = (day_values | sum / day_values | length) | round(1) if day_values else 0 %}
       <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ avg_day }}</div>
-      <div class="text-muted small">Ø Besuche/Tag (14 Tage)</div>
+      <div class="text-muted small">Ø Besuche/Tag (Turnier)</div>
     </div>
   </div>
 </div>
@@ -182,7 +182,10 @@ new Chart(document.getElementById('visitsChart'), {
       backgroundColor: dark, borderRadius: 4 }]
   },
   options: { responsive: true, plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+      x: { ticks: { maxTicksLimit: 14, maxRotation: 45, minRotation: 0 } }
+    } }
 });
 
 new Chart(document.getElementById('hourChart'), {

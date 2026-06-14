@@ -592,12 +592,14 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
             weekday_counts[local.weekday()] += 1
             visits_by_day[local.strftime("%Y-%m-%d")] += 1
 
-    # Besuche letzte 14 Tage für Chart
-    from datetime import datetime, timezone, timedelta
-    today = datetime.now(DISPLAY_TIMEZONE).date()
-    day_labels = [(today - timedelta(days=i)).isoformat() for i in range(13, -1, -1)]
+    # Besuche 11.06.2026 – 21.07.2026 für Chart
+    from datetime import datetime, timezone, timedelta, date
+    start_date = date(2026, 6, 11)
+    end_date = date(2026, 7, 21)
+    total_days = (end_date - start_date).days + 1
+    day_labels = [(start_date + timedelta(days=i)).isoformat() for i in range(total_days)]
     day_values = [visits_by_day.get(d, 0) for d in day_labels]
-    day_labels_fmt = [(today - timedelta(days=i)).strftime("%d.%m") for i in range(13, -1, -1)]
+    day_labels_fmt = [(start_date + timedelta(days=i)).strftime("%d.%m") for i in range(total_days)]
 
     return templates.TemplateResponse(request, "admin_nutzung.html", {
         "user": user,
