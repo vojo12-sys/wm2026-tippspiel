@@ -557,21 +557,19 @@ btnMe.addEventListener('click', e => { e.stopPropagation(); checks.forEach(c => 
   var gainedContent = document.getElementById('gained-content');
   if (gainedTrigger && gainedContent) {
     new bootstrap.Popover(gainedTrigger, {
-      html: true, trigger: 'hover focus click', placement: 'top',
+      html: true, trigger: 'focus', placement: 'top',
       title: 'Korrekturen mit Punktgewinn',
       content: gainedContent.innerHTML
     });
-    gainedTrigger.addEventListener('click', function(e) { e.preventDefault(); });
   }
   var lostTrigger = document.getElementById('lost-trigger');
   var lostContent = document.getElementById('lost-content');
   if (lostTrigger && lostContent) {
     new bootstrap.Popover(lostTrigger, {
-      html: true, trigger: 'hover focus click', placement: 'top',
+      html: true, trigger: 'focus', placement: 'top',
       title: 'Korrekturen mit Punktverlust',
       content: lostContent.innerHTML
     });
-    lostTrigger.addEventListener('click', function(e) { e.preventDefault(); });
   }
 })();
 </script>
