@@ -202,11 +202,11 @@
   <div class="col-12 col-sm-6 col-xl-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h5 class="mb-3">Schwerste Spiele <span class="text-muted small fw-normal">aller Teilnehmer</span></h5>
+        <h5 class="mb-3">Schwerste Spiele <span class="text-muted small fw-normal">(Trefferquote aller Teilnehmer)</span></h5>
         {% for m in hardest_matches %}
         <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
           <span style="font-size:.78rem;flex-grow:1">{{ m.label }}</span>
-          {% if m.result %}<span class="text-muted" style="font-size:.75rem;font-weight:600">{{ m.result }}</span>{% endif %}
+          {% if m.result %}<span class="text-muted me-1" style="font-size:.75rem;font-weight:600;min-width:32px;text-align:center">{{ m.result }}</span>{% endif %}
           <span class="badge bg-danger">{{ m.rate }}%</span>
         </div>
         {% endfor %}
@@ -220,11 +220,11 @@
   <div class="col-12 col-sm-6 col-xl-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h5 class="mb-3">Leichteste Spiele <span class="text-muted small fw-normal">aller Teilnehmer</span></h5>
+        <h5 class="mb-3">Leichteste Spiele <span class="text-muted small fw-normal">(Trefferquote aller Teilnehmer)</span></h5>
         {% for m in easiest_matches %}
         <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
           <span style="font-size:.78rem;flex-grow:1">{{ m.label }}</span>
-          {% if m.result %}<span class="text-muted" style="font-size:.75rem;font-weight:600">{{ m.result }}</span>{% endif %}
+          {% if m.result %}<span class="text-muted me-1" style="font-size:.75rem;font-weight:600;min-width:32px;text-align:center">{{ m.result }}</span>{% endif %}
           <span class="badge bg-success">{{ m.rate }}%</span>
         </div>
         {% endfor %}
@@ -351,7 +351,7 @@ new Chart(document.getElementById('timeChart'), {
           {% if hist_gained_count > 0 %}
           <div class="mt-2">
             <span class="badge bg-success">+{{ hist_gained_pts }} Pkt. insgesamt</span><br>
-            <a href="javascript:void(0)" class="small text-success text-decoration-none mt-1 d-inline-block" id="gained-trigger">Spiele anzeigen</a>
+            <a href="javascript:void(0)" class="small text-success text-decoration-none mt-1 d-inline-block" data-bs-toggle="modal" data-bs-target="#gainedModal">Spiele anzeigen</a>
           </div>
           {% endif %}
         </div>
@@ -367,45 +367,11 @@ new Chart(document.getElementById('timeChart'), {
           {% if hist_lost_count > 0 %}
           <div class="mt-2">
             <span class="badge bg-danger">{{ hist_lost_pts }} Pkt. insgesamt</span><br>
-            <a href="javascript:void(0)" class="small text-danger text-decoration-none mt-1 d-inline-block" id="lost-trigger">Spiele anzeigen</a>
+            <a href="javascript:void(0)" class="small text-danger text-decoration-none mt-1 d-inline-block" data-bs-toggle="modal" data-bs-target="#lostModal">Spiele anzeigen</a>
           </div>
           {% endif %}
         </div>
       </div>
-
-      <!-- Hidden Popover-Inhalte -->
-      {% if hist_gained_details %}
-      <div id="gained-content" class="d-none">
-        <table style="font-size:.8rem;min-width:240px">
-          <tr><th style="padding:2px 6px">Spiel</th><th style="padding:2px 6px">Original</th><th style="padding:2px 6px">Geändert</th><th style="padding:2px 6px">Erg.</th><th style="padding:2px 6px">+Pkt</th></tr>
-          {% for d in hist_gained_details %}
-          <tr>
-            <td style="padding:2px 6px">{{ d.home[:8] }} – {{ d.away[:8] }}</td>
-            <td style="padding:2px 6px;color:#6b7280">{{ d.orig }}</td>
-            <td style="padding:2px 6px;font-weight:600">{{ d.final }}</td>
-            <td style="padding:2px 6px">{{ d.result }}</td>
-            <td style="padding:2px 6px;color:#16a34a;font-weight:600">+{{ d.diff }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-      </div>
-      {% endif %}
-      {% if hist_lost_details %}
-      <div id="lost-content" class="d-none">
-        <table style="font-size:.8rem;min-width:240px">
-          <tr><th style="padding:2px 6px">Spiel</th><th style="padding:2px 6px">Original</th><th style="padding:2px 6px">Geändert</th><th style="padding:2px 6px">Erg.</th><th style="padding:2px 6px">Pkt</th></tr>
-          {% for d in hist_lost_details %}
-          <tr>
-            <td style="padding:2px 6px">{{ d.home[:8] }} – {{ d.away[:8] }}</td>
-            <td style="padding:2px 6px;font-weight:600">{{ d.orig }}</td>
-            <td style="padding:2px 6px;color:#6b7280">{{ d.final }}</td>
-            <td style="padding:2px 6px">{{ d.result }}</td>
-            <td style="padding:2px 6px;color:#dc2626;font-weight:600">{{ d.diff }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-      </div>
-      {% endif %}
       <!-- Block 5: Kein Unterschied -->
       <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
@@ -586,28 +552,91 @@ btnMe.addEventListener('click', e => { e.stopPropagation(); checks.forEach(c => 
 
 {% endblock %}
 
-{% block extra_scripts %}
-<script>
-(function() {
-  var gainedTrigger = document.getElementById('gained-trigger');
-  var gainedContent = document.getElementById('gained-content');
-  if (gainedTrigger && gainedContent) {
-    new bootstrap.Popover(gainedTrigger, {
-      html: true, trigger: 'focus', placement: 'top',
-      title: 'Korrekturen mit Punktgewinn',
-      content: gainedContent.innerHTML
-    });
-  }
-  var lostTrigger = document.getElementById('lost-trigger');
-  var lostContent = document.getElementById('lost-content');
-  if (lostTrigger && lostContent) {
-    new bootstrap.Popover(lostTrigger, {
-      html: true, trigger: 'focus', placement: 'top',
-      title: 'Korrekturen mit Punktverlust',
-      content: lostContent.innerHTML
-    });
-  }
-})();
-</script>
-{% endblock %}
+<!-- Modal: Korrektur hat geholfen -->
+{% if hist_gained_details %}
+<div class="modal fade" id="gainedModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#f0fff4">
+        <h5 class="modal-title text-success"><i class="bi bi-arrow-up-circle-fill me-2"></i>Korrektur hat geholfen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Spiel</th>
+                <th class="text-center">Original</th>
+                <th class="text-center">Geändert</th>
+                <th class="text-center">Ergebnis</th>
+                <th class="text-center pe-3">Gewinn</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for d in hist_gained_details %}
+            <tr>
+              <td class="ps-3 small">{{ d.home }} – {{ d.away }}</td>
+              <td class="text-center text-muted small">{{ d.orig }}</td>
+              <td class="text-center fw-semibold small">{{ d.final }}</td>
+              <td class="text-center small">{{ d.result }}</td>
+              <td class="text-center pe-3 fw-bold text-success small">+{{ d.diff }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Modal: Korrektur hat geschadet -->
+{% if hist_lost_details %}
+<div class="modal fade" id="lostModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#fff5f5">
+        <h5 class="modal-title text-danger"><i class="bi bi-arrow-down-circle-fill me-2"></i>Korrektur hat geschadet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Spiel</th>
+                <th class="text-center">Original</th>
+                <th class="text-center">Geändert</th>
+                <th class="text-center">Ergebnis</th>
+                <th class="text-center pe-3">Verlust</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for d in hist_lost_details %}
+            <tr>
+              <td class="ps-3 small">{{ d.home }} – {{ d.away }}</td>
+              <td class="text-center fw-semibold small">{{ d.orig }}</td>
+              <td class="text-center text-muted small">{{ d.final }}</td>
+              <td class="text-center small">{{ d.result }}</td>
+              <td class="text-center pe-3 fw-bold text-danger small">{{ d.diff }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% block extra_scripts %}{% endblock %}
 
