@@ -136,10 +136,11 @@
   <div class="col-md-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h5 class="mb-3">Schwerste Spiele <span class="text-muted small fw-normal">(Trefferquote der Gruppe)</span></h5>
+        <h5 class="mb-3">Schwerste Spiele <span class="text-muted small fw-normal">(Trefferquote aller Teilnehmer)</span></h5>
         {% for m in hardest %}
-        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-          <span class="small">{{ m.label }}</span>
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
+          <span class="small flex-grow-1">{{ m.label }}</span>
+          {% if m.result %}<span class="small text-muted fw-semibold">{{ m.result }}</span>{% endif %}
           <span class="badge bg-danger">{{ m.rate }}%</span>
         </div>
         {% else %}
@@ -153,10 +154,11 @@
   <div class="col-md-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h5 class="mb-3">Leichteste Spiele <span class="text-muted small fw-normal">(Trefferquote der Gruppe)</span></h5>
+        <h5 class="mb-3">Leichteste Spiele <span class="text-muted small fw-normal">(Trefferquote aller Teilnehmer)</span></h5>
         {% for m in easiest %}
-        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-          <span class="small">{{ m.label }}</span>
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
+          <span class="small flex-grow-1">{{ m.label }}</span>
+          {% if m.result %}<span class="small text-muted fw-semibold">{{ m.result }}</span>{% endif %}
           <span class="badge bg-success">{{ m.rate }}%</span>
         </div>
         {% else %}

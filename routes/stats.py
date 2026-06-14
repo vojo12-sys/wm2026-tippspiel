@@ -66,13 +66,32 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
     phase_pts: dict[str, int] = defaultdict(int)
     cumulative: list[dict] = []   # für Formkurve: [{date, cum_pts, user_pts}]
 
-    # Durchschnitt aller Tipper pro Spiel
+    # Durchschnitt aller Tipper pro Spiel + Schwierigkeitsgrad
     match_avg: dict[int, float] = {}
     match_all_pts: dict[int, list[int]] = defaultdict(list)
     for p in all_preds:
         match_all_pts[p.match_id].append(p.points_awarded or 0)
     for mid, pts_list in match_all_pts.items():
         match_avg[mid] = sum(pts_list) / len(pts_list) if pts_list else 0
+
+    # Schwerste / Leichteste Spiele (Trefferquote aller Teilnehmer)
+    match_difficulty = []
+    for m in finished:
+        pts_list = match_all_pts.get(m.id, [])
+        if len(pts_list) < 2:
+            continue
+        scored = sum(1 for pts in pts_list if pts > 0)
+        rate = round(scored / len(pts_list) * 100)
+        home = m.home_team.name if m.home_team else (m.home_placeholder or "?")
+        away = m.away_team.name if m.away_team else (m.away_placeholder or "?")
+        match_difficulty.append({
+            "label": f"{home} vs. {away}",
+            "rate": rate,
+            "result": f"{m.result_home}:{m.result_away}" if m.has_result else None,
+        })
+    match_difficulty.sort(key=lambda x: x["rate"])
+    hardest_matches = match_difficulty[:5]
+    easiest_matches = list(reversed(match_difficulty[-5:]))
 
     cum = 0
     for m in finished:
@@ -360,4 +379,6 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         "hist_net": hist_net,
         "hist_gained_details": hist_gained_details,
         "hist_lost_details": hist_lost_details,
+        "hardest_matches": hardest_matches,
+        "easiest_matches": easiest_matches,
     })

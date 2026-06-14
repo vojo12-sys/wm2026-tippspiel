@@ -568,11 +568,13 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
             rate = round(scored / len(preds_for_m) * 100)
             home = m.home_team.name if m.home_team else (m.home_placeholder or "?")
             away = m.away_team.name if m.away_team else (m.away_placeholder or "?")
+            result = f"{m.result_home}:{m.result_away}" if m.has_result else None
             match_difficulty.append({
                 "label": f"{home} vs. {away}",
                 "match_number": m.match_number,
                 "rate": rate,
                 "tippers": len(preds_for_m),
+                "result": result,
             })
         match_difficulty.sort(key=lambda x: x["rate"])
         hardest = match_difficulty[:5]

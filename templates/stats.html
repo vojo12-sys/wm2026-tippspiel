@@ -101,12 +101,12 @@
 
 
 
-<!-- Trefferquote / Punkte nach Phase / Bestes Spiel – eine Reihe -->
+<!-- Trefferquote / Punkte nach Phase / Bestes Spiel / Schwerste / Leichteste – eine Reihe -->
 <div class="row g-3 mb-4">
 
   <!-- Trefferquote -->
   {% if tipped_finished > 0 %}
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-sm-6 col-xl-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
         <h5 class="mb-3">Trefferquote</h5>
@@ -156,7 +156,7 @@
 
   <!-- Punkte nach Phase -->
   {% if phase_pts %}
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-sm-6 col-xl-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
         <h5 class="mb-3">Punkte nach Phase</h5>
@@ -177,7 +177,7 @@
 
   <!-- Bestes Spiel -->
   {% if best_match and best_pts > 0 %}
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-sm-6 col-xl-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
         <h5 class="mb-1">Bestes Spiel</h5>
@@ -192,6 +192,42 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Schwerste Spiele -->
+  {% if hardest_matches %}
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Schwerste Spiele <span class="text-muted small fw-normal">aller Teilnehmer</span></h5>
+        {% for m in hardest_matches %}
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
+          <span style="font-size:.78rem;flex-grow:1">{{ m.label }}</span>
+          {% if m.result %}<span class="text-muted" style="font-size:.75rem;font-weight:600">{{ m.result }}</span>{% endif %}
+          <span class="badge bg-danger">{{ m.rate }}%</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Leichteste Spiele -->
+  {% if easiest_matches %}
+  <div class="col-12 col-sm-6 col-xl-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Leichteste Spiele <span class="text-muted small fw-normal">aller Teilnehmer</span></h5>
+        {% for m in easiest_matches %}
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
+          <span style="font-size:.78rem;flex-grow:1">{{ m.label }}</span>
+          {% if m.result %}<span class="text-muted" style="font-size:.75rem;font-weight:600">{{ m.result }}</span>{% endif %}
+          <span class="badge bg-success">{{ m.rate }}%</span>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
