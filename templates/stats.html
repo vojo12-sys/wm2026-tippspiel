@@ -370,30 +370,6 @@ new Chart(document.getElementById('timeChart'), {
         </table>
       </div>
       {% endif %}
-      <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var gainedTrigger = document.getElementById('gained-trigger');
-        var gainedContent = document.getElementById('gained-content');
-        if (gainedTrigger && gainedContent) {
-          new bootstrap.Popover(gainedTrigger, {
-            html: true, trigger: 'hover focus click', placement: 'top',
-            title: 'Korrekturen mit Punktgewinn',
-            content: gainedContent.innerHTML
-          });
-          gainedTrigger.addEventListener('click', function(e) { e.preventDefault(); });
-        }
-        var lostTrigger = document.getElementById('lost-trigger');
-        var lostContent = document.getElementById('lost-content');
-        if (lostTrigger && lostContent) {
-          new bootstrap.Popover(lostTrigger, {
-            html: true, trigger: 'hover focus click', placement: 'top',
-            title: 'Korrekturen mit Punktverlust',
-            content: lostContent.innerHTML
-          });
-          lostTrigger.addEventListener('click', function(e) { e.preventDefault(); });
-        }
-      });
-      </script>
       <!-- Block 5: Kein Unterschied -->
       <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
@@ -572,5 +548,32 @@ btnMe.addEventListener('click', e => { e.stopPropagation(); checks.forEach(c => 
 
 </div>{# end tab-content #}
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  var gainedTrigger = document.getElementById('gained-trigger');
+  var gainedContent = document.getElementById('gained-content');
+  if (gainedTrigger && gainedContent) {
+    new bootstrap.Popover(gainedTrigger, {
+      html: true, trigger: 'hover focus click', placement: 'top',
+      title: 'Korrekturen mit Punktgewinn',
+      content: gainedContent.innerHTML
+    });
+    gainedTrigger.addEventListener('click', function(e) { e.preventDefault(); });
+  }
+  var lostTrigger = document.getElementById('lost-trigger');
+  var lostContent = document.getElementById('lost-content');
+  if (lostTrigger && lostContent) {
+    new bootstrap.Popover(lostTrigger, {
+      html: true, trigger: 'hover focus click', placement: 'top',
+      title: 'Korrekturen mit Punktverlust',
+      content: lostContent.innerHTML
+    });
+    lostTrigger.addEventListener('click', function(e) { e.preventDefault(); });
+  }
+})();
+</script>
 {% endblock %}
 

@@ -550,8 +550,33 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
         # Besuche nach Wochentag (0=Mo … 6=So)
         all_visits = list(s.scalars(select(UserVisit).order_by(UserVisit.visited_at)).all())
 
-        # Schwierigste / Leichteste Spiele (Trefferquote der Gruppe)
+        # Schwierigste / Leichteste Spiele – Teams innerhalb der Session laden!
         all_preds = list(s.scalars(select(Prediction)).all())
+        for m in finished:
+            _ = m.home_team, m.away_team  # eager-load
+
+        match_preds: dict[int, list] = defaultdict(list)
+        for p in all_preds:
+            match_preds[p.match_id].append(p)
+
+        match_difficulty = []
+        for m in finished:
+            preds_for_m = match_preds.get(m.id, [])
+            if len(preds_for_m) < 2:
+                continue
+            scored = sum(1 for p in preds_for_m if (p.points_awarded or 0) > 0)
+            rate = round(scored / len(preds_for_m) * 100)
+            home = m.home_team.name if m.home_team else (m.home_placeholder or "?")
+            away = m.away_team.name if m.away_team else (m.away_placeholder or "?")
+            match_difficulty.append({
+                "label": f"{home} vs. {away}",
+                "match_number": m.match_number,
+                "rate": rate,
+                "tippers": len(preds_for_m),
+            })
+        match_difficulty.sort(key=lambda x: x["rate"])
+        hardest = match_difficulty[:5]
+        easiest = list(reversed(match_difficulty[-5:]))
 
     # Besuche nach Stunde (Lokalzeit)
     hour_counts = [0] * 24
@@ -564,30 +589,6 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
             hour_counts[local.hour] += 1
             weekday_counts[local.weekday()] += 1
             visits_by_day[local.strftime("%Y-%m-%d")] += 1
-
-    # Trefferquote pro Spiel (Gruppenauswertung)
-    match_preds: dict[int, list[Prediction]] = defaultdict(list)
-    for p in all_preds:
-        match_preds[p.match_id].append(p)
-
-    match_difficulty = []
-    for m in finished:
-        preds_for_m = match_preds.get(m.id, [])
-        if len(preds_for_m) < 2:
-            continue
-        scored = sum(1 for p in preds_for_m if (p.points_awarded or 0) > 0)
-        rate = round(scored / len(preds_for_m) * 100)
-        home = m.home_team.name if m.home_team else (m.home_placeholder or "?")
-        away = m.away_team.name if m.away_team else (m.away_placeholder or "?")
-        match_difficulty.append({
-            "label": f"{home} vs. {away}",
-            "match_number": m.match_number,
-            "rate": rate,
-            "tippers": len(preds_for_m),
-        })
-    match_difficulty.sort(key=lambda x: x["rate"])
-    hardest = match_difficulty[:5]
-    easiest = list(reversed(match_difficulty[-5:]))
 
     # Besuche letzte 14 Tage für Chart
     from datetime import datetime, timezone, timedelta
