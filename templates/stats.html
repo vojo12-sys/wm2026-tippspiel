@@ -315,7 +315,7 @@ new Chart(document.getElementById('timeChart'), {
           {% if hist_gained_count > 0 %}
           <div class="mt-2">
             <span class="badge bg-success">+{{ hist_gained_pts }} Pkt. insgesamt</span><br>
-            <a href="#" class="small text-success text-decoration-none mt-1 d-inline-block" id="gained-trigger">Spiele anzeigen</a>
+            <a href="javascript:void(0)" class="small text-success text-decoration-none mt-1 d-inline-block" id="gained-trigger">Spiele anzeigen</a>
           </div>
           {% endif %}
         </div>
@@ -331,7 +331,7 @@ new Chart(document.getElementById('timeChart'), {
           {% if hist_lost_count > 0 %}
           <div class="mt-2">
             <span class="badge bg-danger">{{ hist_lost_pts }} Pkt. insgesamt</span><br>
-            <a href="#" class="small text-danger text-decoration-none mt-1 d-inline-block" id="lost-trigger">Spiele anzeigen</a>
+            <a href="javascript:void(0)" class="small text-danger text-decoration-none mt-1 d-inline-block" id="lost-trigger">Spiele anzeigen</a>
           </div>
           {% endif %}
         </div>
