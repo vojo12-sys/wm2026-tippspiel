@@ -140,7 +140,7 @@
         {% for m in hardest %}
         <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
           <span class="small flex-grow-1">{{ m.label }}</span>
-          {% if m.result %}<span class="small text-muted fw-semibold me-1" style="min-width:32px;text-align:center">{{ m.result }}</span>{% endif %}
+          {% if m.result %}<span class="small text-muted fw-semibold" style="width:40px;text-align:center;flex-shrink:0">{{ m.result }}</span>{% endif %}
           <span class="badge bg-danger">{{ m.rate }}%</span>
         </div>
         {% else %}
@@ -158,7 +158,7 @@
         {% for m in easiest %}
         <div class="d-flex justify-content-between align-items-center py-1 border-bottom gap-2">
           <span class="small flex-grow-1">{{ m.label }}</span>
-          {% if m.result %}<span class="small text-muted fw-semibold me-1" style="min-width:32px;text-align:center">{{ m.result }}</span>{% endif %}
+          {% if m.result %}<span class="small text-muted fw-semibold" style="width:40px;text-align:center;flex-shrink:0">{{ m.result }}</span>{% endif %}
           <span class="badge bg-success">{{ m.rate }}%</span>
         </div>
         {% else %}
