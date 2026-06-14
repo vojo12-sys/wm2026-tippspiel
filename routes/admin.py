@@ -15,7 +15,7 @@ from data_players import dropdown_options, option_to_name
 from data_teams import GROUPS
 from database import get_session
 from deps import require_admin, templates
-from models import GroupPrediction, Match, Prediction, SpecialTip, Team, User
+from models import GroupPrediction, Match, Prediction, PredictionHistory, SpecialTip, Team, User, UserVisit
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
 from scoring import recalculate_match, recalculate_everything
 from standings import compute_standings
@@ -502,3 +502,110 @@ async def db_backup(request: Request, user: dict = Depends(require_admin)):
         media_type="application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/nutzung")
+async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
+    from sqlalchemy import func, text, case
+    from collections import defaultdict
+    from config import DISPLAY_TIMEZONE
+
+    with get_session() as s:
+        all_users = list(s.scalars(select(User).order_by(User.display_name)).all())
+        finished = list(s.scalars(select(Match).where(Match.is_finished == True)).all())
+        total_finished = len(finished)
+
+        # Tipp-Beteiligung + Korrekturen pro User
+        user_stats = []
+        for u2 in all_users:
+            tip_count = s.scalar(
+                select(func.count()).select_from(Prediction).where(Prediction.user_id == u2.id)
+            ) or 0
+            # Korrekturen = PredictionHistory-Einträge nach dem Baseline (saved_at > prediction.created_at)
+            corr_count = s.scalar(
+                select(func.count()).select_from(PredictionHistory)
+                .join(Prediction, PredictionHistory.prediction_id == Prediction.id)
+                .where(
+                    Prediction.user_id == u2.id,
+                    PredictionHistory.saved_at > Prediction.created_at,
+                )
+            ) or 0
+            user_stats.append({
+                "name": u2.display_name,
+                "tips": tip_count,
+                "participation": round(tip_count / total_finished * 100) if total_finished else 0,
+                "corrections": corr_count,
+                "last_seen": u2.last_seen,
+                "visit_count": u2.visit_count or 0,
+            })
+        user_stats.sort(key=lambda x: -x["visit_count"])
+
+        # Seitenbesuche gesamt nach Route
+        route_counts = s.execute(
+            select(UserVisit.route, func.count(UserVisit.id).label("cnt"))
+            .group_by(UserVisit.route)
+            .order_by(func.count(UserVisit.id).desc())
+        ).all()
+
+        # Besuche nach Wochentag (0=Mo … 6=So)
+        all_visits = list(s.scalars(select(UserVisit).order_by(UserVisit.visited_at)).all())
+
+        # Schwierigste / Leichteste Spiele (Trefferquote der Gruppe)
+        all_preds = list(s.scalars(select(Prediction)).all())
+
+    # Besuche nach Stunde (Lokalzeit)
+    hour_counts = [0] * 24
+    weekday_counts = [0] * 7
+    visits_by_day: dict[str, int] = defaultdict(int)
+    for v in all_visits:
+        dt = v.visited_at
+        if dt and dt.tzinfo:
+            local = dt.astimezone(DISPLAY_TIMEZONE)
+            hour_counts[local.hour] += 1
+            weekday_counts[local.weekday()] += 1
+            visits_by_day[local.strftime("%Y-%m-%d")] += 1
+
+    # Trefferquote pro Spiel (Gruppenauswertung)
+    match_preds: dict[int, list[Prediction]] = defaultdict(list)
+    for p in all_preds:
+        match_preds[p.match_id].append(p)
+
+    match_difficulty = []
+    for m in finished:
+        preds_for_m = match_preds.get(m.id, [])
+        if len(preds_for_m) < 2:
+            continue
+        scored = sum(1 for p in preds_for_m if (p.points_awarded or 0) > 0)
+        rate = round(scored / len(preds_for_m) * 100)
+        home = m.home_team.name if m.home_team else (m.home_placeholder or "?")
+        away = m.away_team.name if m.away_team else (m.away_placeholder or "?")
+        match_difficulty.append({
+            "label": f"{home} vs. {away}",
+            "match_number": m.match_number,
+            "rate": rate,
+            "tippers": len(preds_for_m),
+        })
+    match_difficulty.sort(key=lambda x: x["rate"])
+    hardest = match_difficulty[:5]
+    easiest = list(reversed(match_difficulty[-5:]))
+
+    # Besuche letzte 14 Tage für Chart
+    from datetime import datetime, timezone, timedelta
+    today = datetime.now(DISPLAY_TIMEZONE).date()
+    day_labels = [(today - timedelta(days=i)).isoformat() for i in range(13, -1, -1)]
+    day_values = [visits_by_day.get(d, 0) for d in day_labels]
+    day_labels_fmt = [(today - timedelta(days=i)).strftime("%d.%m") for i in range(13, -1, -1)]
+
+    return templates.TemplateResponse(request, "admin_nutzung.html", {
+        "user": user,
+        "user_stats": user_stats,
+        "route_counts": route_counts,
+        "hour_counts": hour_counts,
+        "weekday_counts": weekday_counts,
+        "hardest": hardest,
+        "easiest": easiest,
+        "day_labels": day_labels_fmt,
+        "day_values": day_values,
+        "total_visits": len(all_visits),
+        "flash": request.session.pop("flash", None),
+    })

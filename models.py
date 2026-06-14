@@ -58,6 +58,9 @@ class User(Base):
     stake_amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    visit_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default="0")
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     predictions: Mapped[list["Prediction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -265,6 +268,19 @@ class TopScorer(Base):
     matches_played: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     rank: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+
+# ---------------------------------------------------------------------------
+# Seitenbesuche (Nutzungsstatistik)
+# ---------------------------------------------------------------------------
+
+class UserVisit(Base):
+    __tablename__ = "user_visits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    route: Mapped[str] = mapped_column(String(100), nullable=False)
+    visited_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 # ---------------------------------------------------------------------------

@@ -79,10 +79,34 @@ def get_current_user(request: Request) -> dict | None:
     return request.session.get("user")
 
 
+_TRACKED_ROUTES = {"/tipps", "/langfrist", "/spielplan", "/leaderboard",
+                   "/uebersicht", "/torschuetzen", "/stats", "/profil",
+                   "/regeln", "/teams", "/"}
+
+def _log_visit(user_id: int, path: str) -> None:
+    try:
+        from database import get_session
+        from models import User, UserVisit
+        from datetime import datetime, timezone
+        route = path.split("?")[0]
+        if route not in _TRACKED_ROUTES:
+            return
+        with get_session() as s:
+            s.add(UserVisit(user_id=user_id, route=route))
+            u = s.get(User, user_id)
+            if u:
+                u.last_seen = datetime.now(timezone.utc)
+                u.visit_count = (u.visit_count or 0) + 1
+    except Exception:
+        pass
+
+
 def require_user(request: Request):
     user = request.session.get("user")
     if not user:
         return RedirectResponse("/login", status_code=302)
+    if request.method == "GET":
+        _log_visit(user["id"], request.url.path)
     return user
 
 

@@ -135,6 +135,8 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
     hist_neutral: int = 0
     hist_direct:  int = 0
     hist_net: int = 0
+    hist_gained_details: list[dict] = []
+    hist_lost_details:   list[dict] = []
 
     if show_behavior_stats:
         hour_counts = [0] * 24
@@ -199,10 +201,22 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
                              m.result_home, m.result_away, m.phase)
             actual_pts = p.points_awarded or 0
             diff = actual_pts - orig_pts
+            home_name = m.home_team.name if m.home_team else (m.home_placeholder or "TBD")
+            away_name = m.away_team.name if m.away_team else (m.away_placeholder or "TBD")
+            detail = {
+                "home": home_name,
+                "away": away_name,
+                "orig": f"{orig.pred_home}:{orig.pred_away}",
+                "final": f"{p.pred_home}:{p.pred_away}",
+                "result": f"{m.result_home}:{m.result_away}",
+                "diff": diff,
+            }
             if diff > 0:
                 hist_gained.append(diff)
+                hist_gained_details.append(detail)
             elif diff < 0:
                 hist_lost.append(diff)
+                hist_lost_details.append(detail)
             else:
                 hist_neutral += 1
             corr_pts.append(actual_pts)
@@ -344,4 +358,6 @@ async def stats_get(request: Request, user: dict = Depends(require_user)):
         "hist_neutral": hist_neutral,
         "hist_direct": hist_direct,
         "hist_net": hist_net,
+        "hist_gained_details": hist_gained_details,
+        "hist_lost_details": hist_lost_details,
     })

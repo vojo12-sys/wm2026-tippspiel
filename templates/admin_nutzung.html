@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="mb-0">Nutzungsstatistik</h1>
+  <a href="/admin" class="btn btn-outline-secondary btn-sm">← Admin</a>
+</div>
+
+{% if flash %}
+<div class="alert alert-{{ flash.type }} alert-dismissible fade show">
+  {{ flash.message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Übersicht-Zahlen -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ total_visits }}</div>
+      <div class="text-muted small">Seitenbesuche gesamt</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ user_stats|length }}</div>
+      <div class="text-muted small">Aktive Nutzer</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ day_values[-1] }}</div>
+      <div class="text-muted small">Besuche heute</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      {% set avg_day = (day_values | sum / day_values | length) | round(1) if day_values else 0 %}
+      <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ avg_day }}</div>
+      <div class="text-muted small">Ø Besuche/Tag (14 Tage)</div>
+    </div>
+  </div>
+</div>
+
+<!-- Besuche letzte 14 Tage -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Besuche letzte 14 Tage</h5>
+    <canvas id="visitsChart" style="max-height:200px"></canvas>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Besuche nach Uhrzeit -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Besuche nach Uhrzeit</h5>
+        <canvas id="hourChart" style="max-height:200px"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- Besuche nach Wochentag -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Besuche nach Wochentag</h5>
+        <canvas id="weekdayChart" style="max-height:200px"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Teilnehmer-Übersicht -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Teilnehmer-Übersicht</h5>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th class="text-center">Besuche</th>
+            <th>Zuletzt online</th>
+            <th class="text-center">Tipps</th>
+            <th class="text-center">Beteiligung</th>
+            <th class="text-center">Korrekturen</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for u in user_stats %}
+        <tr>
+          <td class="fw-semibold">{{ u.name }}</td>
+          <td class="text-center">{{ u.visit_count }}</td>
+          <td class="text-muted small">
+            {% if u.last_seen %}
+              {{ u.last_seen.strftime('%d.%m.%Y %H:%M') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td class="text-center">{{ u.tips }}</td>
+          <td class="text-center">
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress flex-grow-1" style="height:6px">
+                <div class="progress-bar" style="width:{{ u.participation }}%;background:#1E4E8C"></div>
+              </div>
+              <span class="small text-muted" style="min-width:35px">{{ u.participation }}%</span>
+            </div>
+          </td>
+          <td class="text-center">{{ u.corrections }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Beliebteste Seiten -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Beliebteste Seiten</h5>
+        {% for route, cnt in route_counts %}
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+          <span class="small">{{ route }}</span>
+          <span class="badge" style="background:#1E4E8C">{{ cnt }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Schwerste Spiele -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Schwerste Spiele <span class="text-muted small fw-normal">(Trefferquote der Gruppe)</span></h5>
+        {% for m in hardest %}
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+          <span class="small">{{ m.label }}</span>
+          <span class="badge bg-danger">{{ m.rate }}%</span>
+        </div>
+        {% else %}
+        <p class="text-muted small">Noch keine Daten</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Leichteste Spiele -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Leichteste Spiele <span class="text-muted small fw-normal">(Trefferquote der Gruppe)</span></h5>
+        {% for m in easiest %}
+        <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+          <span class="small">{{ m.label }}</span>
+          <span class="badge bg-success">{{ m.rate }}%</span>
+        </div>
+        {% else %}
+        <p class="text-muted small">Noch keine Daten</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const accent = '#7EC8E3';
+const dark = '#1E4E8C';
+
+new Chart(document.getElementById('visitsChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ day_labels | tojson }},
+    datasets: [{ label: 'Besuche', data: {{ day_values | tojson }},
+      backgroundColor: dark, borderRadius: 4 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+new Chart(document.getElementById('hourChart'), {
+  type: 'bar',
+  data: {
+    labels: Array.from({length: 24}, (_, i) => i + ':00'),
+    datasets: [{ label: 'Besuche', data: {{ hour_counts | tojson }},
+      backgroundColor: accent, borderRadius: 3 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+
+new Chart(document.getElementById('weekdayChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+    datasets: [{ label: 'Besuche', data: {{ weekday_counts | tojson }},
+      backgroundColor: dark, borderRadius: 4 }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+</script>
+{% endblock %}

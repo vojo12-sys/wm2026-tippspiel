@@ -281,7 +281,10 @@ new Chart(document.getElementById('timeChart'), {
             <div class="text-muted" style="font-size:.72rem">Erster Tipp blieb unverändert bis Spielbeginn</div>
           </div>
           {% if uncorr_avg is not none %}
-          <div class="mt-2"><span class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</span></div>
+          <div class="mt-2">
+            <span class="badge" style="background:var(--accent)">Ø {{ uncorr_avg }} Pkt.</span>
+            <div class="text-muted mt-1" style="font-size:.68rem">durchschn. Punktzahl aller Tipps</div>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -294,7 +297,10 @@ new Chart(document.getElementById('timeChart'), {
             <div class="text-muted" style="font-size:.72rem">Tipp wurde bis Spielbeginn geändert</div>
           </div>
           {% if corr_avg is not none %}
-          <div class="mt-2"><span class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</span></div>
+          <div class="mt-2">
+            <span class="badge" style="background:#f59e0b">Ø {{ corr_avg }} Pkt.</span>
+            <div class="text-muted mt-1" style="font-size:.68rem">durchschn. Punktzahl aller Tipps</div>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -307,7 +313,10 @@ new Chart(document.getElementById('timeChart'), {
             <div class="text-muted" style="font-size:.72rem">Nach Änderung mehr Punkte als mit dem Original-Tipp</div>
           </div>
           {% if hist_gained_count > 0 %}
-          <div class="mt-2"><span class="badge bg-success">+{{ hist_gained_pts }} Pkt. insgesamt</span></div>
+          <div class="mt-2">
+            <span class="badge bg-success">+{{ hist_gained_pts }} Pkt. insgesamt</span><br>
+            <a href="#" class="small text-success text-decoration-none mt-1 d-inline-block" id="gained-trigger">Spiele anzeigen</a>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -320,10 +329,71 @@ new Chart(document.getElementById('timeChart'), {
             <div class="text-muted" style="font-size:.72rem">Nach Änderung weniger Punkte als mit dem Original-Tipp</div>
           </div>
           {% if hist_lost_count > 0 %}
-          <div class="mt-2"><span class="badge bg-danger">{{ hist_lost_pts }} Pkt. insgesamt</span></div>
+          <div class="mt-2">
+            <span class="badge bg-danger">{{ hist_lost_pts }} Pkt. insgesamt</span><br>
+            <a href="#" class="small text-danger text-decoration-none mt-1 d-inline-block" id="lost-trigger">Spiele anzeigen</a>
+          </div>
           {% endif %}
         </div>
       </div>
+
+      <!-- Hidden Popover-Inhalte -->
+      {% if hist_gained_details %}
+      <div id="gained-content" class="d-none">
+        <table style="font-size:.8rem;min-width:240px">
+          <tr><th style="padding:2px 6px">Spiel</th><th style="padding:2px 6px">Original</th><th style="padding:2px 6px">Geändert</th><th style="padding:2px 6px">Erg.</th><th style="padding:2px 6px">+Pkt</th></tr>
+          {% for d in hist_gained_details %}
+          <tr>
+            <td style="padding:2px 6px">{{ d.home[:8] }} – {{ d.away[:8] }}</td>
+            <td style="padding:2px 6px;color:#6b7280">{{ d.orig }}</td>
+            <td style="padding:2px 6px;font-weight:600">{{ d.final }}</td>
+            <td style="padding:2px 6px">{{ d.result }}</td>
+            <td style="padding:2px 6px;color:#16a34a;font-weight:600">+{{ d.diff }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+      {% if hist_lost_details %}
+      <div id="lost-content" class="d-none">
+        <table style="font-size:.8rem;min-width:240px">
+          <tr><th style="padding:2px 6px">Spiel</th><th style="padding:2px 6px">Original</th><th style="padding:2px 6px">Geändert</th><th style="padding:2px 6px">Erg.</th><th style="padding:2px 6px">Pkt</th></tr>
+          {% for d in hist_lost_details %}
+          <tr>
+            <td style="padding:2px 6px">{{ d.home[:8] }} – {{ d.away[:8] }}</td>
+            <td style="padding:2px 6px;font-weight:600">{{ d.orig }}</td>
+            <td style="padding:2px 6px;color:#6b7280">{{ d.final }}</td>
+            <td style="padding:2px 6px">{{ d.result }}</td>
+            <td style="padding:2px 6px;color:#dc2626;font-weight:600">{{ d.diff }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+      <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var gainedTrigger = document.getElementById('gained-trigger');
+        var gainedContent = document.getElementById('gained-content');
+        if (gainedTrigger && gainedContent) {
+          new bootstrap.Popover(gainedTrigger, {
+            html: true, trigger: 'hover focus click', placement: 'top',
+            title: 'Korrekturen mit Punktgewinn',
+            content: gainedContent.innerHTML
+          });
+          gainedTrigger.addEventListener('click', function(e) { e.preventDefault(); });
+        }
+        var lostTrigger = document.getElementById('lost-trigger');
+        var lostContent = document.getElementById('lost-content');
+        if (lostTrigger && lostContent) {
+          new bootstrap.Popover(lostTrigger, {
+            html: true, trigger: 'hover focus click', placement: 'top',
+            title: 'Korrekturen mit Punktverlust',
+            content: lostContent.innerHTML
+          });
+          lostTrigger.addEventListener('click', function(e) { e.preventDefault(); });
+        }
+      });
+      </script>
       <!-- Block 5: Kein Unterschied -->
       <div class="col-6 col-lg d-flex">
         <div class="text-center p-3 rounded w-100 d-flex flex-column justify-content-between" style="background:#f8f9fa">
