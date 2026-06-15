@@ -18,17 +18,18 @@ from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
 
-SENDER      = "hegne94@googlemail.com"
-RECIPIENTS  = ["d.kersting@lew-automotive.com", "w.heger@lew-automotive.com"]
-SMTP_HOST   = "smtp.gmail.com"
-SMTP_PORT   = 587
+SENDER               = "hegne94@googlemail.com"
+RECIPIENTS_LEADERBOARD = ["d.kersting@lew-automotive.com", "w.heger@lew-automotive.com"]
+RECIPIENTS_REGISTER    = ["hegne@freenet.de"]
+SMTP_HOST            = "smtp.gmail.com"
+SMTP_PORT            = 587
 
 
 def _app_password() -> str | None:
     return os.environ.get("GMAIL_APP_PASSWORD")
 
 
-def _send(msg: MIMEMultipart) -> None:
+def _send(msg: MIMEMultipart, recipients: list[str]) -> None:
     pw = _app_password()
     if not pw:
         logger.info("GMAIL_APP_PASSWORD nicht gesetzt – E-Mail wird nicht versendet.")
@@ -38,8 +39,8 @@ def _send(msg: MIMEMultipart) -> None:
             s.ehlo()
             s.starttls()
             s.login(SENDER, pw)
-            s.sendmail(SENDER, RECIPIENTS, msg.as_string())
-        logger.info("E-Mail '%s' versendet an %s", msg["Subject"], RECIPIENTS)
+            s.sendmail(SENDER, recipients, msg.as_string())
+        logger.info("E-Mail '%s' versendet an %s", msg["Subject"], recipients)
     except Exception as exc:
         logger.error("E-Mail-Versand fehlgeschlagen: %s", exc)
 
@@ -51,7 +52,7 @@ def send_registration_notification(username: str, display_name: str,
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"[WM 2026 Tippspiel] Neue Anmeldung: {display_name}"
     msg["From"]    = SENDER
-    msg["To"]      = ", ".join(RECIPIENTS)
+    msg["To"]      = ", ".join(RECIPIENTS_REGISTER)
 
     text = (
         f"Neuer Nutzer registriert:\n\n"
@@ -80,7 +81,7 @@ def send_registration_notification(username: str, display_name: str,
 
     msg.attach(MIMEText(text, "plain", "utf-8"))
     msg.attach(MIMEText(html, "html",  "utf-8"))
-    _send(msg)
+    _send(msg, RECIPIENTS_REGISTER)
 
 
 def send_leaderboard_email() -> None:
@@ -125,4 +126,4 @@ def send_leaderboard_email() -> None:
     img.add_header("Content-Disposition", "inline", filename="leaderboard.jpg")
     msg.attach(img)
 
-    _send(msg)
+    _send(msg, RECIPIENTS_LEADERBOARD)
