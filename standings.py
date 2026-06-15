@@ -20,8 +20,10 @@ from dataclasses import dataclass, field
 
 from sqlalchemy import select
 
+import json
+
 from database import get_session
-from models import GroupPrediction, Prediction, SpecialTip, User
+from models import GroupPrediction, Prediction, Setting, SpecialTip, User
 from settings import get_pool
 
 
@@ -39,6 +41,7 @@ class Standing:
     phase_points: dict[str, int] = field(default_factory=dict)  # phase-key -> Punkte
     longterm_points: int = 0   # Gruppen- + Sonder-Tipps
     rank: int = 0
+    prev_rank: int = 0
     exact_count: int = 0
     goal_diff_count: int = 0
     tendency_count: int = 0
@@ -150,7 +153,35 @@ def compute_standings() -> list[Standing]:
             last_rank = i
             last_points = st.total_points
         st.rank = last_rank
+
+    # Vorherige Ränge aus Snapshot laden
+    snapshot = _load_rank_snapshot()
+    for st in standings:
+        st.prev_rank = snapshot.get(st.user_id, 0)
+
     return standings
+
+
+def _load_rank_snapshot() -> dict[int, int]:
+    with get_session() as s:
+        setting = s.get(Setting, "rank_snapshot")
+        if setting:
+            try:
+                return {int(k): v for k, v in json.loads(setting.value).items()}
+            except Exception:
+                pass
+    return {}
+
+
+def save_rank_snapshot(standings: list[Standing]) -> None:
+    """Speichert aktuelle Ränge als Vergleichsbasis (vor Ergebnis-Sync aufrufen)."""
+    snapshot = json.dumps({str(st.user_id): st.rank for st in standings})
+    with get_session() as s:
+        setting = s.get(Setting, "rank_snapshot")
+        if setting:
+            setting.value = snapshot
+        else:
+            s.add(Setting(key="rank_snapshot", value=snapshot))
 
 
 # ---------------------------------------------------------------------------

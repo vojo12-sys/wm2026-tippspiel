@@ -73,10 +73,14 @@
       </thead>
       <tbody>
         {% for row in rows %}
-        <tr {% if row.user_id == user.id %}class="table-success"{% endif %} data-uid="{{ row.user_id }}" data-rank="{{ row.rank }}">
+        <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
           <td class="{% if row.rank==1 %}rank-1{% elif row.rank==2 %}rank-2{% elif row.rank==3 %}rank-3{% endif %}">
             {{ row.rank }}
-            <span class="rank-delta" data-uid="{{ row.user_id }}" style="font-size:.72rem;font-weight:700;margin-left:2px"></span>
+            {% if row.prev_rank and row.prev_rank != row.rank %}
+              {% set delta = row.prev_rank - row.rank %}
+              {% if delta > 0 %}<span style="color:#28a745;font-size:.7rem;font-weight:700;margin-left:2px">▲+{{ delta }}</span>
+              {% else %}<span style="color:#dc3545;font-size:.7rem;font-weight:700;margin-left:2px">▼{{ delta }}</span>{% endif %}
+            {% endif %}
           </td>
           <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
           <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
@@ -423,33 +427,5 @@ document.querySelectorAll('[data-tab]').forEach(btn => {
   });
 });
 
-// Rang-Änderungen via localStorage
-(function() {
-  var STORE_KEY = 'lb-ranks-v1';
-  var prev = {};
-  try { prev = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e) {}
-
-  var current = {};
-  document.querySelectorAll('tr[data-uid][data-rank]').forEach(function(tr) {
-    current[tr.dataset.uid] = parseInt(tr.dataset.rank);
-  });
-
-  document.querySelectorAll('.rank-delta').forEach(function(el) {
-    var uid = el.dataset.uid;
-    var cur = current[uid];
-    var old = prev[uid];
-    if (old == null || old === cur) { el.textContent = ''; return; }
-    var diff = old - cur; // positive = moved up
-    if (diff > 0) {
-      el.style.color = '#28a745';
-      el.textContent = '▲+' + diff;
-    } else {
-      el.style.color = '#dc3545';
-      el.textContent = '▼' + diff;
-    }
-  });
-
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(current)); } catch(e) {}
-})();
 </script>
 {% endblock %}
