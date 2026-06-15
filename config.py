@@ -120,6 +120,12 @@ Jeder Teilnehmer hat einen einmaligen Joker, den er auf genau ein Spiel setzen k
 - Der Joker gilt auch in der K.o.-Phase (der K.o.-Bonus wird ebenfalls verdoppelt)
 - Werden im Joker-Spiel 0 Punkte erzielt, bringt der Joker ebenfalls 0 Punkte
 
+**Gleichstand / Tiebreaker**
+Bei gleicher Punktzahl entscheiden folgende Kriterien in dieser Reihenfolge:
+- 1. Anzahl der exakt getippten Ergebnisse
+- 2. Anzahl der richtig getippten Tordifferenzen
+- 3. Anzahl der richtig getippten Tendenzen
+
 **Verlängerung & Elfmeterschießen**
 Ab dem Sechzehntelfinale gilt bei Unentschieden nach 90 Minuten: zuerst 2 × 15 Minuten Verlängerung, danach bei Bedarf Elfmeterschießen. In der Gruppenphase gibt es weder Verlängerung noch Elfmeterschießen – ein Remis bleibt ein Remis.
 - Gewertet wird das Ergebnis nach 90 Minuten + Verlängerung (offizielle FIFA-Regelung)
