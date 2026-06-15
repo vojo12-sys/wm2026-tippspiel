@@ -225,7 +225,7 @@ def _sync_scorers() -> None:
     """Holt die aktuelle Torschützenliste von football-data.org."""
     try:
         resp = httpx.get(
-            f"{_BASE}/competitions/{_COMPETITION}/scorers?limit=30",
+            f"{_BASE}/competitions/{_COMPETITION}/scorers?limit=100",
             headers={"X-Auth-Token": _API_KEY},
             timeout=15,
         )
