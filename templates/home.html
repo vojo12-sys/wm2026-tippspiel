@@ -86,6 +86,16 @@
             {{ lm.away }}
           </div>
         </div>
+        {% if lm.pred and not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <span class="text-muted small">Dein Tipp: </span>
+          <span class="small fw-bold">{{ lm.pred.home }}:{{ lm.pred.away }}</span>
+        </div>
+        {% elif not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <span class="text-muted small">Kein Tipp abgegeben</span>
+        </div>
+        {% endif %}
         {% if live_matches|length > 1 %}
         <div class="text-center mt-2 pt-2 border-top">
           <a href="/spielplan" class="small text-muted">Alle laufenden Spiele →</a>

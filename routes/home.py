@@ -89,10 +89,24 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
             live_raw = list(s.scalars(
                 select(Match).where(Match.id.in_(live_ids))
             ).all())
+            live_preds: dict[int, dict] = {}
+            if not user.get("is_spectator"):
+                for row in s.execute(
+                    select(Prediction.match_id, Prediction.pred_home,
+                           Prediction.pred_away, Prediction.points_awarded)
+                    .where(Prediction.user_id == user["id"],
+                           Prediction.match_id.in_(live_ids))
+                ).all():
+                    live_preds[row.match_id] = {
+                        "home": row.pred_home,
+                        "away": row.pred_away,
+                        "points": row.points_awarded or 0,
+                    }
             for m in live_raw:
                 _ = m.home_team, m.away_team
                 d = _fmt_match(m, DISPLAY_TIMEZONE)
                 d["live"] = live_scores.get(str(m.id))
+                d["pred"] = live_preds.get(m.id)
                 live_matches.append(d)
 
         # ── Nächstes Spiel (nicht live) ────────────────────────────────
