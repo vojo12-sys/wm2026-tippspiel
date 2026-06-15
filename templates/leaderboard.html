@@ -18,7 +18,7 @@
 .tip-exact    { background:rgba(126,200,227,.15); color:var(--accent-dk); border:1px solid rgba(126,200,227,.3); }
 .tip-diff     { background:rgba(192,138,18,.12);  color:#8a6208;          border:1px solid rgba(192,138,18,.25); }
 .tip-tendency { background:rgba(173,106,52,.12);  color:#7a4a20;          border:1px solid rgba(173,106,52,.25); }
-.lb-col-rank  { width:38px; }
+.lb-col-rank  { width:62px; }
 .lb-col-badge { width:110px; }
 .lb-col-pts   { width:120px; }
 .card .table thead th { vertical-align:bottom; }
@@ -74,14 +74,7 @@
       <tbody>
         {% for row in rows %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
-          <td class="{% if row.rank==1 %}rank-1{% elif row.rank==2 %}rank-2{% elif row.rank==3 %}rank-3{% endif %}">
-            {{ row.rank }}
-            {% if row.prev_rank and row.prev_rank != row.rank %}
-              {% set delta = row.prev_rank - row.rank %}
-              {% if delta > 0 %}<span style="color:#28a745;font-size:.7rem;font-weight:700;margin-left:2px">▲+{{ delta }}</span>
-              {% else %}<span style="color:#dc3545;font-size:.7rem;font-weight:700;margin-left:2px">▼{{ delta }}</span>{% endif %}
-            {% endif %}
-          </td>
+          <td class="{% if row.rank==1 %}rank-1{% elif row.rank==2 %}rank-2{% elif row.rank==3 %}rank-3{% endif %}" style="white-space:nowrap">{{ row.rank }}{% if row.prev_rank and row.prev_rank != row.rank %}{% set delta = row.prev_rank - row.rank %}{% if delta > 0 %} <span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ delta }}</span>{% else %} <span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ delta }}</span>{% endif %}{% endif %}</td>
           <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
           <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
           <td class="text-center"><span class="tip-badge tip-diff">{{ row.goal_diff_count }}</span></td>
