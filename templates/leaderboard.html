@@ -18,7 +18,8 @@
 .tip-exact    { background:rgba(126,200,227,.15); color:var(--accent-dk); border:1px solid rgba(126,200,227,.3); }
 .tip-diff     { background:rgba(192,138,18,.12);  color:#8a6208;          border:1px solid rgba(192,138,18,.25); }
 .tip-tendency { background:rgba(173,106,52,.12);  color:#7a4a20;          border:1px solid rgba(173,106,52,.25); }
-.lb-col-rank  { width:62px; }
+.lb-col-rank  { width:66px; }
+.rank-cell { display:flex; align-items:center; justify-content:space-between; gap:2px; }
 .lb-col-badge { width:110px; }
 .lb-col-pts   { width:120px; }
 .card .table thead th { vertical-align:bottom; }
@@ -74,7 +75,7 @@
       <tbody>
         {% for row in rows %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
-          <td class="{% if row.rank==1 %}rank-1{% elif row.rank==2 %}rank-2{% elif row.rank==3 %}rank-3{% endif %}" style="white-space:nowrap">{{ row.rank }}{% if row.prev_rank and row.prev_rank != row.rank %}{% set delta = row.prev_rank - row.rank %}{% if delta > 0 %} <span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ delta }}</span>{% else %} <span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ delta }}</span>{% endif %}{% endif %}</td>
+          <td class="{% if row.rank==1 %}rank-1{% elif row.rank==2 %}rank-2{% elif row.rank==3 %}rank-3{% endif %}"><div class="rank-cell"><span>{{ row.rank }}</span>{% if row.prev_rank and row.prev_rank != row.rank %}{% set delta = row.prev_rank - row.rank %}{% if delta > 0 %}<span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ delta }}</span>{% else %}<span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ delta }}</span>{% endif %}{% endif %}</div></td>
           <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
           <td class="text-center"><span class="tip-badge tip-exact">{{ row.exact_count }}</span></td>
           <td class="text-center"><span class="tip-badge tip-diff">{{ row.goal_diff_count }}</span></td>
@@ -125,7 +126,7 @@
         {% set pc = phase_counts.get(row.user_id, {}).get(st_key, {}) %}
         {% if pts != ns.last %}{% set ns.rank = loop.index %}{% set ns.last = pts %}{% endif %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
-          <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}" style="white-space:nowrap">{{ ns.rank }}{% set _prev = phase_prev_ranks.get(st_key, {}).get(row.user_id, 0) %}{% if _prev and _prev != ns.rank %}{% set _d = _prev - ns.rank %}{% if _d > 0 %} <span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ _d }}</span>{% else %} <span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ _d }}</span>{% endif %}{% endif %}</td>
+          <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}"><div class="rank-cell"><span>{{ ns.rank }}</span>{% set _prev = phase_prev_ranks.get(st_key, {}).get(row.user_id, 0) %}{% if _prev and _prev != ns.rank %}{% set _d = _prev - ns.rank %}{% if _d > 0 %}<span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ _d }}</span>{% else %}<span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ _d }}</span>{% endif %}{% endif %}</div></td>
           <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
           <td class="text-center"><span class="tip-badge tip-exact">{{ pc.get('e', 0) }}</span></td>
           <td class="text-center"><span class="tip-badge tip-diff">{{ pc.get('d', 0) }}</span></td>
@@ -182,7 +183,7 @@
         {% set gt = pc.get('st1',{}).get('t',0) + pc.get('st2',{}).get('t',0) + pc.get('st3',{}).get('t',0) %}
         {% if gpts != ns.last %}{% set ns.rank = loop.index %}{% set ns.last = gpts %}{% endif %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
-          <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}" style="white-space:nowrap">{{ ns.rank }}{% set _prev = phase_prev_ranks.get('group', {}).get(row.user_id, 0) %}{% if _prev and _prev != ns.rank %}{% set _d = _prev - ns.rank %}{% if _d > 0 %} <span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ _d }}</span>{% else %} <span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ _d }}</span>{% endif %}{% endif %}</td>
+          <td class="{% if ns.rank==1 %}rank-1{% elif ns.rank==2 %}rank-2{% elif ns.rank==3 %}rank-3{% endif %}"><div class="rank-cell"><span>{{ ns.rank }}</span>{% set _prev = phase_prev_ranks.get('group', {}).get(row.user_id, 0) %}{% if _prev and _prev != ns.rank %}{% set _d = _prev - ns.rank %}{% if _d > 0 %}<span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ _d }}</span>{% else %}<span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ _d }}</span>{% endif %}{% endif %}</div></td>
           <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
           <td class="text-center"><span class="tip-badge tip-exact">{{ ge }}</span></td>
           <td class="text-center"><span class="tip-badge tip-diff">{{ gd }}</span></td>
@@ -248,7 +249,7 @@
         {% endfor %}
         {% if ko_total != ns2.last %}{% set ns2.rank = loop.index %}{% set ns2.last = ko_total %}{% endif %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
-          <td class="{% if ns2.rank==1 %}rank-1{% elif ns2.rank==2 %}rank-2{% elif ns2.rank==3 %}rank-3{% endif %}" style="white-space:nowrap">{{ ns2.rank }}{% set _prev = phase_prev_ranks.get('ko', {}).get(row.user_id, 0) %}{% if _prev and _prev != ns2.rank %}{% set _d = _prev - ns2.rank %}{% if _d > 0 %} <span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ _d }}</span>{% else %} <span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ _d }}</span>{% endif %}{% endif %}</td>
+          <td class="{% if ns2.rank==1 %}rank-1{% elif ns2.rank==2 %}rank-2{% elif ns2.rank==3 %}rank-3{% endif %}"><div class="rank-cell"><span>{{ ns2.rank }}</span>{% set _prev = phase_prev_ranks.get('ko', {}).get(row.user_id, 0) %}{% if _prev and _prev != ns2.rank %}{% set _d = _prev - ns2.rank %}{% if _d > 0 %}<span style="color:#28a745;font-size:.65rem;font-weight:700">▲+{{ _d }}</span>{% else %}<span style="color:#dc3545;font-size:.65rem;font-weight:700">▼{{ _d }}</span>{% endif %}{% endif %}</div></td>
           <td>{{ row.display_name }}{% if row.in_pool %} <span class="text-warning small">●</span>{% endif %}</td>
           <td class="text-center"><span class="tip-badge tip-exact">{{ kons.e }}</span></td>
           <td class="text-center"><span class="tip-badge tip-diff">{{ kons.d }}</span></td>
