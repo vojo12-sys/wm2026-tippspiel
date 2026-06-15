@@ -175,16 +175,16 @@
 {% if not user.is_spectator %}
 <div class="row g-3 mb-4">
   <div class="col-4">
-    <div class="card border-0 shadow-sm text-center p-3">
-      <div class="text-muted small">Rang</div>
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="text-muted small">dein aktueller Rang</div>
       <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
         {% if user_rank %}{{ user_rank }}.{% else %}–{% endif %}
       </div>
     </div>
   </div>
   <div class="col-4">
-    <div class="card border-0 shadow-sm text-center p-3">
-      <div class="text-muted small">Punkte</div>
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="text-muted small">deine aktuellen Gesamtpunkte</div>
       <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
         {{ user_points }}
       </div>
@@ -193,7 +193,7 @@
   <div class="col-4">
     {% if open_tips_24h > 0 %}
     <a href="/tipps" class="text-decoration-none">
-      <div class="card border-0 shadow-sm text-center p-3" style="border:1px solid #ffc107!important">
+      <div class="card border-0 shadow-sm text-center p-3 h-100" style="border:1px solid #ffc107!important">
         <div class="text-muted small">Offene Tipps</div>
         <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#c08a12">
           {{ open_tips_24h }}
@@ -202,7 +202,7 @@
       </div>
     </a>
     {% else %}
-    <div class="card border-0 shadow-sm text-center p-3">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
       <div class="text-muted small">Offene Tipps</div>
       <div class="fw-bold" style="font-size:1rem;color:#1E4E8C;margin-top:.3rem">
         <i class="bi bi-check2-all"></i>

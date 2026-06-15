@@ -88,13 +88,25 @@
 .overview-table thead .col-result { z-index: 11; }
 .overview-table tr:hover .col-result { background: #f8fbff; }
 
-/* Mobile: alle overview-wrap horizontal scrollbar machen */
+/* Mobile: spieltag-table scrollt intern (wie Desktop) → sticky Header funktioniert */
 @media (max-width: 767px) {
-  .overview-wrap {
-    overflow-x: auto;
+  .spieltag-table {
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* Sticky Header-Zeile (gilt für Mobile + Desktop) */
+.spieltag-table .overview-table thead tr:first-child th {
+  position: sticky; top: 0; z-index: 10;
+}
+.spieltag-table .overview-table thead tr:first-child .col-match { z-index: 13; }
+.spieltag-table .overview-table thead tr:first-child .col-result { z-index: 12; }
+.collapse .overview-table thead tr:first-child th {
+  position: sticky; top: 0; z-index: 10;
+}
+.collapse .overview-table thead tr:first-child .col-match { z-index: 13; }
+.collapse .overview-table thead tr:first-child .col-result { z-index: 12; }
 
 /* Desktop: Jede Spieltag-Tabelle scrollt eigenständig – sticky relativ zum direkten Wrapper */
 @media (min-width: 768px) {
@@ -115,12 +127,6 @@
     overflow: auto;
     max-height: calc(100vh - 170px);
   }
-  /* Header-Zellen sticky oben (relativ zu .spieltag-table) */
-  .spieltag-table .overview-table thead tr:first-child th {
-    position: sticky; top: 0; z-index: 10;
-  }
-  .spieltag-table .overview-table thead tr:first-child .col-match { z-index: 13; }
-  .spieltag-table .overview-table thead tr:first-child .col-result { z-index: 12; }
   /* K.o.-Zusammenfassung sticky oben (Fenster-Scroll) */
   .ko-summary-sticky {
     position: sticky; top: 0; z-index: 30;
@@ -132,11 +138,6 @@
     overflow: auto;
     max-height: calc(100vh - 250px);
   }
-  .collapse .overview-table thead tr:first-child th {
-    position: sticky; top: 0; z-index: 10;
-  }
-  .collapse .overview-table thead tr:first-child .col-match { z-index: 13; }
-  .collapse .overview-table thead tr:first-child .col-result { z-index: 12; }
 }
 .overview-table tr:hover td { background: #f8fbff; }
 .overview-table tr:hover .col-match { background: #f8fbff; }
@@ -716,14 +717,11 @@
 
   // Tabellenhöhe exakt berechnen, damit .spieltag-table intern scrollt (nicht die Seite)
   function setTableHeights() {
-    if (window.innerWidth < 768) {
-      document.querySelectorAll('.spieltag-table').forEach(function(w) { w.style.maxHeight = ''; });
-      return;
-    }
     var activeWrap = document.querySelector('.tab-pane.active.show .spieltag-table');
     if (!activeWrap) return;
     var rect = activeWrap.getBoundingClientRect();
-    var h = Math.max(200, window.innerHeight - rect.top - 16);
+    var padding = window.innerWidth < 768 ? 12 : 16;
+    var h = Math.max(200, window.innerHeight - rect.top - padding);
     document.querySelectorAll('.spieltag-table').forEach(function(w) {
       w.style.maxHeight = h + 'px';
     });
