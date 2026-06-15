@@ -10,25 +10,27 @@
 {% endif %}
 
 <!-- ── Drei-Block-Hero ──────────────────────────────────────────────── -->
+{# Makro: einheitliche Karten-Struktur für alle drei Blöcke #}
 <div class="row g-3 mb-4">
 
   <!-- Letztes Spiel -->
   <div class="col-12 col-md-4">
     <div class="card border-0 shadow-sm h-100">
-      <div class="card-body p-3">
-        <div class="text-muted small mb-2">
+      <div class="card-body p-3 d-flex flex-column">
+        <!-- Label -->
+        <div class="text-muted small mb-2" style="height:24px;line-height:24px">
           <i class="bi bi-check2-circle me-1"></i>Letztes Spiel
         </div>
-        {% if last_match %}
-        <div class="d-flex align-items-center justify-content-between gap-2">
+        <!-- Match -->
+        <div class="flex-grow-1 d-flex align-items-center justify-content-between gap-2">
+          {% if last_match %}
           <div class="text-center fw-bold small" style="min-width:70px">
             {% if last_match.home_flag %}<img src="https://flagcdn.com/20x15/{{ last_match.home_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
             {{ last_match.home }}
           </div>
           <div class="text-center flex-shrink-0">
             <div class="fw-bold" style="font-size:1.5rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
-              {{ last_match.result_home }}:{{ last_match.result_away }}
-              {% if last_match.went_to_penalties %}<small class="text-muted" style="font-size:.7rem">n.E.</small>{% endif %}
+              {{ last_match.result_home }}:{{ last_match.result_away }}{% if last_match.went_to_penalties %} <small class="text-muted" style="font-size:.7rem">n.E.</small>{% endif %}
             </div>
             <div class="text-muted" style="font-size:.7rem">{{ last_match.date_de }}</div>
           </div>
@@ -36,23 +38,26 @@
             {% if last_match.away_flag %}<img src="https://flagcdn.com/20x15/{{ last_match.away_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
             {{ last_match.away }}
           </div>
+          {% else %}
+          <div class="text-muted small text-center w-100">Noch keine Spiele gespielt</div>
+          {% endif %}
         </div>
-        {% if last_pred and not user.is_spectator %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <span class="text-muted small">Dein Tipp: </span>
-          <span class="small fw-bold">{{ last_pred.home }}:{{ last_pred.away }}</span>
-          <span class="badge ms-2 {% if last_pred.points > 0 %}text-white{% else %}text-muted{% endif %}"
-                style="background:{% if last_pred.points > 0 %}#1E4E8C{% else %}#e9ecef{% endif %}">
-            {{ last_pred.points }} Pkt
-          </span>
+        <!-- Tipp-Footer -->
+        {% if not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top" style="min-height:28px">
+          {% if last_match %}
+            {% if last_pred %}
+            <span class="text-muted small">Dein Tipp: </span>
+            <span class="small fw-bold">{{ last_pred.home }}:{{ last_pred.away }}</span>
+            <span class="badge ms-2 {% if last_pred.points > 0 %}text-white{% else %}text-muted{% endif %}"
+                  style="background:{% if last_pred.points > 0 %}#1E4E8C{% else %}#e9ecef{% endif %}">
+              {{ last_pred.points }} Pkt
+            </span>
+            {% else %}
+            <span class="text-muted small">Kein Tipp abgegeben</span>
+            {% endif %}
+          {% endif %}
         </div>
-        {% elif not user.is_spectator %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <span class="text-muted small">Kein Tipp abgegeben</span>
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="text-muted small text-center py-3">Noch keine Spiele gespielt</div>
         {% endif %}
       </div>
     </div>
@@ -61,53 +66,51 @@
   <!-- Live / Kein Spiel -->
   <div class="col-12 col-md-4">
     <div class="card border-0 shadow-sm h-100">
-      <div class="card-body p-3">
-        {% if live_matches %}
-        {% set lm = live_matches[0] %}
-        <div class="d-flex align-items-center gap-2 mb-2">
+      <div class="card-body p-3 d-flex flex-column">
+        <!-- Label -->
+        <div class="d-flex align-items-center gap-2 mb-2" style="height:24px">
+          {% if live_matches %}
+          {% set lm = live_matches[0] %}
           <span class="badge" style="background:#dc3545;animation:livepulse 1.2s infinite">
             ● LIVE{% if lm.live.status == 'PAUSED' %} HZ{% elif lm.live.minute %} {{ lm.live.minute }}'{% endif %}
           </span>
-          <span class="text-muted small">Laufendes Spiel</span>
-          {% if live_matches|length > 1 %}
-          <span class="text-muted small">({{ live_matches|length }} Spiele)</span>
+          <span class="text-muted small">Laufendes Spiel{% if live_matches|length > 1 %} ({{ live_matches|length }}){% endif %}</span>
+          {% else %}
+          <span class="text-muted small"><i class="bi bi-broadcast me-1"></i>Live</span>
           {% endif %}
         </div>
-        <div class="d-flex align-items-center justify-content-between gap-2">
+        <!-- Match -->
+        <div class="flex-grow-1 d-flex align-items-center justify-content-between gap-2">
+          {% if live_matches %}
           <div class="text-center fw-bold small" style="min-width:70px">
             {% if lm.home_flag %}<img src="https://flagcdn.com/20x15/{{ lm.home_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
             {{ lm.home }}
           </div>
-          <div class="text-center fw-bold flex-shrink-0" style="font-size:1.8rem;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
+          <div class="text-center fw-bold flex-shrink-0" style="font-size:1.5rem;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
             {{ lm.live.home }}:{{ lm.live.away }}
           </div>
           <div class="text-center fw-bold small" style="min-width:70px">
             {% if lm.away_flag %}<img src="https://flagcdn.com/20x15/{{ lm.away_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
             {{ lm.away }}
           </div>
+          {% else %}
+          <div class="text-center w-100">
+            <i class="bi bi-moon-stars text-muted d-block mb-1" style="font-size:1.8rem;opacity:.4"></i>
+            <span class="text-muted small">Derzeit kein Spiel</span>
+          </div>
+          {% endif %}
         </div>
-        {% if lm.pred and not user.is_spectator %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <span class="text-muted small">Dein Tipp: </span>
-          <span class="small fw-bold">{{ lm.pred.home }}:{{ lm.pred.away }}</span>
-        </div>
-        {% elif not user.is_spectator %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <span class="text-muted small">Kein Tipp abgegeben</span>
-        </div>
-        {% endif %}
-        {% if live_matches|length > 1 %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <a href="/spielplan" class="small text-muted">Alle laufenden Spiele →</a>
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="text-muted small mb-2">
-          <i class="bi bi-broadcast me-1"></i>Live
-        </div>
-        <div class="d-flex flex-column align-items-center justify-content-center py-3 gap-1">
-          <i class="bi bi-moon-stars text-muted" style="font-size:1.8rem;opacity:.4"></i>
-          <span class="text-muted small mt-1">Derzeit kein Spiel</span>
+        <!-- Tipp-Footer -->
+        {% if not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top" style="min-height:28px">
+          {% if live_matches %}
+            {% if lm.pred %}
+            <span class="text-muted small">Dein Tipp: </span>
+            <span class="small fw-bold">{{ lm.pred.home }}:{{ lm.pred.away }}</span>
+            {% else %}
+            <span class="text-muted small">Kein Tipp abgegeben</span>
+            {% endif %}
+          {% endif %}
         </div>
         {% endif %}
       </div>
@@ -117,12 +120,14 @@
   <!-- Nächstes Spiel -->
   <div class="col-12 col-md-4">
     <div class="card border-0 shadow-sm h-100">
-      <div class="card-body p-3">
-        <div class="text-muted small mb-2">
+      <div class="card-body p-3 d-flex flex-column">
+        <!-- Label -->
+        <div class="text-muted small mb-2" style="height:24px;line-height:24px">
           <i class="bi bi-calendar-event me-1"></i>Nächstes Spiel
         </div>
-        {% if next_match %}
-        <div class="d-flex align-items-center justify-content-between gap-2">
+        <!-- Match -->
+        <div class="flex-grow-1 d-flex align-items-center justify-content-between gap-2">
+          {% if next_match %}
           <div class="text-center fw-bold small" style="min-width:70px">
             {% if next_match.home_flag %}<img src="https://flagcdn.com/20x15/{{ next_match.home_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
             {{ next_match.home }}
@@ -137,21 +142,24 @@
             {% if next_match.away_flag %}<img src="https://flagcdn.com/20x15/{{ next_match.away_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
             {{ next_match.away }}
           </div>
+          {% else %}
+          <div class="text-center w-100">
+            <i class="bi bi-flag-fill text-muted d-block mb-1" style="font-size:1.8rem;opacity:.4"></i>
+            <span class="text-muted small">Kein weiteres Spiel</span>
+          </div>
+          {% endif %}
         </div>
-        {% if next_pred and not user.is_spectator %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <span class="text-muted small">Dein Tipp: </span>
-          <span class="small fw-bold">{{ next_pred.home }}:{{ next_pred.away }}</span>
-        </div>
-        {% elif not user.is_spectator %}
-        <div class="text-center mt-2 pt-2 border-top">
-          <span class="text-muted small">Kein Tipp abgegeben</span>
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="d-flex flex-column align-items-center justify-content-center py-3 gap-1">
-          <i class="bi bi-flag-fill text-muted" style="font-size:1.8rem;opacity:.4"></i>
-          <span class="text-muted small mt-1">Kein weiteres Spiel</span>
+        <!-- Tipp-Footer -->
+        {% if not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top" style="min-height:28px">
+          {% if next_match %}
+            {% if next_pred %}
+            <span class="text-muted small">Dein Tipp: </span>
+            <span class="small fw-bold">{{ next_pred.home }}:{{ next_pred.away }}</span>
+            {% else %}
+            <span class="text-muted small">Kein Tipp abgegeben</span>
+            {% endif %}
+          {% endif %}
         </div>
         {% endif %}
       </div>
