@@ -53,8 +53,10 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
     in_24h = now + timedelta(hours=24)
     lock_threshold = now + timedelta(minutes=10)
 
+    from live_preview import calc_live_preview
     live_scores = {int(k): v for k, v in get_live_scores().items()}
     live_ids = set(live_scores.keys())
+    live_preview = calc_live_preview() if live_ids else {}
 
     with get_session() as s:
         # ── Letztes abgeschlossenes Spiel ──────────────────────────────
@@ -106,7 +108,10 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
                 _ = m.home_team, m.away_team
                 d = _fmt_match(m, DISPLAY_TIMEZONE)
                 d["live"] = live_scores.get(m.id)
-                d["pred"] = live_preds.get(m.id)
+                pred = live_preds.get(m.id)
+                if pred is not None:
+                    pred["live_points"] = live_preview.get(m.id, {}).get(user["id"], 0)
+                d["pred"] = pred
                 live_matches.append(d)
 
         # ── Nächstes Spiel (nicht live) ────────────────────────────────

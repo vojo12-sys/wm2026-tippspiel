@@ -107,6 +107,9 @@
             {% if lm.pred %}
             <span class="text-muted small">Dein Tipp: </span>
             <span class="small fw-bold">{{ lm.pred.home }}:{{ lm.pred.away }}</span>
+            <span class="badge ms-2 text-white" style="background:#1E4E8C">
+              {{ lm.pred.live_points }} Pkt
+            </span>
             {% else %}
             <span class="text-muted small">Kein Tipp abgegeben</span>
             {% endif %}
