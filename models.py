@@ -67,6 +67,7 @@ class User(Base):
     predictions: Mapped[list["Prediction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     group_predictions: Mapped[list["GroupPrediction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     special_tip: Mapped["SpecialTip | None"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
+    visits: Mapped[list["UserVisit"]] = relationship(cascade="all, delete-orphan")
 
 
 # ---------------------------------------------------------------------------
