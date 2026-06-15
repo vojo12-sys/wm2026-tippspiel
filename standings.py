@@ -142,16 +142,20 @@ def compute_standings() -> list[Standing]:
                 tendency_count=tendency_c.get(u.id, 0),
             ))
 
-    # Sortierung: Punkte absteigend, dann Name (stabiler Tiebreak)
-    standings.sort(key=lambda s: (-s.total_points, s.display_name.lower()))
+    # Sortierung: Punkte → Exakte Tipps → Tordifferenz → Tendenz → Name
+    standings.sort(key=lambda s: (
+        -s.total_points, -s.exact_count, -s.goal_diff_count, -s.tendency_count,
+        s.display_name.lower()
+    ))
 
-    # Ränge mit gleicher Platzierung bei Punktgleichheit ("competition ranking")
-    last_points = None
+    # Gleicher Rang nur wenn alle Kriterien identisch sind
+    last_key = None
     last_rank = 0
     for i, st in enumerate(standings, start=1):
-        if st.total_points != last_points:
+        key = (st.total_points, st.exact_count, st.goal_diff_count, st.tendency_count)
+        if key != last_key:
             last_rank = i
-            last_points = st.total_points
+            last_key = key
         st.rank = last_rank
 
     # Vorherige Ränge aus Snapshot laden
