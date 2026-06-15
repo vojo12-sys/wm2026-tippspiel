@@ -67,7 +67,7 @@ _MONTHS_DE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","S
 @router.get("/")
 async def index(request: Request):
     if request.session.get("user"):
-        return RedirectResponse("/tipps", status_code=302)
+        return RedirectResponse("/home", status_code=302)
 
     from datetime import datetime, timezone as _tz
     from sqlalchemy import select as _sel
@@ -106,7 +106,7 @@ async def index(request: Request):
 @router.get("/login")
 async def login_get(request: Request):
     if request.session.get("user"):
-        return RedirectResponse("/tipps", status_code=302)
+        return RedirectResponse("/home", status_code=302)
     return templates.TemplateResponse(request, "login.html", {
         "flash": _get_flash(request), "user": None,
     })
@@ -132,14 +132,15 @@ async def login_post(
         "id": u.id,
         "display_name": u.display_name,
         "is_admin": u.is_admin,
+        "is_spectator": u.is_spectator,
     }
-    return RedirectResponse("/tipps", status_code=303)
+    return RedirectResponse("/home", status_code=303)
 
 
 @router.get("/register")
 async def register_get(request: Request):
     if request.session.get("user"):
-        return RedirectResponse("/tipps", status_code=302)
+        return RedirectResponse("/home", status_code=302)
     return templates.TemplateResponse(request, "register.html", {
         "flash": _get_flash(request), "user": None,
     })
@@ -152,6 +153,7 @@ async def register_post(
     display_name: str = Form(...),
     password: str = Form(...),
     password2: str = Form(...),
+    is_spectator: str = Form(default=""),
 ):
     if password != password2:
         _flash(request, "Passwörter stimmen nicht überein.")
@@ -159,11 +161,21 @@ async def register_post(
     if len(password) < 6:
         _flash(request, "Passwort muss mindestens 6 Zeichen lang sein.")
         return RedirectResponse("/register", status_code=303)
+    uname  = username.strip()
+    dname  = display_name.strip() or uname
+    spec   = bool(is_spectator)
     try:
-        create_user(username.strip(), display_name.strip() or username.strip(), password)
+        create_user(uname, dname, password, is_spectator=spec)
     except ValueError as e:
         _flash(request, str(e))
         return RedirectResponse("/register", status_code=303)
+
+    try:
+        from email_service import send_registration_notification
+        send_registration_notification(uname, dname, is_spectator=spec)
+    except Exception:
+        pass  # E-Mail-Fehler darf Registrierung nicht blockieren
+
     _flash(request, "Konto erstellt – bitte einloggen.", "success")
     return RedirectResponse("/login", status_code=303)
 

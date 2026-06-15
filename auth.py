@@ -41,7 +41,7 @@ def verify_password(password: str, stored: str) -> bool:
 
 
 def create_user(username: str, display_name: str, password: str,
-                *, is_admin: bool = False) -> int:
+                *, is_admin: bool = False, is_spectator: bool = False) -> int:
     """Legt einen Teilnehmer an und gibt dessen ID zurück."""
     with get_session() as s:
         if s.scalar(select(User).where(User.username == username)):
@@ -51,6 +51,7 @@ def create_user(username: str, display_name: str, password: str,
             display_name=display_name,
             password_hash=hash_password(password),
             is_admin=is_admin,
+            is_spectator=is_spectator,
         )
         s.add(u)
         s.flush()

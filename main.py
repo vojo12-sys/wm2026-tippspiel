@@ -19,6 +19,8 @@ scheduler = BackgroundScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    scheduler_started = False
+
     if os.environ.get("FOOTBALL_API_KEY"):
         from results_sync import sync_results
         try:
@@ -27,8 +29,24 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning("Initialer Sync fehlgeschlagen: %s", e)
         scheduler.add_job(sync_results, "interval", minutes=5, id="results_sync")
+        scheduler_started = True
+
+    if os.environ.get("GMAIL_APP_PASSWORD"):
+        from email_service import send_leaderboard_email
+        from config import DISPLAY_TIMEZONE
+        scheduler.add_job(
+            send_leaderboard_email,
+            "cron",
+            hour=7, minute=0,
+            timezone=DISPLAY_TIMEZONE,
+            id="leaderboard_email",
+        )
+        logger.info("Leaderboard-E-Mail täglich um 07:00 Uhr geplant")
+        scheduler_started = True
+
+    if scheduler_started:
         scheduler.start()
-        logger.info("Ergebnis-Sync gestartet (alle 5 Minuten)")
+
     yield
     if scheduler.running:
         scheduler.shutdown()
@@ -52,7 +70,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 from fastapi.responses import JSONResponse
 
-from routes import auth, tipps, langfrist, spielplan, leaderboard, admin, regeln, uebersicht, torschuetzen, stats, profil, teams
+from routes import auth, home, tipps, langfrist, spielplan, leaderboard, admin, regeln, uebersicht, torschuetzen, stats, profil, teams
 
 
 @app.get("/api/live")
@@ -60,6 +78,7 @@ async def api_live():
     from results_sync import get_live_scores
     return JSONResponse(content={str(k): v for k, v in get_live_scores().items()})
 app.include_router(auth.router)
+app.include_router(home.router)
 app.include_router(tipps.router)
 app.include_router(langfrist.router)
 app.include_router(spielplan.router)

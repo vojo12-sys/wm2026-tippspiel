@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 
 from config import DISPLAY_TIMEZONE, PHASES, TOTAL_MATCHES
 from database import get_session
-from deps import require_user, templates
+from deps import require_non_spectator, require_user, templates
 from datetime import timezone
 from models import Match, Prediction, PredictionHistory, User
 
@@ -118,7 +118,7 @@ def _next_kickoff_iso() -> str | None:
 
 
 @router.get("/tipps")
-async def tipps_get(request: Request, user: dict = Depends(require_user)):
+async def tipps_get(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
     by_phase = _load_matches()
@@ -153,7 +153,7 @@ async def tipps_get(request: Request, user: dict = Depends(require_user)):
 
 
 @router.post("/tipps")
-async def tipps_post(request: Request, user: dict = Depends(require_user)):
+async def tipps_post(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
     form = await request.form()
@@ -218,7 +218,7 @@ async def tipps_post(request: Request, user: dict = Depends(require_user)):
 
 
 @router.post("/tipps/joker/{match_id}")
-async def set_joker(request: Request, match_id: int, user: dict = Depends(require_user)):
+async def set_joker(request: Request, match_id: int, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
     with get_session() as s:

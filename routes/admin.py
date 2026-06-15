@@ -177,6 +177,15 @@ async def toggle_admin(request: Request, user_id: int, user: dict = Depends(requ
     return RedirectResponse("/admin", status_code=303)
 
 
+@router.post("/user/{user_id}/toggle-spectator")
+async def toggle_spectator(request: Request, user_id: int, user: dict = Depends(require_admin)):
+    with get_session() as s:
+        u = s.get(User, user_id)
+        if u and u.id != user["id"]:
+            u.is_spectator = not u.is_spectator
+    return RedirectResponse("/admin", status_code=303)
+
+
 @router.post("/user/{user_id}/pool")
 async def update_pool_status(
     request: Request,

@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-1" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800">
+  Willkommen, {{ user.display_name }}!
+</h1>
+{% if user.is_spectator %}
+<p class="text-muted mb-4 small">Du schaust als Gast zu – viel Spaß beim Mitfiebern!</p>
+{% else %}
+<p class="text-muted mb-4 small">WM 2026 · Kanada · Mexiko · USA</p>
+{% endif %}
+
+<!-- ── Hero: Nächstes / Live-Spiel ─────────────────────────────── -->
+{% if upcoming %}
+{% set hero = upcoming[0] %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-3 p-md-4">
+    {% if hero.live %}
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <span class="badge" style="background:#dc3545;animation:livepulse 1.2s infinite">
+        ● LIVE{% if hero.live.status == 'PAUSED' %} HZ{% elif hero.live.minute %} {{ hero.live.minute }}'{% endif %}
+      </span>
+      <span class="text-muted small">Laufendes Spiel</span>
+    </div>
+    <div class="d-flex align-items-center justify-content-center gap-3 py-2">
+      <div class="text-center fw-bold" style="min-width:90px">
+        {% if hero.home_flag %}<img src="https://flagcdn.com/20x15/{{ hero.home_flag }}.png" class="me-1" alt="">{% endif %}
+        {{ hero.home }}
+      </div>
+      <div class="text-center fw-bold" style="font-size:1.8rem;min-width:80px;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
+        {{ hero.live.home }}:{{ hero.live.away }}
+      </div>
+      <div class="text-center fw-bold" style="min-width:90px">
+        {% if hero.away_flag %}<img src="https://flagcdn.com/20x15/{{ hero.away_flag }}.png" class="me-1" alt="">{% endif %}
+        {{ hero.away }}
+      </div>
+    </div>
+    {% else %}
+    <div class="text-muted small mb-2">Nächstes Spiel</div>
+    <div class="d-flex align-items-center justify-content-center gap-3 py-2">
+      <div class="text-center fw-bold" style="min-width:90px">
+        {% if hero.home_flag %}<img src="https://flagcdn.com/20x15/{{ hero.home_flag }}.png" class="me-1" alt="">{% endif %}
+        {{ hero.home }}
+      </div>
+      <div class="text-center" style="min-width:80px">
+        <div class="fw-bold" style="font-size:1.15rem">{{ hero.time_de }} Uhr</div>
+        <div class="text-muted small">{{ hero.date_de }}</div>
+      </div>
+      <div class="text-center fw-bold" style="min-width:90px">
+        {% if hero.away_flag %}<img src="https://flagcdn.com/20x15/{{ hero.away_flag }}.png" class="me-1" alt="">{% endif %}
+        {{ hero.away }}
+      </div>
+    </div>
+    <div class="text-center mt-2">
+      <span id="hero-countdown" class="badge bg-light text-dark border small" data-kickoff="{{ hero.kickoff_iso }}"></span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Persönliche Stats (nur Teilnehmer) ───────────────────────── -->
+{% if not user.is_spectator %}
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="text-muted small">Rang</div>
+      <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
+        {% if user_rank %}{{ user_rank }}.{% else %}–{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="text-muted small">Punkte</div>
+      <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
+        {{ user_points }}
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <a href="/tipps" class="text-decoration-none">
+      <div class="card border-0 shadow-sm text-center p-3 {% if open_tips > 0 %}border{% endif %}"
+           style="{% if open_tips > 0 %}border-color:#ffc107!important{% endif %}">
+        <div class="text-muted small">Offene Tipps</div>
+        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:{% if open_tips > 0 %}#c08a12{% else %}#1E4E8C{% endif %}">
+          {{ open_tips }}
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Leaderboard Top 5 ─────────────────────────────────────────── -->
+{% if top5 %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header border-0 bg-transparent d-flex justify-content-between align-items-center pt-3 pb-0">
+    <span class="fw-bold" style="font-family:'Bricolage Grotesque',sans-serif">
+      <i class="bi bi-bar-chart me-2" style="color:var(--accent-dk)"></i>Leaderboard – Top 5
+    </span>
+    <a href="/leaderboard" class="small text-muted">Alle anzeigen →</a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <tbody>
+        {% for row in top5 %}
+        <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
+          <td class="ps-3" style="width:40px">
+            {% if row.rank == 1 %}<span class="rank-1 fw-bold">1.</span>
+            {% elif row.rank == 2 %}<span class="rank-2 fw-bold">2.</span>
+            {% elif row.rank == 3 %}<span class="rank-3 fw-bold">3.</span>
+            {% else %}<span class="text-muted">{{ row.rank }}.</span>{% endif %}
+          </td>
+          <td>
+            {{ row.display_name }}
+            {% if row.user_id == user.id %}<span class="badge ms-1" style="background:var(--accent);font-size:.6rem">Du</span>{% endif %}
+          </td>
+          <td class="text-end pe-3 fw-bold" style="color:#1E4E8C">{{ row.total_points }} Pkt</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Nächste Spiele ────────────────────────────────────────────── -->
+{% set rest = upcoming[1:] %}
+{% if rest %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header border-0 bg-transparent pt-3 pb-0">
+    <span class="fw-bold" style="font-family:'Bricolage Grotesque',sans-serif">
+      <i class="bi bi-calendar3 me-2" style="color:var(--accent-dk)"></i>Nächste Spiele
+    </span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <tbody>
+        {% for m in rest %}
+        <tr>
+          <td class="ps-3 text-muted small" style="width:120px;vertical-align:middle">
+            {{ m.date_de }}<br>{{ m.time_de }} Uhr
+          </td>
+          <td style="vertical-align:middle">
+            {% if m.home_flag %}<img src="https://flagcdn.com/16x12/{{ m.home_flag }}.png" alt="">{% endif %}
+            {{ m.home }}
+          </td>
+          <td class="text-muted text-center px-1" style="width:20px;vertical-align:middle">–</td>
+          <td style="vertical-align:middle">
+            {% if m.away_flag %}<img src="https://flagcdn.com/16x12/{{ m.away_flag }}.png" alt="">{% endif %}
+            {{ m.away }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Schnellzugriff ────────────────────────────────────────────── -->
+<div class="mb-4">
+  <div class="fw-bold mb-2" style="font-family:'Bricolage Grotesque',sans-serif">
+    <i class="bi bi-grid me-2" style="color:var(--accent-dk)"></i>Schnellzugriff
+  </div>
+  <div class="row g-2">
+    {% if not user.is_spectator %}
+    <div class="col-6 col-md-3">
+      <a href="/tipps" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-pencil-square me-2"></i>Tipps abgeben
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="/langfrist" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-trophy me-2"></i>Bonus Tipps
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="/stats" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-graph-up me-2"></i>Statistik
+      </a>
+    </div>
+    {% endif %}
+    <div class="col-6 col-md-3">
+      <a href="/spielplan" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-calendar3 me-2"></i>Spielplan
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="/leaderboard" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-bar-chart me-2"></i>Leaderboard
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="/teams" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-globe me-2"></i>Teams & Spielorte
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="/torschuetzen" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-person-badge me-2"></i>Torschützen
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="/regeln" class="btn btn-outline-secondary w-100 text-start">
+        <i class="bi bi-info-circle me-2"></i>Spielregeln
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── Spieltagesberichte (Platzhalter) ─────────────────────────── -->
+<div class="card border-0 shadow-sm" style="border:1px solid rgba(126,200,227,.3)!important">
+  <div class="card-body p-3 d-flex align-items-center gap-3">
+    <i class="bi bi-newspaper" style="font-size:1.6rem;color:var(--accent-dk)"></i>
+    <div>
+      <div class="fw-bold">
+        Spieltagesberichte
+        <span class="badge ms-1" style="background:var(--accent);font-size:.65rem;vertical-align:middle">Demnächst</span>
+      </div>
+      <div class="text-muted small">Zusammenfassungen der Spieltage mit Tipper-Analyse – bald verfügbar.</div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+
+<script>
+(function() {
+  const el = document.getElementById('hero-countdown');
+  if (!el) return;
+  const target = new Date(el.dataset.kickoff);
+  function update() {
+    const diff = target - new Date();
+    if (diff <= 0) { el.textContent = 'Gleich geht es los!'; return; }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    if (h > 48) {
+      const d = Math.floor(h / 24);
+      el.textContent = 'in ' + d + ' Tag' + (d > 1 ? 'en' : '');
+    } else if (h > 0) {
+      el.textContent = 'in ' + h + 'h ' + m + 'min';
+    } else {
+      el.textContent = 'in ' + m + ' Minuten';
+    }
+    setTimeout(update, 30000);
+  }
+  update();
+})();
+</script>
+{% endblock %}

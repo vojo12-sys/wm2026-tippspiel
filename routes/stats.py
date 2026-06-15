@@ -9,14 +9,14 @@ from sqlalchemy import select
 
 from config import DISPLAY_TIMEZONE, PHASES
 from database import get_session
-from deps import require_user, templates
+from deps import require_non_spectator, require_user, templates
 from models import Match, Prediction, PredictionHistory, User
 
 router = APIRouter()
 
 
 @router.get("/stats")
-async def stats_get(request: Request, user: dict = Depends(require_user)):
+async def stats_get(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
 

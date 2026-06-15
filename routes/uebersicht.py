@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from config import DISPLAY_TIMEZONE, PHASES, TOURNAMENT_START_UTC
 from database import get_session
-from deps import require_user, templates
+from deps import require_non_spectator, require_user, templates
 from models import GroupPrediction, GroupResult, Match, Prediction, SpecialTip, Team, TournamentResult, User
 
 router = APIRouter()
@@ -21,14 +21,14 @@ def _fmt(dt: datetime) -> str:
 
 
 @router.get("/uebersicht")
-async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
+async def uebersicht_get(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
 
     with get_session() as s:
 
         # ── Nutzer ──────────────────────────────────────────────────
-        users_raw = list(s.scalars(select(User).order_by(User.display_name)).all())
+        users_raw = list(s.scalars(select(User).where(User.is_spectator == False).order_by(User.display_name)).all())
         users = [{"id": int(u.id), "display_name": str(u.display_name), "in_pool": bool(u.in_pool)} for u in users_raw]
         uid_list = [u["id"] for u in users]
 

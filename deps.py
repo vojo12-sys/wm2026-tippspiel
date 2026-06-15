@@ -116,3 +116,17 @@ def require_admin(request: Request):
         from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Kein Zugriff")
     return user
+
+
+def require_non_spectator(request: Request):
+    """Wie require_user, aber blockiert Zuschauer-Accounts."""
+    user = require_user(request)
+    if isinstance(user, RedirectResponse):
+        return user
+    if user.get("is_spectator"):
+        request.session["flash"] = {
+            "message": "Diese Seite ist nur für Tipp-Teilnehmer verfügbar.",
+            "type": "warning",
+        }
+        return RedirectResponse("/home", status_code=302)
+    return user

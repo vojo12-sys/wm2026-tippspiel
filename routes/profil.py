@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from auth import hash_password, verify_password
 from database import get_session
-from deps import require_user, templates
+from deps import require_non_spectator, require_user, templates
 from models import User
 from settings import get_pool
 
@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 @router.get("/profil")
-async def profil_get(request: Request, user: dict = Depends(require_user)):
+async def profil_get(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
     pool = get_pool()
@@ -37,7 +37,7 @@ async def profil_get(request: Request, user: dict = Depends(require_user)):
 async def update_pool(
     request: Request,
     in_pool: bool = Form(False),
-    user: dict = Depends(require_user),
+    user: dict = Depends(require_non_spectator),
 ):
     if isinstance(user, RedirectResponse):
         return user
@@ -56,7 +56,7 @@ async def update_pool(
 async def toggle_behavior_stats(
     request: Request,
     show_behavior_stats: bool = Form(False),
-    user: dict = Depends(require_user),
+    user: dict = Depends(require_non_spectator),
 ):
     if isinstance(user, RedirectResponse):
         return user
@@ -75,7 +75,7 @@ async def change_password(
     old_password: str = Form(...),
     new_password: str = Form(...),
     new_password2: str = Form(...),
-    user: dict = Depends(require_user),
+    user: dict = Depends(require_non_spectator),
 ):
     if isinstance(user, RedirectResponse):
         return user

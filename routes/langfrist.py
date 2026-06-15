@@ -10,7 +10,7 @@ from config import DISPLAY_TIMEZONE, TOURNAMENT_START_UTC
 from data_players import dropdown_options, option_to_name
 from data_teams import GROUPS
 from database import get_session
-from deps import require_user, templates
+from deps import require_non_spectator, require_user, templates
 from models import GroupPrediction, SpecialTip, Team
 
 router = APIRouter()
@@ -39,7 +39,7 @@ def _teams_by_group() -> dict[str, list[Team]]:
 
 
 @router.get("/langfrist")
-async def langfrist_get(request: Request, user: dict = Depends(require_user)):
+async def langfrist_get(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
     locked = _is_locked()
@@ -67,7 +67,7 @@ async def langfrist_get(request: Request, user: dict = Depends(require_user)):
 
 
 @router.post("/langfrist")
-async def langfrist_post(request: Request, user: dict = Depends(require_user)):
+async def langfrist_post(request: Request, user: dict = Depends(require_non_spectator)):
     if isinstance(user, RedirectResponse):
         return user
     if _is_locked():

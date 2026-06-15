@@ -359,10 +359,10 @@
 
 </div>
 
-<p class="text-muted small mb-4"><span class="text-warning">●</span> nimmt am Geldtopf teil</p>
+{% if not user.is_spectator %}<p class="text-muted small mb-4"><span class="text-warning">●</span> nimmt am Geldtopf teil</p>{% endif %}
 
 <!-- Kasse -->
-{% if pool.enabled and pool.payers > 0 %}
+{% if pool.enabled and pool.payers > 0 and not user.is_spectator %}
 <div class="card border-0 shadow-sm" style="border-color:rgba(192,138,18,.3)!important">
   <div class="card-body">
     <h5 style="color:var(--gold)">Kasse</h5>

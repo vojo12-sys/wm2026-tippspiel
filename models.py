@@ -44,6 +44,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String(80), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_spectator: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="0")
 
     # --- Kasse / Geld-Pool (freiwillig) ---
     # Joker: verdoppelt die Punkte für ein Spiel (einmalig, unwiderruflich)

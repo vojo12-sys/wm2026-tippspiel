@@ -321,6 +321,12 @@
                       {{ 'Admin entfernen' if u.is_admin else 'Admin machen' }}
                     </button>
                   </form>
+                  <form method="post" action="/admin/user/{{ u.id }}/toggle-spectator" class="d-inline">
+                    <button class="btn btn-sm {% if u.is_spectator %}btn-info{% else %}btn-outline-info{% endif %}">
+                      <i class="bi bi-eye{% if not u.is_spectator %}-slash{% endif %}"></i>
+                      {{ 'Zuschauer' if u.is_spectator else 'Teilnehmer' }}
+                    </button>
+                  </form>
                   <button class="btn btn-outline-warning btn-sm" type="button"
                           data-bs-toggle="collapse" data-bs-target="#pw-reset-{{ u.id }}">
                     <i class="bi bi-key"></i> Passwort

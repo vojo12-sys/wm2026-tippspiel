@@ -47,7 +47,7 @@ class Standing:
 def compute_standings() -> list[Standing]:
     """Liefert die Gesamtrangliste, absteigend nach Punkten."""
     with get_session() as session:
-        users = session.scalars(select(User)).all()
+        users = session.scalars(select(User).where(User.is_spectator == False)).all()
 
         # Spiel-Tipp-Punkte je Nutzer und Phase – nur abgeschlossene Spiele
         from models import Match

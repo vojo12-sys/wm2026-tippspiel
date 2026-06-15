@@ -34,6 +34,14 @@
             <label class="form-label fw-semibold">Passwort wiederholen</label>
             <input type="password" name="password2" class="form-control" required minlength="6" autocomplete="new-password">
           </div>
+          <div class="mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_spectator" id="isSpectator" value="1">
+              <label class="form-check-label" for="isSpectator">
+                Ich möchte nur zuschauen <span class="text-muted small">(keine Tipp-Teilnahme)</span>
+              </label>
+            </div>
+          </div>
           <button type="submit" class="btn btn-accent w-100">Konto erstellen</button>
         </form>
       </div>
