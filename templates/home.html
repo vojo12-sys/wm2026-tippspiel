@@ -160,7 +160,7 @@
             <span class="text-muted small">Dein Tipp: </span>
             <span class="small fw-bold">{{ next_pred.home }}:{{ next_pred.away }}</span>
             {% else %}
-            <span class="text-muted small">Kein Tipp abgegeben</span>
+            <a href="/tipps" class="small" style="color:#c08a12;font-weight:600">Jetzt tippen →</a>
             {% endif %}
           {% endif %}
         </div>
@@ -193,12 +193,12 @@
   <div class="col-4">
     {% if open_tips_24h > 0 %}
     <a href="/tipps" class="text-decoration-none">
-      <div class="card border-0 shadow-sm text-center p-3 h-100" style="border:1px solid #ffc107!important">
+      <div class="card border-0 shadow-sm text-center p-3 h-100 open-tips-pulse" style="border:1px solid rgba(220,53,69,.5)!important">
         <div class="text-muted small">Offene Tipps</div>
-        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#c08a12">
+        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
           {{ open_tips_24h }}
         </div>
-        <div class="small" style="color:#c08a12;font-size:.7rem">in den nächsten 24 Std</div>
+        <div class="small" style="color:#dc3545;font-size:.7rem">in den nächsten 24 Std</div>
       </div>
     </a>
     {% else %}
@@ -362,6 +362,8 @@
 
 <style>
 @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes tipspulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.0)} 50%{box-shadow:0 0 0 6px rgba(220,53,69,.25)} }
+.open-tips-pulse { animation: tipspulse 2s ease-in-out infinite; }
 </style>
 
 <script>
