@@ -111,6 +111,7 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
 
         # ── Nächstes Spiel (nicht live) ────────────────────────────────
         next_match = None
+        next_pred = None
         next_raw = s.scalar(
             select(Match)
             .where(Match.kickoff_utc > now, Match.is_finished == False,
@@ -121,6 +122,15 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
         if next_raw:
             _ = next_raw.home_team, next_raw.away_team
             next_match = _fmt_match(next_raw, DISPLAY_TIMEZONE)
+            if not user.get("is_spectator"):
+                p = s.scalar(
+                    select(Prediction).where(
+                        Prediction.user_id == user["id"],
+                        Prediction.match_id == next_raw.id,
+                    )
+                )
+                if p:
+                    next_pred = {"home": p.pred_home, "away": p.pred_away}
 
         # ── Nächste Spiele (Liste) ─────────────────────────────────────
         upcoming_raw = list(s.scalars(
@@ -178,6 +188,7 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
         "last_pred": last_pred,
         "live_matches": live_matches,
         "next_match": next_match,
+        "next_pred": next_pred,
         "upcoming": upcoming,
         "top5": top5,
         "user_rank": user_rank,

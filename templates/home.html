@@ -138,6 +138,16 @@
             {{ next_match.away }}
           </div>
         </div>
+        {% if next_pred and not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <span class="text-muted small">Dein Tipp: </span>
+          <span class="small fw-bold">{{ next_pred.home }}:{{ next_pred.away }}</span>
+        </div>
+        {% elif not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <span class="text-muted small">Kein Tipp abgegeben</span>
+        </div>
+        {% endif %}
         {% else %}
         <div class="d-flex flex-column align-items-center justify-content-center py-3 gap-1">
           <i class="bi bi-flag-fill text-muted" style="font-size:1.8rem;opacity:.4"></i>
