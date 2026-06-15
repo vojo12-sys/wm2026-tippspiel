@@ -184,6 +184,56 @@ def save_rank_snapshot(standings: list[Standing]) -> None:
             s.add(Setting(key="rank_snapshot", value=snapshot))
 
 
+def save_phase_rank_snapshot(phase: str, uid_rank: dict[int, int]) -> None:
+    key = f"rank_snapshot_{phase}"
+    value = json.dumps({str(uid): r for uid, r in uid_rank.items()})
+    with get_session() as s:
+        setting = s.get(Setting, key)
+        if setting:
+            setting.value = value
+        else:
+            s.add(Setting(key=key, value=value))
+
+
+def load_phase_rank_snapshot(phase: str) -> dict[int, int]:
+    key = f"rank_snapshot_{phase}"
+    with get_session() as s:
+        setting = s.get(Setting, key)
+        if setting:
+            try:
+                return {int(k): v for k, v in json.loads(setting.value).items()}
+            except Exception:
+                pass
+    return {}
+
+
+def _phase_ranks(standings: list[Standing], key_fn) -> dict[int, int]:
+    """Hilfsfunktion: sortiert Standings nach key_fn und gibt {user_id: rank} zurück."""
+    sorted_rows = sorted(standings, key=key_fn, reverse=True)
+    uid_rank: dict[int, int] = {}
+    last_pts, last_rank = None, 0
+    for i, st in enumerate(sorted_rows, 1):
+        pts = key_fn(st)
+        if pts != last_pts:
+            last_rank = i
+            last_pts = pts
+        uid_rank[st.user_id] = last_rank
+    return uid_rank
+
+
+def save_all_rank_snapshots() -> None:
+    """Speichert Gesamt- und Phasen-Rangsnapshots vor einem Ergebnis-Sync."""
+    standings = compute_standings()
+    save_rank_snapshot(standings)
+
+    _KO = ("round32", "round16", "quarter", "semi", "third_place", "final")
+    save_phase_rank_snapshot("st1",   _phase_ranks(standings, lambda s: s.phase_points.get("st1", 0)))
+    save_phase_rank_snapshot("st2",   _phase_ranks(standings, lambda s: s.phase_points.get("st2", 0)))
+    save_phase_rank_snapshot("st3",   _phase_ranks(standings, lambda s: s.phase_points.get("st3", 0)))
+    save_phase_rank_snapshot("group", _phase_ranks(standings, lambda s: s.phase_points.get("st1", 0) + s.phase_points.get("st2", 0) + s.phase_points.get("st3", 0)))
+    save_phase_rank_snapshot("ko",    _phase_ranks(standings, lambda s: sum(s.phase_points.get(k, 0) for k in _KO)))
+
+
 # ---------------------------------------------------------------------------
 # Kasse / Topf-Auszahlung
 # ---------------------------------------------------------------------------

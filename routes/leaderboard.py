@@ -9,7 +9,7 @@ from deps import require_user, templates
 from models import Match, Prediction, TopScorer, User
 from live_preview import calc_live_preview
 from settings import get_scoring
-from standings import compute_pool, compute_standings
+from standings import compute_pool, compute_standings, load_phase_rank_snapshot
 
 router = APIRouter()
 
@@ -192,6 +192,14 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
     rows_st2   = sorted(rows, key=lambda r: _base(r, "st2"), reverse=True)
     rows_st3   = sorted(rows, key=lambda r: _base(r, "st3"), reverse=True)
 
+    phase_prev_ranks = {
+        "st1":   load_phase_rank_snapshot("st1"),
+        "st2":   load_phase_rank_snapshot("st2"),
+        "st3":   load_phase_rank_snapshot("st3"),
+        "group": load_phase_rank_snapshot("group"),
+        "ko":    load_phase_rank_snapshot("ko"),
+    }
+
     return templates.TemplateResponse(request, "leaderboard.html", {
         "user": user, "active": "leaderboard",
         "rows": rows,
@@ -209,5 +217,6 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         "phase_counts": phase_counts,
         "pool": pool,
         "top5": top5,
+        "phase_prev_ranks": phase_prev_ranks,
         "flash": request.session.pop("flash", None),
     })
