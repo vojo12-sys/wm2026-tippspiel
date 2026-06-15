@@ -9,54 +9,136 @@
 <p class="text-muted mb-4 small">WM 2026 · Kanada · Mexiko · USA</p>
 {% endif %}
 
-<!-- ── Hero: Nächstes / Live-Spiel ─────────────────────────────── -->
-{% if upcoming %}
-{% set hero = upcoming[0] %}
-<div class="card border-0 shadow-sm mb-4">
-  <div class="card-body p-3 p-md-4">
-    {% if hero.live %}
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <span class="badge" style="background:#dc3545;animation:livepulse 1.2s infinite">
-        ● LIVE{% if hero.live.status == 'PAUSED' %} HZ{% elif hero.live.minute %} {{ hero.live.minute }}'{% endif %}
-      </span>
-      <span class="text-muted small">Laufendes Spiel</span>
+<!-- ── Drei-Block-Hero ──────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+
+  <!-- Letztes Spiel -->
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-3">
+        <div class="text-muted small mb-2">
+          <i class="bi bi-check2-circle me-1"></i>Letztes Spiel
+        </div>
+        {% if last_match %}
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <div class="text-center fw-bold small" style="min-width:70px">
+            {% if last_match.home_flag %}<img src="https://flagcdn.com/20x15/{{ last_match.home_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
+            {{ last_match.home }}
+          </div>
+          <div class="text-center flex-shrink-0">
+            <div class="fw-bold" style="font-size:1.5rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
+              {{ last_match.result_home }}:{{ last_match.result_away }}
+              {% if last_match.went_to_penalties %}<small class="text-muted" style="font-size:.7rem">n.E.</small>{% endif %}
+            </div>
+            <div class="text-muted" style="font-size:.7rem">{{ last_match.date_de }}</div>
+          </div>
+          <div class="text-center fw-bold small" style="min-width:70px">
+            {% if last_match.away_flag %}<img src="https://flagcdn.com/20x15/{{ last_match.away_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
+            {{ last_match.away }}
+          </div>
+        </div>
+        {% if last_pred and not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <span class="text-muted small">Dein Tipp: </span>
+          <span class="small fw-bold">{{ last_pred.home }}:{{ last_pred.away }}</span>
+          <span class="badge ms-2 {% if last_pred.points > 0 %}text-white{% else %}text-muted{% endif %}"
+                style="background:{% if last_pred.points > 0 %}#1E4E8C{% else %}#e9ecef{% endif %}">
+            {{ last_pred.points }} Pkt
+          </span>
+        </div>
+        {% elif not user.is_spectator %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <span class="text-muted small">Kein Tipp abgegeben</span>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-muted small text-center py-3">Noch keine Spiele gespielt</div>
+        {% endif %}
+      </div>
     </div>
-    <div class="d-flex align-items-center justify-content-center gap-3 py-2">
-      <div class="text-center fw-bold" style="min-width:90px">
-        {% if hero.home_flag %}<img src="https://flagcdn.com/20x15/{{ hero.home_flag }}.png" class="me-1" alt="">{% endif %}
-        {{ hero.home }}
-      </div>
-      <div class="text-center fw-bold" style="font-size:1.8rem;min-width:80px;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
-        {{ hero.live.home }}:{{ hero.live.away }}
-      </div>
-      <div class="text-center fw-bold" style="min-width:90px">
-        {% if hero.away_flag %}<img src="https://flagcdn.com/20x15/{{ hero.away_flag }}.png" class="me-1" alt="">{% endif %}
-        {{ hero.away }}
-      </div>
-    </div>
-    {% else %}
-    <div class="text-muted small mb-2">Nächstes Spiel</div>
-    <div class="d-flex align-items-center justify-content-center gap-3 py-2">
-      <div class="text-center fw-bold" style="min-width:90px">
-        {% if hero.home_flag %}<img src="https://flagcdn.com/20x15/{{ hero.home_flag }}.png" class="me-1" alt="">{% endif %}
-        {{ hero.home }}
-      </div>
-      <div class="text-center" style="min-width:80px">
-        <div class="fw-bold" style="font-size:1.15rem">{{ hero.time_de }} Uhr</div>
-        <div class="text-muted small">{{ hero.date_de }}</div>
-      </div>
-      <div class="text-center fw-bold" style="min-width:90px">
-        {% if hero.away_flag %}<img src="https://flagcdn.com/20x15/{{ hero.away_flag }}.png" class="me-1" alt="">{% endif %}
-        {{ hero.away }}
-      </div>
-    </div>
-    <div class="text-center mt-2">
-      <span id="hero-countdown" class="badge bg-light text-dark border small" data-kickoff="{{ hero.kickoff_iso }}"></span>
-    </div>
-    {% endif %}
   </div>
+
+  <!-- Live / Kein Spiel -->
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-3">
+        {% if live_matches %}
+        {% set lm = live_matches[0] %}
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge" style="background:#dc3545;animation:livepulse 1.2s infinite">
+            ● LIVE{% if lm.live.status == 'PAUSED' %} HZ{% elif lm.live.minute %} {{ lm.live.minute }}'{% endif %}
+          </span>
+          <span class="text-muted small">Laufendes Spiel</span>
+          {% if live_matches|length > 1 %}
+          <span class="text-muted small">({{ live_matches|length }} Spiele)</span>
+          {% endif %}
+        </div>
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <div class="text-center fw-bold small" style="min-width:70px">
+            {% if lm.home_flag %}<img src="https://flagcdn.com/20x15/{{ lm.home_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
+            {{ lm.home }}
+          </div>
+          <div class="text-center fw-bold flex-shrink-0" style="font-size:1.8rem;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
+            {{ lm.live.home }}:{{ lm.live.away }}
+          </div>
+          <div class="text-center fw-bold small" style="min-width:70px">
+            {% if lm.away_flag %}<img src="https://flagcdn.com/20x15/{{ lm.away_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
+            {{ lm.away }}
+          </div>
+        </div>
+        {% if live_matches|length > 1 %}
+        <div class="text-center mt-2 pt-2 border-top">
+          <a href="/spielplan" class="small text-muted">Alle laufenden Spiele →</a>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-muted small mb-2">
+          <i class="bi bi-broadcast me-1"></i>Live
+        </div>
+        <div class="d-flex flex-column align-items-center justify-content-center py-3 gap-1">
+          <i class="bi bi-moon-stars text-muted" style="font-size:1.8rem;opacity:.4"></i>
+          <span class="text-muted small mt-1">Derzeit kein Spiel</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Nächstes Spiel -->
+  <div class="col-12 col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-3">
+        <div class="text-muted small mb-2">
+          <i class="bi bi-calendar-event me-1"></i>Nächstes Spiel
+        </div>
+        {% if next_match %}
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <div class="text-center fw-bold small" style="min-width:70px">
+            {% if next_match.home_flag %}<img src="https://flagcdn.com/20x15/{{ next_match.home_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
+            {{ next_match.home }}
+          </div>
+          <div class="text-center flex-shrink-0">
+            <div class="fw-bold" style="font-size:1.15rem">{{ next_match.time_de }} Uhr</div>
+            <div class="text-muted small">{{ next_match.date_de }}</div>
+            <div id="hero-countdown" class="badge bg-light text-dark border mt-1" style="font-size:.7rem"
+                 data-kickoff="{{ next_match.kickoff_iso }}"></div>
+          </div>
+          <div class="text-center fw-bold small" style="min-width:70px">
+            {% if next_match.away_flag %}<img src="https://flagcdn.com/20x15/{{ next_match.away_flag }}.png" class="d-block mx-auto mb-1" alt="">{% endif %}
+            {{ next_match.away }}
+          </div>
+        </div>
+        {% else %}
+        <div class="d-flex flex-column align-items-center justify-content-center py-3 gap-1">
+          <i class="bi bi-flag-fill text-muted" style="font-size:1.8rem;opacity:.4"></i>
+          <span class="text-muted small mt-1">Kein weiteres Spiel</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
 </div>
-{% endif %}
 
 <!-- ── Persönliche Stats (nur Teilnehmer) ───────────────────────── -->
 {% if not user.is_spectator %}
@@ -78,17 +160,41 @@
     </div>
   </div>
   <div class="col-4">
+    {% if open_tips_24h > 0 %}
     <a href="/tipps" class="text-decoration-none">
-      <div class="card border-0 shadow-sm text-center p-3 {% if open_tips > 0 %}border{% endif %}"
-           style="{% if open_tips > 0 %}border-color:#ffc107!important{% endif %}">
+      <div class="card border-0 shadow-sm text-center p-3" style="border:1px solid #ffc107!important">
         <div class="text-muted small">Offene Tipps</div>
-        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:{% if open_tips > 0 %}#c08a12{% else %}#1E4E8C{% endif %}">
-          {{ open_tips }}
+        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#c08a12">
+          {{ open_tips_24h }}
         </div>
+        <div class="small" style="color:#c08a12;font-size:.7rem">in den nächsten 24 Std</div>
       </div>
     </a>
+    {% else %}
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="text-muted small">Offene Tipps</div>
+      <div class="fw-bold" style="font-size:1rem;color:#1E4E8C;margin-top:.3rem">
+        <i class="bi bi-check2-all"></i>
+      </div>
+      <div class="text-muted" style="font-size:.7rem">Keine in 24 Std</div>
+    </div>
+    {% endif %}
   </div>
 </div>
+
+<!-- Erinnerungshinweis falls offene Tipps -->
+{% if open_tips_24h > 0 %}
+<div class="alert d-flex align-items-center gap-2 mb-4 py-2"
+     style="background:rgba(255,193,7,.12);border:1px solid rgba(192,138,18,.3);border-radius:8px">
+  <i class="bi bi-exclamation-triangle-fill" style="color:#c08a12;flex-shrink:0"></i>
+  <span class="small">
+    <strong>Nicht vergessen:</strong>
+    Du hast {{ open_tips_24h }} offene{% if open_tips_24h == 1 %}n Tipp{% else %} Tipps{% endif %}
+    für Spiele in den nächsten 24 Stunden.
+    <a href="/tipps" style="color:#c08a12">Jetzt tippen →</a>
+  </span>
+</div>
+{% endif %}
 {% endif %}
 
 <!-- ── Leaderboard Top 5 ─────────────────────────────────────────── -->
@@ -241,7 +347,7 @@
       const d = Math.floor(h / 24);
       el.textContent = 'in ' + d + ' Tag' + (d > 1 ? 'en' : '');
     } else if (h > 0) {
-      el.textContent = 'in ' + h + 'h ' + m + 'min';
+      el.textContent = 'in ' + h + 'h ' + m + 'min';
     } else {
       el.textContent = 'in ' + m + ' Minuten';
     }
