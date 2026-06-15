@@ -53,8 +53,8 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
     in_24h = now + timedelta(hours=24)
     lock_threshold = now + timedelta(minutes=10)
 
-    live_scores = get_live_scores()
-    live_ids = set(int(k) for k in live_scores)
+    live_scores = {int(k): v for k, v in get_live_scores().items()}
+    live_ids = set(live_scores.keys())
 
     with get_session() as s:
         # ── Letztes abgeschlossenes Spiel ──────────────────────────────
@@ -105,7 +105,7 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
             for m in live_raw:
                 _ = m.home_team, m.away_team
                 d = _fmt_match(m, DISPLAY_TIMEZONE)
-                d["live"] = live_scores.get(str(m.id))
+                d["live"] = live_scores.get(m.id)
                 d["pred"] = live_preds.get(m.id)
                 live_matches.append(d)
 
