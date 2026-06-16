@@ -556,6 +556,21 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
             .order_by(func.count(UserVisit.id).desc())
         ).all()
 
+        # Besuche pro User + Route
+        user_route_rows = s.execute(
+            select(UserVisit.user_id, UserVisit.route, func.count(UserVisit.id).label("cnt"))
+            .group_by(UserVisit.user_id, UserVisit.route)
+        ).all()
+        # user_id → name
+        uid_to_name = {u2.id: u2.display_name for u2 in all_users}
+        # {user_name: {route: count}}
+        user_route_matrix: dict[str, dict[str, int]] = {}
+        for uid, route, cnt in user_route_rows:
+            uname = uid_to_name.get(uid, f"User {uid}")
+            user_route_matrix.setdefault(uname, {})[route] = cnt
+        # Sortierte Routen-Liste (nach Gesamtzahl desc)
+        all_routes = [r for r, _ in route_counts]
+
         # Besuche nach Wochentag (0=Mo … 6=So)
         all_visits = list(s.scalars(select(UserVisit).order_by(UserVisit.visited_at)).all())
 
@@ -590,6 +605,7 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
         easiest = list(reversed(match_difficulty[-5:]))
 
     # Besuche nach Stunde (Lokalzeit)
+    from datetime import datetime, timezone, timedelta, date
     hour_counts = [0] * 24
     weekday_counts = [0] * 7
     visits_by_day: dict[str, int] = defaultdict(int)
@@ -602,9 +618,10 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
             visits_by_day[local.strftime("%Y-%m-%d")] += 1
 
     # Besuche 11.06.2026 – 21.07.2026 für Chart
-    from datetime import datetime, timezone, timedelta, date
     start_date = date(2026, 6, 11)
     end_date = date(2026, 7, 21)
+    today = datetime.now(DISPLAY_TIMEZONE).date()
+    today_visits = visits_by_day.get(today.isoformat(), 0)
     total_days = (end_date - start_date).days + 1
     day_labels = [(start_date + timedelta(days=i)).isoformat() for i in range(total_days)]
     day_values = [visits_by_day.get(d, 0) for d in day_labels]
@@ -614,12 +631,15 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
         "user": user,
         "user_stats": user_stats,
         "route_counts": route_counts,
+        "user_route_matrix": user_route_matrix,
+        "all_routes": all_routes,
         "hour_counts": hour_counts,
         "weekday_counts": weekday_counts,
         "hardest": hardest,
         "easiest": easiest,
         "day_labels": day_labels_fmt,
         "day_values": day_values,
+        "today_visits": today_visits,
         "total_visits": len(all_visits),
         "flash": request.session.pop("flash", None),
     })

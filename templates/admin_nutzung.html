@@ -28,7 +28,7 @@
   </div>
   <div class="col-6 col-md-3">
     <div class="card border-0 shadow-sm text-center p-3">
-      <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ day_values[-1] }}</div>
+      <div class="fs-2 fw-bold" style="color:#1E4E8C">{{ today_visits }}</div>
       <div class="text-muted small">Besuche heute</div>
     </div>
   </div>
@@ -111,6 +111,54 @@
         </tr>
         {% endfor %}
         </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Besuche pro Nutzer und Seite -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="mb-3">Seitenbesuche pro Nutzer</h5>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle" style="font-size:.83rem">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            {% for route in all_routes %}
+            <th class="text-center text-nowrap px-2">{{ route }}</th>
+            {% endfor %}
+            <th class="text-center fw-bold">Gesamt</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for u in user_stats %}
+        {% set udata = user_route_matrix.get(u.name, {}) %}
+        <tr>
+          <td class="fw-semibold text-nowrap">{{ u.name }}</td>
+          {% for route in all_routes %}
+          {% set cnt = udata.get(route, 0) %}
+          <td class="text-center px-2">
+            {% if cnt > 0 %}
+            <span class="badge" style="background:rgba(30,78,140,.12);color:#1E4E8C;font-weight:600;min-width:28px">{{ cnt }}</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td class="text-center fw-bold">{{ u.visit_count }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+          <tr>
+            <td class="fw-semibold">Gesamt</td>
+            {% for route, cnt in route_counts %}
+            <td class="text-center fw-semibold">{{ cnt }}</td>
+            {% endfor %}
+            <td class="text-center fw-bold">{{ total_visits }}</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
