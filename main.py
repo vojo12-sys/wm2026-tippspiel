@@ -31,19 +31,6 @@ async def lifespan(app: FastAPI):
         scheduler.add_job(sync_results, "interval", minutes=5, id="results_sync")
         scheduler_started = True
 
-    if os.environ.get("GMAIL_APP_PASSWORD"):
-        from email_service import send_leaderboard_email
-        from config import DISPLAY_TIMEZONE
-        scheduler.add_job(
-            send_leaderboard_email,
-            "cron",
-            hour=7, minute=0,
-            timezone=DISPLAY_TIMEZONE,
-            id="leaderboard_email",
-        )
-        logger.info("Leaderboard-E-Mail täglich um 07:00 Uhr geplant")
-        scheduler_started = True
-
     if scheduler_started:
         scheduler.start()
 

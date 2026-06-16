@@ -12,14 +12,12 @@ from __future__ import annotations
 import logging
 import os
 import smtplib
-from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
 
 SENDER               = "hegne94@googlemail.com"
-RECIPIENTS_LEADERBOARD = ["d.kersting@lew-automotive.com", "w.heger@lew-automotive.com"]
 RECIPIENTS_REGISTER    = ["hegne@freenet.de"]
 SMTP_HOST            = "smtp.gmail.com"
 SMTP_PORT            = 587
@@ -82,48 +80,3 @@ def send_registration_notification(username: str, display_name: str,
     msg.attach(MIMEText(text, "plain", "utf-8"))
     msg.attach(MIMEText(html, "html",  "utf-8"))
     _send(msg, RECIPIENTS_REGISTER)
-
-
-def send_leaderboard_email() -> None:
-    """Erzeugt das Leaderboard-JPEG und verschickt es per E-Mail."""
-    try:
-        from leaderboard_image import generate_leaderboard_jpeg
-        jpeg_bytes = generate_leaderboard_jpeg()
-    except Exception as exc:
-        logger.error("Leaderboard-Bild konnte nicht erstellt werden: %s", exc)
-        return
-
-    from datetime import datetime, timezone
-    from config import DISPLAY_TIMEZONE
-    now_l = datetime.now(timezone.utc).astimezone(DISPLAY_TIMEZONE)
-    DAYS   = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"]
-    MONTHS = ["Januar","Februar","März","April","Mai","Juni",
-              "Juli","August","September","Oktober","November","Dezember"]
-    date_str = f"{DAYS[now_l.weekday()]}, {now_l.day}. {MONTHS[now_l.month-1]} {now_l.year}"
-
-    msg = MIMEMultipart("mixed")
-    msg["Subject"] = f"[WM 2026 Tippspiel] Leaderboard – {date_str}"
-    msg["From"]    = SENDER
-    msg["To"]      = ", ".join(RECIPIENTS)
-
-    html = f"""
-<html><body style="font-family:sans-serif;color:#16202b;">
-<h2 style="color:#1E4E8C;">WM 2026 Tippspiel – Tagesstand</h2>
-<p style="color:#828c96;">{date_str}</p>
-<img src="cid:leaderboard" alt="Leaderboard"
-     style="max-width:100%;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15);">
-<p style="margin-top:16px;">
-  <a href="https://wm2026-tippspiel-l9sj.onrender.com/leaderboard"
-     style="background:#1E4E8C;color:#fff;padding:8px 16px;border-radius:4px;
-            text-decoration:none;">Zum Leaderboard</a>
-</p>
-</body></html>"""
-
-    msg.attach(MIMEText(html, "html", "utf-8"))
-
-    img = MIMEImage(jpeg_bytes, "jpeg")
-    img.add_header("Content-ID", "<leaderboard>")
-    img.add_header("Content-Disposition", "inline", filename="leaderboard.jpg")
-    msg.attach(img)
-
-    _send(msg, RECIPIENTS_LEADERBOARD)
