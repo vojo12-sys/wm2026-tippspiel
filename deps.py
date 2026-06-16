@@ -83,19 +83,35 @@ _TRACKED_ROUTES = {"/tipps", "/langfrist", "/spielplan", "/leaderboard",
                    "/uebersicht", "/torschuetzen", "/stats", "/profil",
                    "/regeln", "/teams", "/"}
 
+_VISIT_DEDUP_MINUTES = 15  # Auto-Reload alle 90s soll nicht zählen
+
 def _log_visit(user_id: int, path: str) -> None:
     try:
         from database import get_session
         from models import User, UserVisit
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, timedelta
+        from sqlalchemy import select
         route = path.split("?")[0]
         if route not in _TRACKED_ROUTES:
             return
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(minutes=_VISIT_DEDUP_MINUTES)
         with get_session() as s:
+            # Letzten Besuch dieser Route für diesen User prüfen
+            last = s.scalar(
+                select(UserVisit.visited_at)
+                .where(UserVisit.user_id == user_id, UserVisit.route == route)
+                .order_by(UserVisit.visited_at.desc())
+                .limit(1)
+            )
+            if last is not None:
+                last_aware = last if last.tzinfo else last.replace(tzinfo=timezone.utc)
+                if last_aware >= cutoff:
+                    return  # zu kurz seit letztem Besuch → Auto-Reload, ignorieren
             s.add(UserVisit(user_id=user_id, route=route))
             u = s.get(User, user_id)
             if u:
-                u.last_seen = datetime.now(timezone.utc)
+                u.last_seen = now
                 u.visit_count = (u.visit_count or 0) + 1
     except Exception:
         pass
