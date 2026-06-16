@@ -81,7 +81,7 @@ def get_current_user(request: Request) -> dict | None:
 
 _TRACKED_ROUTES = {"/tipps", "/langfrist", "/spielplan", "/leaderboard",
                    "/uebersicht", "/torschuetzen", "/stats", "/profil",
-                   "/regeln", "/teams", "/"}
+                   "/regeln", "/teams", "/", "/home"}
 
 _VISIT_DEDUP_MINUTES = 15  # Auto-Reload alle 90s soll nicht zählen
 

@@ -1,5 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
+{% set ROUTE_LABELS = {
+  "/home": "Home",
+  "/": "Landing",
+  "/tipps": "Tipps",
+  "/langfrist": "Bonus",
+  "/spielplan": "Spielplan",
+  "/leaderboard": "Leaderboard",
+  "/uebersicht": "Übersicht",
+  "/torschuetzen": "Torschützen",
+  "/stats": "Stats",
+  "/profil": "Profil",
+  "/regeln": "Regeln",
+  "/teams": "Teams"
+} %}
 <div class="d-flex align-items-center justify-content-between mb-4">
   <h1 class="mb-0">Nutzungsstatistik</h1>
   <a href="/admin" class="btn btn-outline-secondary btn-sm">← Admin</a>
@@ -41,10 +55,10 @@
   </div>
 </div>
 
-<!-- Besuche letzte 14 Tage -->
+<!-- Besuche Gesamt -->
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
-    <h5 class="mb-3">Besuche letzte 14 Tage</h5>
+    <h5 class="mb-3">Besuche Gesamt</h5>
     <canvas id="visitsChart" style="max-height:200px"></canvas>
   </div>
 </div>
@@ -126,7 +140,7 @@
           <tr>
             <th>Name</th>
             {% for route in all_routes %}
-            <th class="text-center text-nowrap px-2">{{ route }}</th>
+            <th class="text-center text-nowrap px-2">{{ ROUTE_LABELS.get(route, route) }}</th>
             {% endfor %}
             <th class="text-center fw-bold">Gesamt</th>
           </tr>
@@ -172,7 +186,7 @@
         <h5 class="mb-3">Beliebteste Seiten</h5>
         {% for route, cnt in route_counts %}
         <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-          <span class="small">{{ route }}</span>
+          <span class="small">{{ ROUTE_LABELS.get(route, route) }}</span>
           <span class="badge" style="background:#1E4E8C">{{ cnt }}</span>
         </div>
         {% endfor %}
