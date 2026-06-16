@@ -568,8 +568,16 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
         for uid, route, cnt in user_route_rows:
             uname = uid_to_name.get(uid, f"User {uid}")
             user_route_matrix.setdefault(uname, {})[route] = cnt
-        # Sortierte Routen-Liste (nach Gesamtzahl desc)
-        all_routes = [r for r, _ in route_counts]
+        # Sortierte Routen-Liste (nach Gesamtzahl desc, dann alle bekannten Routen)
+        from deps import _TRACKED_ROUTES
+        route_cnt_map = {r: c for r, c in route_counts}
+        known_order = [r for r, _ in route_counts]
+        for r in sorted(_TRACKED_ROUTES):
+            if r not in route_cnt_map:
+                known_order.append(r)
+                route_cnt_map[r] = 0
+        all_routes = known_order
+        route_counts = [(r, route_cnt_map[r]) for r in all_routes]
 
         # Besuche nach Wochentag (0=Mo … 6=So)
         all_visits = list(s.scalars(select(UserVisit).order_by(UserVisit.visited_at)).all())
