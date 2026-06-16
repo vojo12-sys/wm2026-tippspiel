@@ -542,12 +542,15 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
             user_stats.append({
                 "name": u2.display_name,
                 "tips": tip_count,
-                "participation": round(tip_count / total_finished * 100) if total_finished else 0,
+                "participation": 0,  # wird nach sort() relativ zum Maximum gesetzt
                 "corrections": corr_count,
                 "last_seen": u2.last_seen,
                 "visit_count": u2.visit_count or 0,
             })
         user_stats.sort(key=lambda x: -x["visit_count"])
+        max_visits = max((u2["visit_count"] for u2 in user_stats), default=1) or 1
+        for u2 in user_stats:
+            u2["participation"] = round(u2["visit_count"] / max_visits * 100)
 
         # Seitenbesuche gesamt nach Route
         route_counts = s.execute(
