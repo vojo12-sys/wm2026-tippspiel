@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="mb-1" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800">
-  Willkommen, {{ user.display_name }}!
+<h1 class="mb-0" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:1.4rem">
+  Hallo, {{ user.display_name }}!
 </h1>
+<p class="text-muted mb-1 small">Willkommen auf deiner pers. Übersicht</p>
 {% if user.is_spectator %}
 <p class="text-muted mb-4 small">Du schaust als Gast zu – viel Spaß beim Mitfiebern!</p>
 {% else %}
