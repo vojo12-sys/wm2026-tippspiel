@@ -9,6 +9,63 @@
 <p class="text-muted mb-4 small">WM 2026 · Kanada · Mexiko · USA</p>
 {% endif %}
 
+<!-- ── Persönliche Stats (nur Teilnehmer) ───────────────────────── -->
+{% if not user.is_spectator %}
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    {% if open_tips_24h > 0 %}
+    <a href="/tipps" class="text-decoration-none">
+      <div class="card border-0 shadow-sm text-center p-3 h-100 open-tips-pulse" style="border:1px solid rgba(220,53,69,.5)!important">
+        <div class="text-muted small">Offene Tipps</div>
+        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
+          {{ open_tips_24h }}
+        </div>
+        <div class="small" style="color:#dc3545;font-size:.7rem">in den nächsten 24 Std</div>
+      </div>
+    </a>
+    {% else %}
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="text-muted small">Offene Tipps</div>
+      <div class="fw-bold" style="font-size:1rem;color:#1E4E8C;margin-top:.3rem">
+        <i class="bi bi-check2-all"></i>
+      </div>
+      <div class="text-muted" style="font-size:.7rem">Keine in 24 Std</div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="text-muted small">dein aktueller Rang</div>
+      <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
+        {% if user_rank %}{{ user_rank }}.{% else %}–{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 shadow-sm text-center p-3 h-100">
+      <div class="text-muted small">deine aktuellen Punkte</div>
+      <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
+        {{ user_points }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Erinnerungshinweis falls offene Tipps -->
+{% if open_tips_24h > 0 %}
+<div class="alert d-flex align-items-center gap-2 mb-4 py-2"
+     style="background:rgba(255,193,7,.12);border:1px solid rgba(192,138,18,.3);border-radius:8px">
+  <i class="bi bi-exclamation-triangle-fill" style="color:#c08a12;flex-shrink:0"></i>
+  <span class="small">
+    <strong>Nicht vergessen:</strong>
+    Du hast {{ open_tips_24h }} offene{% if open_tips_24h == 1 %}n Tipp{% else %} Tipps{% endif %}
+    für Spiele in den nächsten 24 Stunden.
+    <a href="/tipps" style="color:#c08a12">Jetzt tippen →</a>
+  </span>
+</div>
+{% endif %}
+{% endif %}
+
 <!-- ── Drei-Block-Hero ──────────────────────────────────────────────── -->
 {# Makro: einheitliche Karten-Struktur für alle drei Blöcke #}
 <div class="row g-3 mb-4">
@@ -171,63 +228,6 @@
 
 </div>
 
-<!-- ── Persönliche Stats (nur Teilnehmer) ───────────────────────── -->
-{% if not user.is_spectator %}
-<div class="row g-3 mb-4">
-  <div class="col-4">
-    <div class="card border-0 shadow-sm text-center p-3 h-100">
-      <div class="text-muted small">dein aktueller Rang</div>
-      <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
-        {% if user_rank %}{{ user_rank }}.{% else %}–{% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="col-4">
-    <div class="card border-0 shadow-sm text-center p-3 h-100">
-      <div class="text-muted small">deine aktuellen Punkte</div>
-      <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#1E4E8C">
-        {{ user_points }}
-      </div>
-    </div>
-  </div>
-  <div class="col-4">
-    {% if open_tips_24h > 0 %}
-    <a href="/tipps" class="text-decoration-none">
-      <div class="card border-0 shadow-sm text-center p-3 h-100 open-tips-pulse" style="border:1px solid rgba(220,53,69,.5)!important">
-        <div class="text-muted small">Offene Tipps</div>
-        <div class="fw-bold" style="font-size:1.6rem;font-family:'Bricolage Grotesque',sans-serif;color:#dc3545">
-          {{ open_tips_24h }}
-        </div>
-        <div class="small" style="color:#dc3545;font-size:.7rem">in den nächsten 24 Std</div>
-      </div>
-    </a>
-    {% else %}
-    <div class="card border-0 shadow-sm text-center p-3 h-100">
-      <div class="text-muted small">Offene Tipps</div>
-      <div class="fw-bold" style="font-size:1rem;color:#1E4E8C;margin-top:.3rem">
-        <i class="bi bi-check2-all"></i>
-      </div>
-      <div class="text-muted" style="font-size:.7rem">Keine in 24 Std</div>
-    </div>
-    {% endif %}
-  </div>
-</div>
-
-<!-- Erinnerungshinweis falls offene Tipps -->
-{% if open_tips_24h > 0 %}
-<div class="alert d-flex align-items-center gap-2 mb-4 py-2"
-     style="background:rgba(255,193,7,.12);border:1px solid rgba(192,138,18,.3);border-radius:8px">
-  <i class="bi bi-exclamation-triangle-fill" style="color:#c08a12;flex-shrink:0"></i>
-  <span class="small">
-    <strong>Nicht vergessen:</strong>
-    Du hast {{ open_tips_24h }} offene{% if open_tips_24h == 1 %}n Tipp{% else %} Tipps{% endif %}
-    für Spiele in den nächsten 24 Stunden.
-    <a href="/tipps" style="color:#c08a12">Jetzt tippen →</a>
-  </span>
-</div>
-{% endif %}
-{% endif %}
-
 <!-- ── Leaderboard Top 5 ─────────────────────────────────────────── -->
 {% if top5 %}
 <div class="card border-0 shadow-sm mb-4">
@@ -273,7 +273,7 @@
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
       <tbody>
-        {% for row in rows[:5] %}
+        {% for row in rows[:3] %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
           <td class="ps-3" style="width:40px">
             {% if loop.index == 1 %}<span class="rank-1 fw-bold">1.</span>
@@ -290,13 +290,13 @@
         {% endfor %}
       </tbody>
     </table>
-    {% if rows|length > 5 %}
+    {% if rows|length > 3 %}
     <div class="collapse" id="{{ collapse_id }}">
       <table class="table table-hover mb-0">
         <tbody>
-          {% for row in rows[5:] %}
+          {% for row in rows[3:] %}
           <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
-            <td class="ps-3" style="width:40px"><span class="text-muted">{{ loop.index + 5 }}.</span></td>
+            <td class="ps-3" style="width:40px"><span class="text-muted">{{ loop.index + 3 }}.</span></td>
             <td>
               {{ row.display_name }}
               {% if row.user_id == user.id %}<span class="badge ms-1" style="background:var(--accent);font-size:.6rem">Du</span>{% endif %}
@@ -315,8 +315,12 @@
 </div>
 {% endmacro %}
 
-{{ ranking_card("Längste Treffer-Serie", "bi-fire", streaks_max, none, "collapseStreakMax") }}
-{{ ranking_card("Aktuelle Serie", "bi-lightning-charge", streaks_current, none, "collapseStreakCurrent") }}
+{{ ranking_card("Längste Treffer-Serie", "bi-fire", streaks_max,
+  "Die meisten Spiele in Folge mit Punkten – über den gesamten Turnierverlauf.",
+  "collapseStreakMax") }}
+{{ ranking_card("Aktuelle Treffer-Serie", "bi-lightning-charge", streaks_current,
+  "Wie viele Spiele in Folge gibt es aktuell ohne Punkte-Aussetzer – bis zum letzten abgeschlossenen Spiel.",
+  "collapseStreakCurrent") }}
 {{ ranking_card("Längste Zeit auf Platz 1", "bi-trophy", positions_top,
   "Gezählt wird nach jedem einzelnen Spiel: wer zu diesem Zeitpunkt (nach Punktestand) auf Platz 1 lag.",
   "collapsePosTop") }}
