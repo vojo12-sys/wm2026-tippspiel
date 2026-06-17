@@ -34,12 +34,16 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         rows = copy.deepcopy(rows)
         for r in rows:
             r.total_points += live_user_pts.get(r.user_id, 0)
-        rows.sort(key=lambda r: (-r.total_points, r.display_name.lower()))
-        last_pts, last_rank = None, 0
+        rows.sort(key=lambda r: (
+            -r.total_points, -r.exact_count, -r.goal_diff_count, -r.tendency_count,
+            r.display_name.lower()
+        ))
+        last_key, last_rank = None, 0
         for i, r in enumerate(rows, 1):
-            if r.total_points != last_pts:
+            key = (r.total_points, r.exact_count, r.goal_diff_count, r.tendency_count)
+            if key != last_key:
                 last_rank = i
-                last_pts = r.total_points
+                last_key = key
             r.rank = last_rank
 
     with get_session() as s:
