@@ -347,3 +347,123 @@ def compute_pool(standings: list[Standing] | None = None) -> PoolSummary:
         i = j + 1
 
     return summary
+
+
+# ---------------------------------------------------------------------------
+# Treffer-Serien (über alle Nutzer) – für Homepage-Ranglisten
+# ---------------------------------------------------------------------------
+
+def compute_streak_rankings() -> list[dict]:
+    """Längste und aktuelle Treffer-Serie je Nutzer, inkl. dabei erzielter Punkte."""
+    from models import Match
+
+    with get_session() as session:
+        users = session.scalars(select(User).where(User.is_spectator == False)).all()
+        finished_ids = session.scalars(
+            select(Match.id).where(Match.is_finished.is_(True)).order_by(Match.kickoff_utc)
+        ).all()
+        rows = session.execute(
+            select(Prediction.user_id, Prediction.match_id, Prediction.points_awarded)
+            .where(Prediction.match_id.in_(finished_ids))
+        ).all() if finished_ids else []
+
+    pts_by_user_match: dict[int, dict[int, int]] = {}
+    for uid, mid, pts in rows:
+        pts_by_user_match.setdefault(uid, {})[mid] = pts or 0
+
+    result: list[dict] = []
+    for u in users:
+        user_pts = pts_by_user_match.get(u.id, {})
+        streak = max_streak = streak_pts = max_streak_pts = 0
+        for mid in finished_ids:
+            pts = user_pts.get(mid, 0)
+            if pts > 0:
+                streak += 1
+                streak_pts += pts
+                if streak > max_streak:
+                    max_streak = streak
+                    max_streak_pts = streak_pts
+            else:
+                streak = 0
+                streak_pts = 0
+        result.append({
+            "user_id": u.id,
+            "display_name": u.display_name,
+            "max_streak": max_streak,
+            "max_streak_pts": max_streak_pts,
+            "current_streak": streak,
+            "current_streak_pts": streak_pts,
+        })
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Positionsdauer: an wie vielen Spielen stand ein Nutzer (nach Tippstand zu
+# diesem Zeitpunkt) auf Platz 1 bzw. auf dem letzten Platz
+# ---------------------------------------------------------------------------
+
+def compute_position_durations() -> list[dict]:
+    """Zählt je Nutzer, nach wie vielen abgeschlossenen Spielen er (gemäß bis
+    dahin gesammelten Tipp-Punkten, gleiche Tie-Breaker wie die Rangliste)
+    auf Platz 1 bzw. auf dem letzten Platz lag. Bei Gleichstand zählt der
+    Spieltag für alle gleichplatzierten Nutzer."""
+    from models import Match
+
+    with get_session() as session:
+        users = session.scalars(select(User).where(User.is_spectator == False)).all()
+        finished = session.scalars(
+            select(Match).where(Match.is_finished.is_(True)).order_by(Match.kickoff_utc)
+        ).all()
+        finished_ids = [m.id for m in finished]
+        rows = session.execute(
+            select(Prediction.user_id, Prediction.match_id, Prediction.points_awarded,
+                   Prediction.pred_home, Prediction.pred_away)
+            .where(Prediction.match_id.in_(finished_ids))
+        ).all() if finished_ids else []
+
+    match_result = {m.id: (m.result_home, m.result_away) for m in finished}
+
+    pred_by_match: dict[int, dict[int, tuple]] = {}
+    for uid, mid, pts, ph, pa in rows:
+        pred_by_match.setdefault(mid, {})[uid] = (pts or 0, ph, pa)
+
+    def _sign(x: int) -> int:
+        return 1 if x > 0 else (-1 if x < 0 else 0)
+
+    user_ids = [u.id for u in users]
+    cum_pts = {uid: 0 for uid in user_ids}
+    cum_exact = {uid: 0 for uid in user_ids}
+    cum_diff = {uid: 0 for uid in user_ids}
+    cum_tend = {uid: 0 for uid in user_ids}
+    top_count = {uid: 0 for uid in user_ids}
+    bottom_count = {uid: 0 for uid in user_ids}
+
+    for m in finished:
+        rh, ra = match_result[m.id]
+        preds = pred_by_match.get(m.id, {})
+        for uid in user_ids:
+            pts, ph, pa = preds.get(uid, (0, None, None))
+            cum_pts[uid] += pts
+            if ph is not None and pa is not None and rh is not None and ra is not None:
+                if ph == rh and pa == ra:
+                    cum_exact[uid] += 1
+                elif (ph - pa) == (rh - ra):
+                    cum_diff[uid] += 1
+                elif _sign(ph - pa) == _sign(rh - ra):
+                    cum_tend[uid] += 1
+
+        keys = {uid: (cum_pts[uid], cum_exact[uid], cum_diff[uid], cum_tend[uid]) for uid in user_ids}
+        best_key = max(keys.values())
+        worst_key = min(keys.values())
+        for uid in user_ids:
+            if keys[uid] == best_key:
+                top_count[uid] += 1
+            if keys[uid] == worst_key:
+                bottom_count[uid] += 1
+
+    return [{
+        "user_id": u.id,
+        "display_name": u.display_name,
+        "top_count": top_count[u.id],
+        "bottom_count": bottom_count[u.id],
+    } for u in users]

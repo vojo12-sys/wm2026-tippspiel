@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 
+from sqlalchemy import func
+
 from database import get_session
 from deps import require_user, templates
-from models import SpecialTip, TopScorer, User
+from models import Match, SpecialTip, TopScorer, User
 
 router = APIRouter()
 
@@ -34,6 +36,11 @@ async def torschuetzen_get(request: Request, user: dict = Depends(require_user))
         ).all()
         users = {u.id: u.display_name for u in s.scalars(select(User)).all()}
 
+        total_goals = s.scalar(
+            select(func.coalesce(func.sum(Match.result_home + Match.result_away), 0))
+            .where(Match.is_finished.is_(True))
+        ) or 0
+
     # {normalized_name: [display_name, ...]}
     scorer_tips_normalized: dict[str, list[str]] = {}
     for uid, name in tips_raw:
@@ -51,5 +58,6 @@ async def torschuetzen_get(request: Request, user: dict = Depends(require_user))
         "user": user, "active": "torschuetzen",
         "scorers": scorers,
         "scorer_tips": scorer_tips,
+        "total_goals": total_goals,
         "flash": request.session.pop("flash", None),
     })

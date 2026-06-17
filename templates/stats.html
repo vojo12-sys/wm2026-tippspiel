@@ -242,15 +242,15 @@
   <div class="col-6 col-md-4">
     <div class="card border-0 shadow-sm text-center p-3 h-100">
       <div class="fs-2 fw-bold" style="color:var(--gold)">{{ max_streak }}</div>
-      <div class="text-muted small">Längste Treffer-Strähne</div>
-      <div class="text-muted" style="font-size:.68rem">Spiele in Folge mit Punkten</div>
+      <div class="text-muted small">Längste Treffer-Serie</div>
+      <div class="text-muted" style="font-size:.68rem">Spiele in Folge mit Punkten{% if max_streak > 0 %} · {{ max_streak_pts }} Pkt{% endif %}</div>
     </div>
   </div>
   <div class="col-6 col-md-4">
     <div class="card border-0 shadow-sm text-center p-3 h-100">
       <div class="fs-2 fw-bold" style="color:{% if current_streak > 0 %}#28a745{% else %}#9ca3af{% endif %}">{{ current_streak }}</div>
-      <div class="text-muted small">Aktuelle Strähne</div>
-      <div class="text-muted" style="font-size:.68rem">Spiele in Folge mit Punkten</div>
+      <div class="text-muted small">Aktuelle Serie</div>
+      <div class="text-muted" style="font-size:.68rem">Spiele in Folge mit Punkten{% if current_streak > 0 %} · {{ current_streak_pts }} Pkt{% endif %}</div>
     </div>
   </div>
   {% if avg_lead_h is not none %}

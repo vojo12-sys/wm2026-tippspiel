@@ -6,7 +6,11 @@
 
 <p class="text-muted mb-4 small">Wird automatisch alle 5 Minuten aktualisiert (football-data.org).</p>
 
-
+<div class="mb-4">
+  <span class="badge" style="background:rgba(126,200,227,.15);color:var(--accent-dk);font-size:.85rem;font-weight:600;padding:.45rem .8rem">
+    <i class="bi bi-dribbble me-1"></i>Tore gesamt: {{ total_goals }}
+  </span>
+</div>
 
 {% if not scorers %}
 

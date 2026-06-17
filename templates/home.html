@@ -261,6 +261,69 @@
 </div>
 {% endif %}
 
+<!-- ── Treffer-Serien & Positionsdauer ──────────────────────────────── -->
+{% macro ranking_card(title, icon, rows, explain, collapse_id) %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header border-0 bg-transparent pt-3 pb-0">
+    <span class="fw-bold" style="font-family:'Bricolage Grotesque',sans-serif">
+      <i class="bi {{ icon }} me-2" style="color:var(--accent-dk)"></i>{{ title }}
+    </span>
+    {% if explain %}<div class="text-muted" style="font-size:.7rem">{{ explain }}</div>{% endif %}
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <tbody>
+        {% for row in rows[:5] %}
+        <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
+          <td class="ps-3" style="width:40px">
+            {% if loop.index == 1 %}<span class="rank-1 fw-bold">1.</span>
+            {% elif loop.index == 2 %}<span class="rank-2 fw-bold">2.</span>
+            {% elif loop.index == 3 %}<span class="rank-3 fw-bold">3.</span>
+            {% else %}<span class="text-muted">{{ loop.index }}.</span>{% endif %}
+          </td>
+          <td>
+            {{ row.display_name }}
+            {% if row.user_id == user.id %}<span class="badge ms-1" style="background:var(--accent);font-size:.6rem">Du</span>{% endif %}
+          </td>
+          <td class="text-end pe-3 fw-bold" style="color:#1E4E8C">{{ row.value }}{% if row.sub %} <span class="text-muted fw-normal" style="font-size:.7rem">({{ row.sub }})</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if rows|length > 5 %}
+    <div class="collapse" id="{{ collapse_id }}">
+      <table class="table table-hover mb-0">
+        <tbody>
+          {% for row in rows[5:] %}
+          <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
+            <td class="ps-3" style="width:40px"><span class="text-muted">{{ loop.index + 5 }}.</span></td>
+            <td>
+              {{ row.display_name }}
+              {% if row.user_id == user.id %}<span class="badge ms-1" style="background:var(--accent);font-size:.6rem">Du</span>{% endif %}
+            </td>
+            <td class="text-end pe-3 fw-bold" style="color:#1E4E8C">{{ row.value }}{% if row.sub %} <span class="text-muted fw-normal" style="font-size:.7rem">({{ row.sub }})</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <button class="btn btn-link btn-sm small text-muted" type="button" data-bs-toggle="collapse" data-bs-target="#{{ collapse_id }}">
+      Alle anzeigen →
+    </button>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{{ ranking_card("Längste Treffer-Serie", "bi-fire", streaks_max, none, "collapseStreakMax") }}
+{{ ranking_card("Aktuelle Serie", "bi-lightning-charge", streaks_current, none, "collapseStreakCurrent") }}
+{{ ranking_card("Längste Zeit auf Platz 1", "bi-trophy", positions_top,
+  "Gezählt wird nach jedem einzelnen Spiel: wer zu diesem Zeitpunkt (nach Punktestand) auf Platz 1 lag.",
+  "collapsePosTop") }}
+{{ ranking_card("Längste Zeit als Schlusslicht", "bi-arrow-down-circle", positions_bottom,
+  "Gezählt wird nach jedem einzelnen Spiel: wer zu diesem Zeitpunkt (nach Punktestand) auf dem letzten Platz lag.",
+  "collapsePosBottom") }}
+
 <!-- ── Nächste Spiele ────────────────────────────────────────────── -->
 {% set rest = upcoming[1:] %}
 {% if rest %}

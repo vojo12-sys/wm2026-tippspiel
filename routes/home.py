@@ -9,7 +9,7 @@ from sqlalchemy import select
 from database import get_session
 from deps import require_user, templates
 from models import Match, Prediction
-from standings import compute_standings
+from standings import compute_standings, compute_streak_rankings, compute_position_durations
 
 router = APIRouter()
 
@@ -186,6 +186,37 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
             user_points = r.total_points
             break
 
+    streaks = compute_streak_rankings()
+
+    def _spiele(n: int) -> str:
+        return f"{n} Spiel" if n == 1 else f"{n} Spiele"
+
+    streaks_max = sorted(
+        (
+            {**r, "value": _spiele(r["max_streak"]),
+             "sub": f"{r['max_streak_pts']} Pkt" if r["max_streak"] else None}
+            for r in streaks
+        ),
+        key=lambda r: (-r["max_streak"], -r["max_streak_pts"], r["display_name"].lower()),
+    )
+    streaks_current = sorted(
+        (
+            {**r, "value": _spiele(r["current_streak"]),
+             "sub": f"{r['current_streak_pts']} Pkt" if r["current_streak"] else None}
+            for r in streaks
+        ),
+        key=lambda r: (-r["current_streak"], -r["current_streak_pts"], r["display_name"].lower()),
+    )
+    positions = compute_position_durations()
+    positions_top = sorted(
+        ({**r, "value": _spiele(r["top_count"]), "sub": None} for r in positions),
+        key=lambda r: (-r["top_count"], r["display_name"].lower()),
+    )
+    positions_bottom = sorted(
+        ({**r, "value": _spiele(r["bottom_count"]), "sub": None} for r in positions),
+        key=lambda r: (-r["bottom_count"], r["display_name"].lower()),
+    )
+
     return templates.TemplateResponse(request, "home.html", {
         "user": user,
         "active": "home",
@@ -200,5 +231,9 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
         "user_points": user_points,
         "open_tips_24h": open_tips_24h,
         "open_tips_total": open_tips_total,
+        "streaks_max": streaks_max,
+        "streaks_current": streaks_current,
+        "positions_top": positions_top,
+        "positions_bottom": positions_bottom,
         "flash": request.session.pop("flash", None),
     })

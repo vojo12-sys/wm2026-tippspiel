@@ -132,14 +132,21 @@ async def stats_get(request: Request, user: dict = Depends(require_non_spectator
 
     # ── Treffersträhne (immer berechnen) ─────────────────────────────────
     streak = max_streak = 0
+    streak_pts = max_streak_pts = 0
     for m in finished:
         p = preds_map.get(m.id)
-        if p and (p.points_awarded or 0) > 0:
+        pts = p.points_awarded or 0 if p else 0
+        if p and pts > 0:
             streak += 1
-            max_streak = max(max_streak, streak)
+            streak_pts += pts
+            if streak > max_streak:
+                max_streak = streak
+                max_streak_pts = streak_pts
         else:
             streak = 0
+            streak_pts = 0
     current_streak = streak
+    current_streak_pts = streak_pts
 
     # ── Verhaltens-Statistiken (nur wenn aktiviert) ───────────────────────
     time_blocks = peak_block = None
@@ -369,7 +376,9 @@ async def stats_get(request: Request, user: dict = Depends(require_non_spectator
         "late_avg": late_avg,
         "avg_lead_h": avg_lead_h,
         "max_streak": max_streak,
+        "max_streak_pts": max_streak_pts,
         "current_streak": current_streak,
+        "current_streak_pts": current_streak_pts,
         "hist_gained_count": len(hist_gained),
         "hist_gained_pts": sum(hist_gained),
         "hist_lost_count": len(hist_lost),
