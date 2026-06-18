@@ -14,9 +14,10 @@ python demo_data.py reset                          # Testdaten zurücksetzen (l�
 
 - **URL:** https://wm2026-tippspiel-l9sj.onrender.com
 - **Repo:** https://github.com/vojo12-sys/wm2026-tippspiel
-- **DB:** PostgreSQL auf Render (Free Tier)
+- **DB:** PostgreSQL auf Render (günstigster kostenpflichtiger Tarif, kein Free Tier)
+- Webservice läuft ebenfalls auf dem günstigsten kostenpflichtigen Tarif
 - Deploy: automatisch bei `git push origin main`
-- Kostenloses Tier schläft nach 15 Min. Inaktivität ein (erster Aufruf ~30–60 Sek.)
+- Kein Sleep nach Inaktivität (kostenpflichtiger Tarif), daher auch kein Cold-Start-Delay beim ersten Aufruf
 
 ### Remote-DB-Befehle (lokal ausführen)
 ```powershell
