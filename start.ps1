@@ -1,5 +1,11 @@
 # WM 2026 Tippspiel - Hilfsbefehle
 # Ausfuehren: .\start.ps1
+#
+# Nutzt die projekteigene .venv (von 'uv' verwaltet, kein pip enthalten -
+# daher 'uv pip ...' statt 'pip ...').
+
+$venvPython = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
+$venvUvicorn = Join-Path $PSScriptRoot ".venv\Scripts\uvicorn.exe"
 
 function Show-Menu {
     Write-Host ""
@@ -41,7 +47,7 @@ do {
         "1" {
             $env:SPORTSDB_API_KEY="1"
             Write-Host "Server startet auf http://localhost:8080 ..." -ForegroundColor Green
-            python -m uvicorn main:app --reload --port 8080
+            & $venvUvicorn main:app --reload --port 8080
         }
         "2" {
             Write-Host "Beende alle Python-Prozesse..." -ForegroundColor Red
@@ -54,29 +60,29 @@ do {
         }
         "4" {
             Write-Host ""
-            python --version
+            & $venvPython --version
             Write-Host ""
         }
         "5" {
             Write-Host ""
-            pip list
+            uv pip list --python $venvPython
             Write-Host ""
         }
         "6" {
             Write-Host "Installiere Abhaengigkeiten..." -ForegroundColor White
-            pip install -r requirements.txt
+            uv pip install -r requirements.txt --python $venvPython
         }
         "7" {
             Write-Host "Simuliere 10 Spiele..." -ForegroundColor Yellow
-            python demo_data.py 10
+            & $venvPython demo_data.py 10
         }
         "8" {
             Write-Host "Setze Demo-Daten zurueck..." -ForegroundColor Yellow
-            python demo_data.py reset
+            & $venvPython demo_data.py reset
         }
         "9" {
             Write-Host "Importiere Spielplan..." -ForegroundColor Yellow
-            python import_schedule.py
+            & $venvPython import_schedule.py
             Write-Host "Erledigt." -ForegroundColor Green
         }
         "10" {
