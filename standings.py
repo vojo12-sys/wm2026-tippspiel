@@ -230,30 +230,41 @@ def _phase_ranks(standings: list[Standing], key_fn) -> dict[int, int]:
     return uid_rank
 
 
-def save_all_rank_snapshots() -> None:
-    """Speichert Gesamt- und Phasen-Rangsnapshots vor einem Ergebnis-Sync."""
-    standings = compute_standings()
-    save_rank_snapshot(standings)
+_KO_PHASES = ("round32", "round16", "quarter", "semi", "third_place", "final")
 
-    _KO = ("round32", "round16", "quarter", "semi", "third_place", "final")
 
-    def _grp_key(s: Standing) -> int | None:
-        keys = (s.phase_points.get("st1"), s.phase_points.get("st2"), s.phase_points.get("st3"))
-        if all(v is None for v in keys):
-            return None
-        return sum(v or 0 for v in keys)
+def _grp_key(s: Standing) -> int | None:
+    keys = (s.phase_points.get("st1"), s.phase_points.get("st2"), s.phase_points.get("st3"))
+    if all(v is None for v in keys):
+        return None
+    return sum(v or 0 for v in keys)
 
-    def _ko_key(s: Standing) -> int | None:
-        vals = [s.phase_points.get(k) for k in _KO]
-        if all(v is None for v in vals):
-            return None
-        return sum(v or 0 for v in vals)
 
+def _ko_key(s: Standing) -> int | None:
+    vals = [s.phase_points.get(k) for k in _KO_PHASES]
+    if all(v is None for v in vals):
+        return None
+    return sum(v or 0 for v in vals)
+
+
+def save_phase_rank_snapshots(standings: list[Standing] | None = None) -> None:
+    """Speichert nur die Phasen-Rangsnapshots (st1/st2/st3/group/ko), ohne den
+    Gesamt-Snapshot anzufassen. Für gezielte manuelle Korrekturen, ohne dabei
+    die Auf/Ab-Pfeile der Gesamtwertung zu verfälschen."""
+    if standings is None:
+        standings = compute_standings()
     save_phase_rank_snapshot("st1",   _phase_ranks(standings, lambda s: s.phase_points.get("st1")))
     save_phase_rank_snapshot("st2",   _phase_ranks(standings, lambda s: s.phase_points.get("st2")))
     save_phase_rank_snapshot("st3",   _phase_ranks(standings, lambda s: s.phase_points.get("st3")))
     save_phase_rank_snapshot("group", _phase_ranks(standings, _grp_key))
     save_phase_rank_snapshot("ko",    _phase_ranks(standings, _ko_key))
+
+
+def save_all_rank_snapshots() -> None:
+    """Speichert Gesamt- und Phasen-Rangsnapshots vor einem Ergebnis-Sync."""
+    standings = compute_standings()
+    save_rank_snapshot(standings)
+    save_phase_rank_snapshots(standings)
 
 
 # ---------------------------------------------------------------------------
