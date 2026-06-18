@@ -190,11 +190,50 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) not in grp_keys and joker_phase_key_map.get(r.user_id) is not None else 0
         return ko_raw - bonus
 
-    rows_group = sorted(rows, key=_grp_base, reverse=True)
-    rows_ko    = sorted(rows, key=_ko_base, reverse=True)
-    rows_st1   = sorted(rows, key=lambda r: _base(r, "st1"), reverse=True)
-    rows_st2   = sorted(rows, key=lambda r: _base(r, "st2"), reverse=True)
-    rows_st3   = sorted(rows, key=lambda r: _base(r, "st3"), reverse=True)
+    _KO_PHASES = ("round32", "round16", "quarter", "semi", "third_place", "final")
+
+    def _edt(uid: int, keys: tuple[str, ...]) -> tuple[int, int, int]:
+        e = d = t = 0
+        pc = phase_counts.get(uid, {})
+        for k in keys:
+            c = pc.get(k, {})
+            e += c.get("e", 0)
+            d += c.get("d", 0)
+            t += c.get("t", 0)
+        return e, d, t
+
+    def _rank_with_tiebreak(rows_in, pts_fn, edt_fn):
+        """Sortiert nach Punkten, dann Exakt/Tordiff/Tendenz (wie Gesamtwertung)
+        und liefert (sortierte Liste, {user_id: rang})."""
+        sorted_rows = sorted(
+            rows_in,
+            key=lambda r: (-pts_fn(r), *(-x for x in edt_fn(r)), r.display_name.lower()),
+        )
+        ranks: dict[int, int] = {}
+        last_key, last_rank = None, 0
+        for i, r in enumerate(sorted_rows, 1):
+            key = (pts_fn(r), edt_fn(r))
+            if key != last_key:
+                last_rank = i
+                last_key = key
+            ranks[r.user_id] = last_rank
+        return sorted_rows, ranks
+
+    rows_group, group_ranks = _rank_with_tiebreak(
+        rows, _grp_base, lambda r: _edt(r.user_id, ("st1", "st2", "st3")))
+    rows_ko, ko_ranks = _rank_with_tiebreak(
+        rows, _ko_base, lambda r: _edt(r.user_id, _KO_PHASES))
+    rows_st1, st1_ranks = _rank_with_tiebreak(
+        rows, lambda r: _base(r, "st1"), lambda r: _edt(r.user_id, ("st1",)))
+    rows_st2, st2_ranks = _rank_with_tiebreak(
+        rows, lambda r: _base(r, "st2"), lambda r: _edt(r.user_id, ("st2",)))
+    rows_st3, st3_ranks = _rank_with_tiebreak(
+        rows, lambda r: _base(r, "st3"), lambda r: _edt(r.user_id, ("st3",)))
+
+    phase_ranks = {
+        "st1": st1_ranks, "st2": st2_ranks, "st3": st3_ranks,
+        "group": group_ranks, "ko": ko_ranks,
+    }
 
     phase_prev_ranks = {
         "st1":   load_phase_rank_snapshot("st1"),
@@ -219,6 +258,7 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
         "joker_bonus_map": joker_bonus_map,
         "joker_phase_key_map": joker_phase_key_map,
         "phase_counts": phase_counts,
+        "phase_ranks": phase_ranks,
         "pool": pool,
         "top5": top5,
         "phase_prev_ranks": phase_prev_ranks,

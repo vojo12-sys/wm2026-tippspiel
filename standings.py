@@ -326,10 +326,12 @@ def compute_pool(standings: list[Standing] | None = None) -> PoolSummary:
     n_tiers = len(structure)
     pot = summary.pot_total
     while i < len(ranked_payers):
-        # Gruppe gleicher Punktzahl bestimmen
+        # Gruppe gleicher Platzierung bestimmen (gleicher Rang = wirklich
+        # gleichgestellt, inkl. Exakt/Tordiff/Tendenz-Tiebreak wie in der
+        # Gesamtwertung – nicht nur gleiche Punktzahl)
         j = i
         while j + 1 < len(ranked_payers) and \
-                ranked_payers[j + 1].total_points == ranked_payers[i].total_points:
+                ranked_payers[j + 1].rank == ranked_payers[i].rank:
             j += 1
         tie_members = ranked_payers[i:j + 1]
         # Anteile der von dieser Gruppe belegten Plätze summieren
