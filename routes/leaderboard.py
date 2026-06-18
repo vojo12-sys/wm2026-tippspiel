@@ -174,21 +174,15 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
     rows_trefferquote = sorted(rows, key=lambda r: stats[r.user_id]["rating"], reverse=True)
 
     def _base(r, key: str) -> int:
-        """Phase-Punkte ohne Joker-Bonus."""
-        bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) == key else 0
-        return r.phase_points.get(key, 0) - bonus
+        """Phase-Punkte inkl. eines in dieser Phase eingesetzten Joker-Bonus
+        (deckt sich damit mit dem Beitrag der Phase zu den Gesamtpunkten)."""
+        return r.phase_points.get(key, 0)
 
     def _grp_base(r) -> int:
-        grp_keys = ("st1", "st2", "st3")
-        raw = r.phase_points.get("st1", 0) + r.phase_points.get("st2", 0) + r.phase_points.get("st3", 0)
-        bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) in grp_keys else 0
-        return raw - bonus
+        return r.phase_points.get("st1", 0) + r.phase_points.get("st2", 0) + r.phase_points.get("st3", 0)
 
     def _ko_base(r) -> int:
-        ko_raw = sum(r.phase_points.values()) - r.phase_points.get("st1", 0) - r.phase_points.get("st2", 0) - r.phase_points.get("st3", 0)
-        grp_keys = ("st1", "st2", "st3")
-        bonus = joker_bonus_map.get(r.user_id, 0) if joker_phase_key_map.get(r.user_id) not in grp_keys and joker_phase_key_map.get(r.user_id) is not None else 0
-        return ko_raw - bonus
+        return sum(r.phase_points.values()) - r.phase_points.get("st1", 0) - r.phase_points.get("st2", 0) - r.phase_points.get("st3", 0)
 
     _KO_PHASES = ("round32", "round16", "quarter", "semi", "third_place", "final")
 

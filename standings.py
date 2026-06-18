@@ -212,8 +212,13 @@ def load_phase_rank_snapshot(phase: str) -> dict[int, int]:
 
 
 def _phase_ranks(standings: list[Standing], key_fn) -> dict[int, int]:
-    """Hilfsfunktion: sortiert Standings nach key_fn und gibt {user_id: rank} zurück."""
-    sorted_rows = sorted(standings, key=key_fn, reverse=True)
+    """Hilfsfunktion: sortiert Standings nach key_fn und gibt {user_id: rank} zurück.
+    key_fn muss None liefern, wenn der Nutzer in dieser Phase noch keine
+    ausgewertete Vorhersage hat – solche Nutzer bekommen keinen Rang, damit
+    sie nicht künstlich mit Rang 1 starten (und beim ersten Tor der Phase
+    scheinbar abrutschen)."""
+    active = [s for s in standings if key_fn(s) is not None]
+    sorted_rows = sorted(active, key=key_fn, reverse=True)
     uid_rank: dict[int, int] = {}
     last_pts, last_rank = None, 0
     for i, st in enumerate(sorted_rows, 1):
@@ -231,11 +236,24 @@ def save_all_rank_snapshots() -> None:
     save_rank_snapshot(standings)
 
     _KO = ("round32", "round16", "quarter", "semi", "third_place", "final")
-    save_phase_rank_snapshot("st1",   _phase_ranks(standings, lambda s: s.phase_points.get("st1", 0)))
-    save_phase_rank_snapshot("st2",   _phase_ranks(standings, lambda s: s.phase_points.get("st2", 0)))
-    save_phase_rank_snapshot("st3",   _phase_ranks(standings, lambda s: s.phase_points.get("st3", 0)))
-    save_phase_rank_snapshot("group", _phase_ranks(standings, lambda s: s.phase_points.get("st1", 0) + s.phase_points.get("st2", 0) + s.phase_points.get("st3", 0)))
-    save_phase_rank_snapshot("ko",    _phase_ranks(standings, lambda s: sum(s.phase_points.get(k, 0) for k in _KO)))
+
+    def _grp_key(s: Standing) -> int | None:
+        keys = (s.phase_points.get("st1"), s.phase_points.get("st2"), s.phase_points.get("st3"))
+        if all(v is None for v in keys):
+            return None
+        return sum(v or 0 for v in keys)
+
+    def _ko_key(s: Standing) -> int | None:
+        vals = [s.phase_points.get(k) for k in _KO]
+        if all(v is None for v in vals):
+            return None
+        return sum(v or 0 for v in vals)
+
+    save_phase_rank_snapshot("st1",   _phase_ranks(standings, lambda s: s.phase_points.get("st1")))
+    save_phase_rank_snapshot("st2",   _phase_ranks(standings, lambda s: s.phase_points.get("st2")))
+    save_phase_rank_snapshot("st3",   _phase_ranks(standings, lambda s: s.phase_points.get("st3")))
+    save_phase_rank_snapshot("group", _phase_ranks(standings, _grp_key))
+    save_phase_rank_snapshot("ko",    _phase_ranks(standings, _ko_key))
 
 
 # ---------------------------------------------------------------------------

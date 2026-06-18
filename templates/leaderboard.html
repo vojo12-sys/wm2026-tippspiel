@@ -120,8 +120,7 @@
       </thead>
       <tbody>
         {% for row in st_rows %}
-        {% set joker_bonus = joker_bonus_map.get(row.user_id, 0) if joker_phase_key_map.get(row.user_id) == st_key else 0 %}
-        {% set pts = row.phase_points.get(st_key, 0) - joker_bonus %}
+        {% set pts = row.phase_points.get(st_key, 0) %}
         {% set pc = phase_counts.get(row.user_id, {}).get(st_key, {}) %}
         {% set r_rank = phase_ranks.get(st_key, {}).get(row.user_id, loop.index) %}
         <tr {% if row.user_id == user.id %}class="table-success"{% endif %}>
@@ -173,8 +172,7 @@
         {% for row in rows_group %}
         {% set jpk = joker_phase_key_map.get(row.user_id) %}
         {% set joker_in_grp = jpk in ('st1','st2','st3') %}
-        {% set joker_bonus_g = joker_bonus_map.get(row.user_id, 0) if joker_in_grp else 0 %}
-        {% set gpts = row.phase_points.get('st1',0) + row.phase_points.get('st2',0) + row.phase_points.get('st3',0) - joker_bonus_g %}
+        {% set gpts = row.phase_points.get('st1',0) + row.phase_points.get('st2',0) + row.phase_points.get('st3',0) %}
         {% set pc = phase_counts.get(row.user_id, {}) %}
         {% set ge = pc.get('st1',{}).get('e',0) + pc.get('st2',{}).get('e',0) + pc.get('st3',{}).get('e',0) %}
         {% set gd = pc.get('st1',{}).get('d',0) + pc.get('st2',{}).get('d',0) + pc.get('st3',{}).get('d',0) %}
@@ -235,8 +233,7 @@
         {% for row in rows_ko %}
         {% set jpk2 = joker_phase_key_map.get(row.user_id) %}
         {% set joker_in_ko = jpk2 is not none and jpk2 not in ('st1','st2','st3') %}
-        {% set joker_bonus_k = joker_bonus_map.get(row.user_id, 0) if joker_in_ko else 0 %}
-        {% set ko_total = (row.phase_points.values()|sum) - row.phase_points.get('st1',0) - row.phase_points.get('st2',0) - row.phase_points.get('st3',0) - joker_bonus_k %}
+        {% set ko_total = (row.phase_points.values()|sum) - row.phase_points.get('st1',0) - row.phase_points.get('st2',0) - row.phase_points.get('st3',0) %}
         {% set pc = phase_counts.get(row.user_id, {}) %}
         {% set kons = namespace(e=0, d=0, t=0) %}
         {% for ph in ko_phases %}
