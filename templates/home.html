@@ -430,8 +430,8 @@
 
 <style>
 @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-@keyframes tipspulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.0)} 50%{box-shadow:0 0 0 6px rgba(220,53,69,.25)} }
-.open-tips-pulse { animation: tipspulse 2s ease-in-out infinite; }
+@keyframes tipspulse { 0%,100%{outline:0px solid rgba(220,53,69,0)} 50%{outline:6px solid rgba(220,53,69,.35)} }
+.open-tips-pulse { animation: tipspulse 2s ease-in-out infinite; outline-offset: 0; }
 </style>
 
 <script>
