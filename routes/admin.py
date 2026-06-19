@@ -15,10 +15,12 @@ from data_players import dropdown_options, option_to_name
 from data_teams import GROUPS
 from database import get_session
 from deps import require_admin, templates
-from models import GroupPrediction, Match, Prediction, PredictionHistory, SpecialTip, Team, User, UserVisit
+from models import GroupPrediction, GroupResult, Match, Prediction, PredictionHistory, SpecialTip, Team, User, UserVisit
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
 from scoring import recalculate_match, recalculate_everything
 from standings import compute_standings
+from knockout import get_thirds_state, set_third_slot, third_place_slots
+from qualification import compute_group_table, third_place_candidates, update_qualifications
 
 router = APIRouter(prefix="/admin")
 
@@ -654,3 +656,109 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
         "total_visits": len(all_visits),
         "flash": request.session.pop("flash", None),
     })
+
+
+# ── KO-Qualifikation ─────────────────────────────────────────────────────────
+
+@router.get("/qualifikation")
+async def qualifikation_get(request: Request, user: dict = Depends(require_admin)):
+    with get_session() as s:
+        teams_by_group: dict[str, list[Team]] = {}
+        for t in s.scalars(select(Team).order_by(Team.group_letter, Team.name)).all():
+            teams_by_group.setdefault(t.group_letter, []).append(t)
+
+        results = {gr.group_letter: gr for gr in s.scalars(select(GroupResult)).all()}
+        groups_view = []
+        for letter in sorted(GROUPS.keys()):
+            gr = results.get(letter)
+            groups_view.append({
+                "letter": letter,
+                "teams": teams_by_group.get(letter, []),
+                "actual_1st": gr.actual_1st if gr else None,
+                "actual_2nd": gr.actual_2nd if gr else None,
+                "manual_1st": gr.manual_1st if gr else False,
+                "manual_2nd": gr.manual_2nd if gr else False,
+            })
+
+        all_complete = all(g["actual_1st"] and g["actual_2nd"] for g in groups_view)
+
+        thirds_view = []
+        if all_complete:
+            candidates = third_place_candidates(s)
+            state = get_thirds_state()
+            for match_no, allowed in third_place_slots():
+                options = [(letter, candidates[letter]) for letter in allowed if letter in candidates]
+                current = state.get(match_no, {})
+                thirds_view.append({
+                    "match_no": match_no,
+                    "allowed_groups": allowed,
+                    "options": options,
+                    "team_id": current.get("team_id"),
+                    "manual": current.get("manual", False),
+                })
+
+    return templates.TemplateResponse(request, "admin_qualifikation.html", {
+        "user": user, "active": "admin",
+        "groups": groups_view,
+        "all_complete": all_complete,
+        "thirds": thirds_view,
+        "flash": request.session.pop("flash", None),
+    })
+
+
+@router.post("/qualifikation/group/{letter}")
+async def qualifikation_save_group(
+    request: Request,
+    letter: str,
+    actual_1st: str = Form(""),
+    actual_2nd: str = Form(""),
+    user: dict = Depends(require_admin),
+):
+    with get_session() as s:
+        gr = s.get(GroupResult, letter)
+        if not gr:
+            gr = GroupResult(group_letter=letter)
+            s.add(gr)
+        if actual_1st:
+            gr.actual_1st = int(actual_1st)
+            gr.manual_1st = True
+        else:
+            gr.actual_1st = None
+            gr.manual_1st = False
+        if actual_2nd:
+            gr.actual_2nd = int(actual_2nd)
+            gr.manual_2nd = True
+        else:
+            gr.actual_2nd = None
+            gr.manual_2nd = False
+
+    update_qualifications()
+    recalculate_everything()
+    request.session["flash"] = {"message": f"Gruppe {letter} aktualisiert.", "type": "success"}
+    return RedirectResponse("/admin/qualifikation", status_code=303)
+
+
+@router.post("/qualifikation/thirds/{match_no}")
+async def qualifikation_save_third(
+    request: Request,
+    match_no: int,
+    team_id: str = Form(""),
+    user: dict = Depends(require_admin),
+):
+    if team_id:
+        set_third_slot(match_no, int(team_id), manual=True)
+    else:
+        set_third_slot(match_no, None, manual=False)
+
+    update_qualifications()
+    recalculate_everything()
+    request.session["flash"] = {"message": "Dritten-Platz aktualisiert.", "type": "success"}
+    return RedirectResponse("/admin/qualifikation", status_code=303)
+
+
+@router.post("/qualifikation/recalc")
+async def qualifikation_recalc(request: Request, user: dict = Depends(require_admin)):
+    update_qualifications()
+    recalculate_everything()
+    request.session["flash"] = {"message": "Qualifikation neu berechnet.", "type": "success"}
+    return RedirectResponse("/admin/qualifikation", status_code=303)
