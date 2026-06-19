@@ -210,9 +210,11 @@ def _sync_matches() -> int:
 
     if updated > 0:
         try:
+            from qualification import update_qualifications
             from scoring import recalculate_everything, update_total_goals
             from standings import save_all_rank_snapshots
             save_all_rank_snapshots()
+            update_qualifications()
             recalculate_everything()
             update_total_goals()
         except Exception as e:
