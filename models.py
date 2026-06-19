@@ -233,12 +233,18 @@ class SpecialTip(Base):
 # ---------------------------------------------------------------------------
 
 class GroupResult(Base):
-    """Endgültige 1./2. Platzierung je Gruppe (vom Admin eingetragen)."""
+    """Endgültige 1./2. Platzierung je Gruppe (automatisch berechnet oder
+    vom Admin überschrieben)."""
     __tablename__ = "group_results"
 
     group_letter: Mapped[str] = mapped_column(String(1), primary_key=True)
     actual_1st: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)
     actual_2nd: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)
+    # True = Admin hat diesen Platz manuell gesetzt; die automatische
+    # Berechnung (qualification.update_qualifications()) fasst ihn dann
+    # nicht mehr an, bis der Admin wieder auf "Auto" zurückstellt.
+    manual_1st: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="0")
+    manual_2nd: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="0")
 
 
 class TournamentResult(Base):
