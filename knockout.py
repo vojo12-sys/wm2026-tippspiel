@@ -45,21 +45,37 @@ def placeholder_text(code: str) -> str:
     return code
 
 
-def _thirds_assignment() -> dict[int, int]:
-    """Vom Admin zugewiesene Dritt-Plätze: {Spiel-Nr: team_id}."""
+def get_thirds_state() -> dict[int, dict]:
+    """Aktueller Zustand der Dritt-Platz-Slots:
+    {Spiel-Nr: {"team_id": int, "manual": bool}}."""
     with get_session() as s:
         row = s.get(Setting, "ko_thirds")
-        return {int(k): v for k, v in json.loads(row.value).items()} if row else {}
+        if not row:
+            return {}
+        return {int(k): v for k, v in json.loads(row.value).items()}
 
 
-def set_thirds_assignment(mapping: dict[int, int]) -> None:
+def set_third_slot(match_no: int, team_id: int | None, manual: bool) -> None:
+    """Setzt (oder löscht, bei team_id=None) die Zuordnung für einen
+    Dritt-Platz-Slot. manual=True markiert eine Admin-Überschreibung, die
+    die automatische Berechnung nicht mehr anfasst."""
     with get_session() as s:
         row = s.get(Setting, "ko_thirds")
-        payload = json.dumps({str(k): v for k, v in mapping.items()})
+        state = json.loads(row.value) if row else {}
+        if team_id is None:
+            state.pop(str(match_no), None)
+        else:
+            state[str(match_no)] = {"team_id": team_id, "manual": manual}
+        payload = json.dumps(state)
         if row:
             row.value = payload
         else:
             s.add(Setting(key="ko_thirds", value=payload))
+
+
+def _thirds_assignment() -> dict[int, int]:
+    """Spiel-Nr -> team_id, für propagate()."""
+    return {no: v["team_id"] for no, v in get_thirds_state().items()}
 
 
 def _loser_team_id(m: Match) -> int | None:

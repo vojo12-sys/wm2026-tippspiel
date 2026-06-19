@@ -220,7 +220,9 @@ def simulate(n: int | None = None) -> None:
         if thirds_map:
             import json
             row = s.get(Setting, "ko_thirds")
-            payload = json.dumps({str(k): v for k, v in thirds_map.items()})
+            payload = json.dumps({
+                str(k): {"team_id": v, "manual": False} for k, v in thirds_map.items()
+            })
             if row:
                 row.value = payload
             else:
