@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-1">Admin · KO-Qualifikation</h1>
+<p class="text-muted mb-4">
+  Gruppensieger/-zweiter werden automatisch erkannt, sobald sie rechnerisch
+  sicher feststehen (rein punktebasiert). Bei Bedarf hier manuell überschreiben.
+</p>
+
+{% if flash %}
+<div class="alert alert-{{ flash.type }} alert-dismissible fade show">
+  {{ flash.message }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <a href="/admin" class="btn btn-outline-secondary btn-sm">← Admin</a>
+  <form method="post" action="/admin/qualifikation/recalc">
+    <button type="submit" class="btn btn-accent btn-sm">Jetzt neu berechnen</button>
+  </form>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h6 class="fw-bold mb-3">Gruppensieger / -zweiter</h6>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Gruppe</th>
+            <th>1. Platz</th>
+            <th>2. Platz</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in groups %}
+          <tr>
+            <td><strong>{{ g.letter }}</strong></td>
+            <td colspan="2">
+              <form method="post" action="/admin/qualifikation/group/{{ g.letter }}"
+                    class="row g-2 align-items-center">
+                <div class="col-5">
+                  <select name="actual_1st" class="form-select form-select-sm">
+                    <option value="">— Auto —</option>
+                    {% for t in g.teams %}
+                    <option value="{{ t.id }}" {% if g.actual_1st == t.id %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-5">
+                  <select name="actual_2nd" class="form-select form-select-sm">
+                    <option value="">— Auto —</option>
+                    {% for t in g.teams %}
+                    <option value="{{ t.id }}" {% if g.actual_2nd == t.id %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-2">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Speichern</button>
+                </div>
+              </form>
+            </td>
+            <td>
+              {% if g.manual_1st or g.manual_2nd %}
+              <span class="badge bg-secondary">manuell</span>
+              {% elif g.actual_1st and g.actual_2nd %}
+              <span class="badge" style="background:var(--accent-dk)">auto</span>
+              {% else %}
+              <span class="badge bg-light text-muted">offen</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    <h6 class="fw-bold mb-3">Beste 8 Dritte</h6>
+    {% if not all_complete %}
+    <p class="text-muted mb-0">Noch nicht alle Gruppen abgeschlossen.</p>
+    {% elif not thirds %}
+    <p class="text-muted mb-0">Keine gültige Zuordnung der Dritten zu den K.o.-Slots gefunden.</p>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Spiel</th>
+            <th>Erlaubte Gruppen</th>
+            <th>Team</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slot in thirds %}
+          <tr>
+            <td>#{{ slot.match_no }}</td>
+            <td>{{ slot.allowed_groups | join(', ') }}</td>
+            <td>
+              <form method="post" action="/admin/qualifikation/thirds/{{ slot.match_no }}"
+                    class="row g-2 align-items-center">
+                <div class="col-8">
+                  <select name="team_id" class="form-select form-select-sm">
+                    <option value="">— Auto —</option>
+                    {% for letter, st in slot.options %}
+                    <option value="{{ st.team_id }}" {% if slot.team_id == st.team_id %}selected{% endif %}>
+                      {{ st.name }} (Gruppe {{ letter }})
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-4">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm w-100">Speichern</button>
+                </div>
+              </form>
+            </td>
+            <td>
+              {% if slot.manual %}<span class="badge bg-secondary">manuell</span>
+              {% elif slot.team_id %}<span class="badge" style="background:var(--accent-dk)">auto</span>
+              {% else %}<span class="badge bg-light text-muted">offen</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
