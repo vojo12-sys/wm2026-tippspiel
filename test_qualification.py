@@ -84,10 +84,46 @@ def test_gruppe_komplett_gleichstand_per_tordifferenz_entschieden():
     print("OK: test_gruppe_komplett_gleichstand_per_tordifferenz_entschieden")
 
 
+def test_match_thirds_to_slots_findet_gueltige_zuordnung():
+    from qualification import _match_thirds_to_slots
+
+    qualified = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8}
+    slots = [
+        (74, ["A", "B", "C", "D", "F"]),
+        (77, ["C", "D", "F", "G", "H"]),
+        (79, ["C", "E", "F", "H"]),
+        (80, ["E", "H"]),
+        (81, ["B", "E", "F"]),
+        (82, ["A", "E", "H"]),
+        (85, ["E", "F", "G"]),
+        (87, ["D", "E"]),
+    ]
+    assignment = _match_thirds_to_slots(qualified, slots)
+    assert len(assignment) == 8, assignment
+    assert len(set(assignment.values())) == 8, "jede Gruppe darf nur einmal vorkommen"
+    for match_no, allowed in slots:
+        letter = next(l for l, tid in qualified.items() if tid == assignment[match_no])
+        assert letter in allowed, f"Slot {match_no}: {letter} nicht erlaubt ({allowed})"
+    print("OK: test_match_thirds_to_slots_findet_gueltige_zuordnung")
+
+
+def test_match_thirds_to_slots_unloesbar_gibt_leeres_dict():
+    from qualification import _match_thirds_to_slots
+
+    # Zwei Slots erlauben nur Gruppe A, aber nur eine A-Gruppe ist qualifiziert.
+    qualified = {"A": 1, "B": 2}
+    slots = [(74, ["A"]), (77, ["A"])]
+    assignment = _match_thirds_to_slots(qualified, slots)
+    assert assignment == {}, assignment
+    print("OK: test_match_thirds_to_slots_unloesbar_gibt_leeres_dict")
+
+
 if __name__ == "__main__":
     test_frueher_in_der_gruppe_nichts_entschieden()
     test_sieger_klar_platz_2_noch_offen()
     test_sieger_und_platz_2_beide_klar_vor_gruppenende()
     test_gruppe_komplett_klare_reihenfolge()
     test_gruppe_komplett_gleichstand_per_tordifferenz_entschieden()
+    test_match_thirds_to_slots_findet_gueltige_zuordnung()
+    test_match_thirds_to_slots_unloesbar_gibt_leeres_dict()
     print("\nAlle Tests bestanden.")

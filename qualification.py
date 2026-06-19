@@ -126,3 +126,103 @@ def clinched_from_table(table: list[TeamStanding]) -> tuple[int | None, int | No
 
 def clinched_winner_and_runner_up(session: Session, group_letter: str) -> tuple[int | None, int | None]:
     return clinched_from_table(compute_group_table(session, group_letter))
+
+
+from data_teams import GROUPS
+from database import get_session
+from knockout import get_thirds_state, propagate, set_third_slot, third_place_slots
+from models import GroupResult
+
+
+def third_place_candidates(
+    session: Session, results: dict[str, GroupResult] | None = None
+) -> dict[str, TeamStanding]:
+    """{Gruppenbuchstabe: TeamStanding des Dritten} – nur für Gruppen, die
+    bereits Sieger UND Zweiten feststehen haben. Leeres Dict, solange nicht
+    alle 12 Gruppen entschieden sind."""
+    if results is None:
+        results = {gr.group_letter: gr for gr in session.scalars(select(GroupResult)).all()}
+
+    candidates: dict[str, TeamStanding] = {}
+    for letter in GROUPS.keys():
+        gr = results.get(letter)
+        if not gr or gr.actual_1st is None or gr.actual_2nd is None:
+            return {}
+        table = compute_group_table(session, letter)
+        third = next(
+            (st for st in table if st.team_id not in (gr.actual_1st, gr.actual_2nd)), None
+        )
+        if third:
+            candidates[letter] = third
+    return candidates
+
+
+def _match_thirds_to_slots(
+    qualified: dict[str, int], slots: list[tuple[int, list[str]]]
+) -> dict[int, int]:
+    """Verteilt die qualifizierten Dritten (Gruppe -> team_id) per
+    Backtracking auf die K.o.-Slots, deren erlaubte Gruppen-Liste eine der
+    qualifizierten Gruppen enthält (8 Slots – trivial schnell). Gibt {}
+    zurück, wenn keine gültige Zuordnung existiert."""
+    used_groups: set[str] = set()
+    assignment: dict[int, str] = {}
+
+    def backtrack(i: int) -> bool:
+        if i == len(slots):
+            return True
+        match_no, allowed = slots[i]
+        for letter in allowed:
+            if letter in qualified and letter not in used_groups:
+                used_groups.add(letter)
+                assignment[match_no] = letter
+                if backtrack(i + 1):
+                    return True
+                used_groups.remove(letter)
+                del assignment[match_no]
+        return False
+
+    if not backtrack(0):
+        return {}
+    return {match_no: qualified[letter] for match_no, letter in assignment.items()}
+
+
+def _assign_best_thirds(session: Session, results: dict[str, GroupResult]) -> None:
+    candidates = third_place_candidates(session, results)
+    if len(candidates) < 12:
+        return
+
+    ranked_letters = sorted(candidates, key=lambda l: _sort_key(candidates[l]))
+    qualified = {letter: candidates[letter].team_id for letter in ranked_letters[:8]}
+
+    state = get_thirds_state()
+    assignment = _match_thirds_to_slots(qualified, third_place_slots())
+    for match_no, team_id in assignment.items():
+        if state.get(match_no, {}).get("manual"):
+            continue
+        set_third_slot(match_no, team_id, manual=False)
+
+
+def update_qualifications() -> None:
+    """Hauptfunktion: berechnet Gruppensieger/-zweite (sofern nicht
+    manuell überschrieben), danach – falls alle 12 Gruppen entschieden
+    sind – die acht besten Dritten, und trägt alles in die K.-o.-Spiele
+    ein. Idempotent, beliebig oft aufrufbar."""
+    with get_session() as session:
+        results = {gr.group_letter: gr for gr in session.scalars(select(GroupResult)).all()}
+        for letter in GROUPS.keys():
+            gr = results.get(letter)
+            if gr is None:
+                gr = GroupResult(group_letter=letter)
+                session.add(gr)
+                results[letter] = gr
+            if gr.manual_1st and gr.manual_2nd:
+                continue
+            winner, runner_up = clinched_winner_and_runner_up(session, letter)
+            if not gr.manual_1st and winner is not None:
+                gr.actual_1st = winner
+            if not gr.manual_2nd and runner_up is not None:
+                gr.actual_2nd = runner_up
+
+        _assign_best_thirds(session, results)
+
+    propagate()
