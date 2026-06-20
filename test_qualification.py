@@ -29,6 +29,20 @@ def test_frueher_in_der_gruppe_nichts_entschieden():
     print("OK: test_frueher_in_der_gruppe_nichts_entschieden")
 
 
+def test_kein_klarer_sieger_zwei_rivalen_koennen_noch_einholen():
+    # A fuehrt mit 4 Punkten, aber B (1 Pkt, 2 Restspiele, max 7) UND
+    # C (1 Pkt, 2 Restspiele, max 7) koennen A jeweils noch einholen/ueberholen.
+    table = [
+        _team(1, "A", points=4, remaining=1),
+        _team(2, "B", points=1, remaining=2),
+        _team(3, "C", points=1, remaining=2),
+        _team(4, "D", points=0, remaining=2),
+    ]
+    winner, runner_up = clinched_from_table(table)
+    assert (winner, runner_up) == (None, None), (winner, runner_up)
+    print("OK: test_kein_klarer_sieger_zwei_rivalen_koennen_noch_einholen")
+
+
 def test_sieger_klar_platz_2_noch_offen():
     # A: 2 Siege (6 Pkt), kann von niemandem mehr eingeholt werden.
     # B/C/D liegen so dicht beieinander, dass Platz 2 noch offen ist.
@@ -120,6 +134,7 @@ def test_match_thirds_to_slots_unloesbar_gibt_leeres_dict():
 
 if __name__ == "__main__":
     test_frueher_in_der_gruppe_nichts_entschieden()
+    test_kein_klarer_sieger_zwei_rivalen_koennen_noch_einholen()
     test_sieger_klar_platz_2_noch_offen()
     test_sieger_und_platz_2_beide_klar_vor_gruppenende()
     test_gruppe_komplett_klare_reihenfolge()

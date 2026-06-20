@@ -6,7 +6,8 @@ sie feststehen).
 
 Zubringer werden aufgelöst aus:
   - Gruppensieger / -zweite      -> Tabelle group_results (vom Admin gepflegt)
-  - beste acht Dritte            -> Setting "ko_thirds" {Spiel-Nr: team_id}
+  - beste acht Dritte            -> Setting "ko_thirds"
+                                    {Spiel-Nr: {"team_id": int, "manual": bool}}
                                     (vom Admin je 3[...]-Slot zugewiesen)
   - Sieger/Verlierer Vorspiele   -> aus den Spielergebnissen (winner_team_id)
 
