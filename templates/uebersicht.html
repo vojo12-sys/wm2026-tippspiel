@@ -548,6 +548,7 @@
             <th style="min-width:130px">Phase</th>
             <th style="min-width:220px">Partie</th>
             <th style="min-width:60px;text-align:center">Tipp</th>
+            <th style="min-width:60px;text-align:center">Ergebnis</th>
             <th style="min-width:80px;text-align:center">Punkte</th>
           </tr>
         </thead>
@@ -559,6 +560,9 @@
             <td>{{ j.match }}</td>
             <td class="text-center">
               {% if j.is_locked or j.user_id == user.id %}{{ j.pred or '—' }}{% else %}<span class="text-muted">🔒</span>{% endif %}
+            </td>
+            <td class="text-center">
+              {% if j.result %}<span class="result-badge">{{ j.result }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
             </td>
             <td class="text-center">
               {% if not j.has_result %}
