@@ -562,7 +562,7 @@
               {% if j.is_locked or j.user_id == user.id %}{{ j.pred or '—' }}{% else %}<span class="text-muted">🔒</span>{% endif %}
             </td>
             <td class="text-center">
-              {% if j.result %}<span class="result-badge">{{ j.result }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
+              {% if j.result %}<span class="result-badge" style="font-size:.85rem">{{ j.result }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
             </td>
             <td class="text-center">
               {% if not j.has_result %}
