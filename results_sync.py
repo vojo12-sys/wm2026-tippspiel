@@ -114,22 +114,31 @@ def _sync_matches() -> int:
             except ValueError:
                 continue
 
-            m = s.scalar(
-                select(Match).where(Match.kickoff_utc == kickoff, Match.is_finished == False)
-            )
-            if m is None:
-                home_name = fd.get("homeTeam", {}).get("name", "")
-                away_name = fd.get("awayTeam", {}).get("name", "")
-                home_id = team_by_name.get(home_name)
-                away_id = team_by_name.get(away_name)
-                if home_id and away_id:
-                    m = s.scalar(
-                        select(Match).where(
-                            Match.home_team_id == home_id,
-                            Match.away_team_id == away_id,
-                            Match.is_finished == False,
-                        )
+            # Primär über Heim-/Auswärtsteam zuordnen, nicht nur über die Anstoßzeit:
+            # am letzten Gruppenspieltag haben mehrere Spiele dieselbe Anstoßzeit,
+            # eine reine Zeit-Zuordnung würde dann das falsche Spiel treffen.
+            home_name = fd.get("homeTeam", {}).get("name", "")
+            away_name = fd.get("awayTeam", {}).get("name", "")
+            home_id = team_by_name.get(home_name)
+            away_id = team_by_name.get(away_name)
+
+            m = None
+            if home_id and away_id:
+                m = s.scalar(
+                    select(Match).where(
+                        Match.home_team_id == home_id,
+                        Match.away_team_id == away_id,
+                        Match.is_finished == False,
                     )
+                )
+            if m is None:
+                m = s.scalar(
+                    select(Match).where(Match.kickoff_utc == kickoff, Match.is_finished == False)
+                )
+                if m is not None and home_id and away_id and (
+                    m.home_team_id != home_id or m.away_team_id != away_id
+                ):
+                    m = None
             if m is None:
                 continue
 
