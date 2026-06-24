@@ -90,8 +90,8 @@ async def stats_get(request: Request, user: dict = Depends(require_non_spectator
             "result": f"{m.result_home}:{m.result_away}" if m.has_result else None,
         })
     match_difficulty.sort(key=lambda x: x["rate"])
-    hardest_matches = match_difficulty[:5]
-    easiest_matches = list(reversed(match_difficulty[-5:]))
+    hardest_matches = match_difficulty[:10]
+    easiest_matches = list(reversed(match_difficulty[-10:]))
 
     cum = 0
     for m in finished:
