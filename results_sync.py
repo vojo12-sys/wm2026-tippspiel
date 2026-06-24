@@ -17,7 +17,7 @@ _API_KEY = os.environ.get("FOOTBALL_API_KEY", "")
 _BASE = "https://api.football-data.org/v4"
 _COMPETITION = "2000"  # FIFA World Cup 2026
 _FINISHED_STATUSES = {"FINISHED"}
-_LIVE_STATUSES = {"IN_PLAY", "PAUSED"}
+_LIVE_STATUSES = {"IN_PLAY", "PAUSED", "LIVE"}
 
 # In-Memory-Cache für laufende Spiele:  match_id -> {home, away, minute, status}
 _live_scores: dict[int, dict] = {}
