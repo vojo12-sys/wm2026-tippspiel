@@ -609,8 +609,8 @@
                 {% if gp %}
                   {% set p1, p2, gpts = gp %}
                   <div style="font-size:.85rem">
-                    <span class="{% if actual and actual[0] and p1 == actual[0] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p1 }}</span><br>
-                    <span class="{% if actual and actual[1] and p2 == actual[1] %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
+                    <span class="{% if actual and p1 in actual %}lt-correct{% else %}lt-wrong{% endif %}">{{ p1 }}</span><br>
+                    <span class="{% if actual and p2 in actual %}lt-correct{% else %}lt-wrong{% endif %}">{{ p2 }}</span>
                   </div>
                   {% if gpts %}<div class="lt-pts">{{ gpts }} Pkt</div>{% endif %}
                 {% else %}<span class="lt-missing-badge">Kein Tipp</span>{% endif %}
