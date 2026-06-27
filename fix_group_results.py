@@ -35,6 +35,13 @@ if not API_KEY:
     print("FEHLER: FOOTBALL_API_KEY nicht gesetzt")
     sys.exit(1)
 
+# Ungültige DATABASE_URL-Platzhalter abfangen (z. B. "<external-url>")
+_db_url = os.environ.get("DATABASE_URL", "")
+if _db_url and (_db_url.startswith("<") or not any(_db_url.startswith(p) for p in ("sqlite", "postgresql", "postgres"))):
+    print(f"WARNUNG: DATABASE_URL sieht ungültig aus: {_db_url!r}")
+    print("         Bitte echte Render-URL angeben oder Variable weglassen (dann SQLite).")
+    sys.exit(1)
+
 ctx = ssl._create_unverified_context()
 
 
