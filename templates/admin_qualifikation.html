@@ -5,11 +5,6 @@
   Gruppensieger/-zweiter werden automatisch erkannt, sobald sie rechnerisch
   sicher feststehen (rein punktebasiert). Bei Bedarf hier manuell überschreiben.
 </p>
-<p class="text-muted small">
-  Hinweis: Falls ein K.o.-Spiel mit einem Team bereits befüllt ist und du hier nachträglich
-  eine Korrektur vornimmst, wird das bereits eingetragene K.o.-Spiel NICHT automatisch
-  aktualisiert. Bitte das betroffene K.o.-Spiel in diesem Fall manuell im Admin-Bereich prüfen.
-</p>
 
 {% if flash %}
 <div class="alert alert-{{ flash.type }} alert-dismissible fade show">
@@ -87,8 +82,12 @@
   <div class="card-body">
     <h6 class="fw-bold mb-3">Beste 8 Dritte</h6>
     {% if not all_complete %}
-    <p class="text-muted mb-0">Noch nicht alle Gruppen abgeschlossen.</p>
-    {% elif not thirds %}
+    <p class="text-muted small mb-3">
+      <i class="bi bi-info-circle"></i>
+      Noch nicht alle Gruppen abgeschlossen — manuelle Eingabe möglich, Automatik läuft nach Abschluss aller Gruppen.
+    </p>
+    {% endif %}
+    {% if not thirds %}
     <p class="text-muted mb-0">Keine gültige Zuordnung der Dritten zu den K.o.-Slots gefunden.</p>
     {% else %}
     <div class="table-responsive">
@@ -114,7 +113,7 @@
                     <option value="">— Auto —</option>
                     {% for letter, st in slot.options %}
                     <option value="{{ st.team_id }}" {% if slot.team_id == st.team_id %}selected{% endif %}>
-                      {{ st.name }} (Gruppe {{ letter }})
+                      {{ st.name }} (Gr. {{ letter }})
                     </option>
                     {% endfor %}
                   </select>

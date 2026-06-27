@@ -103,7 +103,8 @@ def _resolve(code, *, first, second, thirds, match_no, by_no) -> int | None:
 
 def propagate() -> int:
     """Trägt alle aktuell bestimmbaren Teams in die K.-o.-Spiele ein.
-    Gibt die Zahl neu gefüllter Team-Slots zurück."""
+    Korrigiert auch falsch gesetzte Werte in noch nicht gespielten Matches.
+    Gibt die Zahl neu gesetzter/korrigierter Team-Slots zurück."""
     thirds = _thirds_assignment()
     filled = 0
     with get_session() as s:
@@ -119,16 +120,17 @@ def propagate() -> int:
             changed = False
             for m in ko_matches:
                 hc, ac = _FEEDERS[m.match_number]
-                if m.home_team_id is None:
-                    tid = _resolve(hc, first=first, second=second, thirds=thirds,
+                for attr, code in (("home_team_id", hc), ("away_team_id", ac)):
+                    current = getattr(m, attr)
+                    tid = _resolve(code, first=first, second=second, thirds=thirds,
                                    match_no=m.match_number, by_no=by_no)
-                    if tid:
-                        m.home_team_id = tid; filled += 1; changed = True
-                if m.away_team_id is None:
-                    tid = _resolve(ac, first=first, second=second, thirds=thirds,
-                                   match_no=m.match_number, by_no=by_no)
-                    if tid:
-                        m.away_team_id = tid; filled += 1; changed = True
+                    if tid is None:
+                        continue
+                    if current is None:
+                        setattr(m, attr, tid); filled += 1; changed = True
+                    elif current != tid and not m.is_finished:
+                        # Falsch gesetzter Wert in noch nicht gespieltem Match korrigieren
+                        setattr(m, attr, tid); filled += 1; changed = True
             if not changed:
                 break
     return filled

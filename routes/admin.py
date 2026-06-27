@@ -683,20 +683,31 @@ async def qualifikation_get(request: Request, user: dict = Depends(require_admin
 
         all_complete = all(g["actual_1st"] and g["actual_2nd"] for g in groups_view)
 
+        # Thirds immer anzeigen – auch wenn Gruppen noch offen sind (für manuelle Eingabe)
+        candidates = third_place_candidates(s) if all_complete else {}
+        state = get_thirds_state()
         thirds_view = []
-        if all_complete:
-            candidates = third_place_candidates(s)
-            state = get_thirds_state()
-            for match_no, allowed in third_place_slots():
-                options = [(letter, candidates[letter]) for letter in allowed if letter in candidates]
-                current = state.get(match_no, {})
-                thirds_view.append({
-                    "match_no": match_no,
-                    "allowed_groups": allowed,
-                    "options": options,
-                    "team_id": current.get("team_id"),
-                    "manual": current.get("manual", False),
-                })
+        for match_no, allowed in third_place_slots():
+            # Optionen: automatische Kandidaten wenn alle Gruppen fertig, sonst alle Teams der erlaubten Gruppen
+            if candidates:
+                options = [
+                    (letter, {"team_id": candidates[letter].team_id, "name": candidates[letter].name})
+                    for letter in allowed if letter in candidates
+                ]
+            else:
+                options = [
+                    (letter, {"team_id": t.id, "name": t.name})
+                    for letter in allowed
+                    for t in teams_by_group.get(letter, [])
+                ]
+            current = state.get(match_no, {})
+            thirds_view.append({
+                "match_no": match_no,
+                "allowed_groups": allowed,
+                "options": options,
+                "team_id": current.get("team_id"),
+                "manual": current.get("manual", False),
+            })
 
     return templates.TemplateResponse(request, "admin_qualifikation.html", {
         "user": user, "active": "admin",
