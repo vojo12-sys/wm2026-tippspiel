@@ -13,9 +13,6 @@ Verwendung auf Render: $env:DATABASE_URL="<external-url>"; python fix_group_resu
 from __future__ import annotations
 
 import os
-import ssl
-import json
-import urllib.request
 import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -42,13 +39,11 @@ if _db_url and (_db_url.startswith("<") or not any(_db_url.startswith(p) for p i
     print("         Bitte echte Render-URL angeben oder Variable weglassen (dann SQLite).")
     sys.exit(1)
 
-ctx = ssl._create_unverified_context()
-
-
 def api_get(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"X-Auth-Token": API_KEY})
-    with urllib.request.urlopen(req, timeout=20, context=ctx) as resp:
-        return json.loads(resp.read())
+    import httpx
+    resp = httpx.get(url, headers={"X-Auth-Token": API_KEY}, timeout=20)
+    resp.raise_for_status()
+    return resp.json()
 
 
 # ── API-Daten holen ────────────────────────────────────────────────────────────
