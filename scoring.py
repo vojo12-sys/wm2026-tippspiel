@@ -9,7 +9,6 @@ Logik Spiel-Tipp (Ergebnis ph:pa, tatsächlich rh:ra):
                   mit falschem Ergebnis, z. B. Tipp 1:1, real 2:2)
   Tendenz         gleicher Sieger (Heim/Auswärts) – Remis ist über die
                   Tordifferenz bereits abgedeckt
-  K.-o.-Bonus     getipptes weiterkommendes Team korrekt (Zusatzpunkt)
 
 Logik Gruppen-Tipp:
   je richtig getroffener 1./2. Platz separate Punkte.
@@ -41,40 +40,19 @@ def _sign(x: int) -> int:
 
 def score_match_prediction(
     ph: int, pa: int, rh: int, ra: int,
-    *, is_ko: bool = False,
-    pred_winner_team_id: int | None = None,
-    actual_winner_team_id: int | None = None,
     scoring: dict | None = None,
+    **_kwargs,
 ) -> int:
     """Punkte für einen einzelnen Spiel-Tipp."""
     s = scoring or get_scoring()
-    points = 0
 
     if ph == rh and pa == ra:
-        points = s["exact"]
-    elif (ph - pa) == (rh - ra):
-        points = s["goal_diff"]
-    elif _sign(ph - pa) == _sign(rh - ra):
-        points = s["tendency"]
-
-    # K.-o.-Bonus: korrektes weiterkommendes Team
-    if is_ko and pred_winner_team_id is not None and actual_winner_team_id is not None:
-        if pred_winner_team_id == actual_winner_team_id:
-            points += s["ko_advance_bonus"]
-
-    return points
-
-
-def _predicted_winner_team(match: Match, ph: int, pa: int) -> int | None:
-    """Aus einem Ergebnis-Tipp das vom Tipper favorisierte Team ableiten.
-    Bei einem getippten Remis ist kein Sieger ableitbar -> kein K.-o.-Bonus."""
-    if match.home_team_id is None or match.away_team_id is None:
-        return None
-    if ph > pa:
-        return match.home_team_id
-    if pa > ph:
-        return match.away_team_id
-    return None
+        return s["exact"]
+    if (ph - pa) == (rh - ra):
+        return s["goal_diff"]
+    if _sign(ph - pa) == _sign(rh - ra):
+        return s["tendency"]
+    return 0
 
 
 # ---------------------------------------------------------------------------
@@ -88,8 +66,6 @@ def recalculate_match(match_id: int) -> None:
         match = session.get(Match, match_id)
         if match is None or not match.has_result:
             return
-        is_ko = match.phase != "group"
-        # Joker-Map: {user_id: True} für alle die ihren Joker auf dieses Spiel gesetzt haben
         joker_users = {
             u.id for u in session.scalars(
                 select(User).where(User.joker_match_id == match_id)
@@ -99,12 +75,8 @@ def recalculate_match(match_id: int) -> None:
             select(Prediction).where(Prediction.match_id == match_id)
         ).all()
         for p in preds:
-            pred_winner = _predicted_winner_team(match, p.pred_home, p.pred_away)
             pts = score_match_prediction(
                 p.pred_home, p.pred_away, match.result_home, match.result_away,
-                is_ko=is_ko,
-                pred_winner_team_id=pred_winner,
-                actual_winner_team_id=match.winner_team_id,
                 scoring=s,
             )
             # Joker verdoppelt die Punkte

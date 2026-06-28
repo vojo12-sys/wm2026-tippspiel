@@ -195,20 +195,17 @@ async def stats_get(request: Request, user: dict = Depends(require_non_spectator
         _exact = _cfg.get("exact", 4)
         _gdiff = _cfg.get("goal_diff", 2)
         _tend  = _cfg.get("tendency", 1)
-        _kobon = _cfg.get("ko_advance_bonus", 1)
 
         def _calc(ph: int, pa: int, rh: int, ra: int, phase: str) -> int:
             if ph == rh and pa == ra:
-                base = _exact
+                return _exact
             elif (ph - pa) == (rh - ra):
-                base = _gdiff
+                return _gdiff
             else:
                 def _sgn(x): return 1 if x > 0 else (-1 if x < 0 else 0)
                 if _sgn(ph - pa) == _sgn(rh - ra) and _sgn(ph - pa) != 0:
-                    base = _tend
-                else:
-                    return 0
-            return base + (_kobon if phase != "group" else 0)
+                    return _tend
+                return 0
 
         # History-basierte Korrektur-Auswertung
         for m in finished:

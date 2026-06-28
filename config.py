@@ -46,8 +46,6 @@ DEFAULT_SCORING = {
     "exact": 4,            # exaktes Ergebnis
     "goal_diff": 2,        # richtige Tordifferenz (nicht exakt)
     "tendency": 1,         # richtige Tendenz (Sieger / Unentschieden)
-    "ko_advance_bonus": 1, # K.-o.: richtiges weiterkommendes Team (Zusatzpunkt)
-
     # --- Gruppen-Platzierungen (Bonus Tipps) ---
     "group_first": 3,           # richtiger Gruppensieger (exakt 1. Platz)
     "group_second": 3,          # richtiger Gruppenzweiter (exakt 2. Platz)
@@ -103,7 +101,6 @@ Tipps werden 10 Minuten vor dem jeweiligen Anpfiff automatisch gesperrt. Danach 
 - Exaktes Ergebnis: {exact} Punkte
 - Richtige Tordifferenz: {goal_diff} Punkte
 - Richtige Tendenz (Sieg/Unentschieden/Niederlage): {tendency} Punkte
-- K.o.-Bonus (richtiges Team kommt weiter): {ko_advance_bonus} Punkt
 
 **Bonus Tipps (vor Turnierstart)**
 - Weltmeister: {champion} Punkte
@@ -117,7 +114,6 @@ Jeder Teilnehmer hat einen einmaligen Joker, den er auf genau ein Spiel setzen k
 - Der Joker kann nur auf ein noch nicht gesperrtes Spiel gesetzt werden
 - Der Joker kann bis 10 Minuten vor dem Anstoß des gewählten Spiels noch geändert werden
 - Nach dem Tippschluss des Joker-Spiels ist er unwiderruflich
-- Der Joker gilt auch in der K.o.-Phase (der K.o.-Bonus wird ebenfalls verdoppelt)
 - Werden im Joker-Spiel 0 Punkte erzielt, bringt der Joker ebenfalls 0 Punkte
 
 **Gleichstand / Tiebreaker**
@@ -132,7 +128,6 @@ Ab dem Sechzehntelfinale gilt bei Unentschieden nach 90 Minuten: zuerst 2 × 15 
 - Tore aus dem Elfmeterschießen zählen nicht – weder für den Spieltipp noch für den Gesamttore-Bonus
 - Beispiel: Ein Spiel endet 1:1 nach Verlängerung, dann 5:3 n.E. → Wertung als 1:1 (n.E.) – wer 1:1 tippt, bekommt das exakte Ergebnis
 - Das Ergebnis wird als "1:1 n.E." angezeigt, um das Elfmeterschießen als Entscheidung kenntlich zu machen
-- Der K.o.-Bonus (richtiges Team kommt weiter) wird unabhängig vergeben – egal ob Sieg nach 90 Min., Verlängerung oder Elfmeterschießen
 - In der K.o.-Phase gibt es immer einen Sieger – wer auf Unentschieden tippt, bekommt 0 Punkte
 
 **Gesamttore (Bonus Tipp)**

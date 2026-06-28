@@ -136,16 +136,14 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
                 joker_result_map[uid] = f"{jm.result_home}:{jm.result_away}{pen}"
                 joker_pred_map[uid] = f"{jpred.pred_home}:{jpred.pred_away}"
 
-    # ── Max. mögliche Punkte pro Nutzer (Gruppe=exact, KO=exact+bonus) ──
+    # ── Max. mögliche Punkte pro Nutzer ──
     scoring_cfg = get_scoring()
     exact_pts = scoring_cfg.get("exact", 4)
-    ko_bonus = scoring_cfg.get("ko_advance_bonus", 1)
 
     user_max_pts: dict[int, int] = {}
     for uid, ph, pa, rh, ra, phase, mn in phase_pred_rows:
         uid = int(uid)
-        max_game = exact_pts if phase == "group" else (exact_pts + ko_bonus)
-        user_max_pts[uid] = user_max_pts.get(uid, 0) + max_game
+        user_max_pts[uid] = user_max_pts.get(uid, 0) + exact_pts
 
     # ── Statistiken pro Nutzer aufbauen ──────────────────────────
     tipped_count: dict[int, int] = {}

@@ -219,7 +219,6 @@ async def save_scoring(request: Request, user: dict = Depends(require_admin)):
         "exact":               _int("exact", 4),
         "goal_diff":           _int("goal_diff", 3),
         "tendency":            _int("tendency", 2),
-        "ko_advance_bonus":    _int("ko_advance_bonus", 1),
         "group_first":         _int("group_first", 3),
         "group_second":        _int("group_second", 3),
         "group_partial_credit": _int("group_partial_credit", 2),

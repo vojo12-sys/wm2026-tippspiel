@@ -63,13 +63,6 @@ def calc_live_preview() -> dict[int, dict[int, int]]:
                 elif _sign(ph - pa) == _sign(lh - la):
                     pts = scoring.get("tendency", 2)
 
-                # KO-Bonus nur wenn aktuell klarer Sieger (kein Unentschieden)
-                if pts > 0 and is_ko and lh != la:
-                    pred_winner = "home" if ph > pa else ("away" if pa > ph else None)
-                    live_winner = "home" if lh > la else "away"
-                    if pred_winner == live_winner:
-                        pts += scoring.get("ko_advance_bonus", 1)
-
                 if joker_map.get(p.user_id) == match_id:
                     pts *= 2
 
