@@ -136,7 +136,7 @@
 
 {% set locked = m.is_locked %}
 
-<form method="post" action="/tipps" class="tipp-form"
+<form id="m-{{ m.id }}" method="post" action="/tipps" class="tipp-form"
       data-tipped="{{ 'true' if tipped else 'false' }}"
       data-kickoff="{{ m.kickoff_utc.strftime('%Y-%m-%dT%H:%M:%SZ') if m.kickoff_utc else '' }}">
 
@@ -599,5 +599,57 @@ document.querySelectorAll('.tipp-form').forEach(form => {
 })();
 </script>
 
+<script>
+/* Hash-Navigation: #m-{id} → richtigen Tab aktivieren + zu Spiel scrollen */
+(function () {
+  var hash = location.hash;
+  if (!hash || !hash.startsWith('#m-')) return;
+  var target = document.getElementById(hash.slice(1));
+  if (!target) return;
+
+  function activateTabFor(el) {
+    var pane = el.closest('.tab-pane');
+    if (!pane) return;
+    var paneId = pane.id;
+
+    /* äußeren Tab aktivieren */
+    var outerTab = document.querySelector('[data-bs-target="#' + paneId + '"]');
+    if (outerTab) {
+      var bsTab = bootstrap.Tab.getOrCreateInstance(outerTab);
+      bsTab.show();
+      return;
+    }
+
+    /* Sub-Tab (Spieltage) – pane liegt in einem weiteren tab-content */
+    var subTab = document.querySelector('[data-bs-target="#' + paneId + '"]');
+    if (subTab) {
+      bootstrap.Tab.getOrCreateInstance(subTab).show();
+    }
+
+    /* äußeren Tab des Sub-Tab-Eltern-Panes aktivieren */
+    var parentPane = pane.closest('.tab-pane');
+    if (parentPane) {
+      var parentTab = document.querySelector('[data-bs-target="#' + parentPane.id + '"]');
+      if (parentTab) bootstrap.Tab.getOrCreateInstance(parentTab).show();
+    }
+  }
+
+  function scrollTo(el) {
+    setTimeout(function () {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      activateTabFor(target);
+      scrollTo(target);
+    });
+  } else {
+    activateTabFor(target);
+    scrollTo(target);
+  }
+})();
+</script>
 {% endblock %}
 

@@ -336,14 +336,16 @@
           <div class="bracket-col bracket-col-final">
             {% for m in ko_matches['final'] %}
             <div class="bracket-slot">
-              <div class="bm-card" style="border-color:var(--gold);box-shadow:0 0 0 2px rgba(192,138,18,.2)">
-                <div class="bm-meta" style="color:var(--gold)">Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}</div>
+              <div class="bm-card {% if get_live_scores().get(m.id) %}border-danger{% endif %}" style="border-color:var(--gold);box-shadow:0 0 0 2px rgba(192,138,18,.2)">
                 {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
                 {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
                 {% set hf = m.home_team.flag_code if m.home_team else '' %}
                 {% set af = m.away_team.flag_code if m.away_team else '' %}
+                {% set _flive = get_live_scores().get(m.id) %}
+                <div class="bm-meta" style="color:var(--gold)">Sp.{{ m.match_number }} · {{ fmt(m.kickoff_utc) }}{% if _flive %}<span style="color:#dc3545;font-weight:700;animation:livepulse 1.2s infinite"> ● LIVE{% if _flive.minute %} {{ _flive.minute }}'{% endif %}{% if _flive.status == 'PAUSED' %} HZ{% endif %}</span>{% endif %}</div>
                 <div class="bm-team">{% if hf %}<img src="https://flagcdn.com/16x12/{{ hf }}.png" alt="">{% endif %}<span>{{ home }}</span></div>
-                {% if m.has_result %}<div class="bm-score" style="color:var(--gold)">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %}<div style="font-size:.6rem;line-height:1">n.V.</div>{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %}<div style="font-size:.58rem;color:#6b7280;line-height:1">({{ m.penalty_home }}:{{ m.penalty_away }} n.E.)</div>{% endif %}</div>
+                {% if _flive %}<div class="bm-score" style="color:#dc3545">{{ _flive.home }} : {{ _flive.away }}</div>
+                {% elif m.has_result %}<div class="bm-score" style="color:var(--gold)">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %}<div style="font-size:.6rem;line-height:1">n.V.</div>{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %}<div style="font-size:.58rem;color:#6b7280;line-height:1">({{ m.penalty_home }}:{{ m.penalty_away }} n.E.)</div>{% endif %}</div>
                 {% else %}<div class="bm-sep">vs.</div>{% endif %}
                 <div class="bm-team">{% if af %}<img src="https://flagcdn.com/16x12/{{ af }}.png" alt="">{% endif %}<span>{{ away }}</span></div>
               </div>
@@ -364,10 +366,15 @@
       {% for m in ko_matches['third_place'] %}
       {% set home = m.home_team.name if m.home_team else (m.home_placeholder or 'TBD') %}
       {% set away = m.away_team.name if m.away_team else (m.away_placeholder or 'TBD') %}
+      {% set _p3live = get_live_scores().get(m.id) %}
       <div class="match-card d-inline-flex align-items-center gap-3 px-4">
         <span class="text-muted small me-1">Sp.{{ m.match_number }}</span>
         <span class="fw-semibold">{{ home }}</span>
-        <span class="fw-bold">{% if m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %} n.V.{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %} ({{ m.penalty_home }}:{{ m.penalty_away }} n.E.){% endif %}{% else %}vs.{% endif %}</span>
+        <span class="fw-bold">
+          {% if _p3live %}<span style="color:#dc3545;animation:livepulse 1.2s infinite">● {{ _p3live.home }}:{{ _p3live.away }}{% if _p3live.status == 'PAUSED' %} HZ{% elif _p3live.minute %} {{ _p3live.minute }}'{% endif %}</span>
+          {% elif m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %} n.V.{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %} ({{ m.penalty_home }}:{{ m.penalty_away }} n.E.){% endif %}
+          {% else %}vs.{% endif %}
+        </span>
         <span class="fw-semibold">{{ away }}</span>
       </div>
       {% endfor %}

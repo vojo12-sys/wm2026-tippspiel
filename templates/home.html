@@ -61,7 +61,7 @@
     <strong>Nicht vergessen:</strong>
     Du hast {{ open_tips_24h }} offene{% if open_tips_24h == 1 %}n Tipp{% else %} Tipps{% endif %}
     für Spiele in den nächsten 24 Stunden.
-    <a href="/tipps" style="color:#c08a12">Jetzt tippen →</a>
+    <a href="/tipps{% if first_open_match_id %}#m-{{ first_open_match_id }}{% endif %}" style="color:#c08a12">Jetzt tippen →</a>
   </span>
 </div>
 {% endif %}

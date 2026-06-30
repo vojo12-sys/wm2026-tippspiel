@@ -151,6 +151,7 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
         # ── Offene Tipps in den nächsten 24 Std ───────────────────────
         open_tips_24h = 0
         open_tips_total = 0
+        first_open_match_id = None
         if not user.get("is_spectator"):
             matches_24h = [
                 m for m in upcoming_raw
@@ -174,6 +175,9 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
                 open_tips_total = len(all_open) - len(tipped_ids)
                 open_tips_24h = sum(
                     1 for m in matches_24h if m.id not in tipped_ids
+                )
+                first_open_match_id = next(
+                    (m.id for m in matches_24h if m.id not in tipped_ids), None
                 )
 
     standings = compute_standings()
@@ -231,6 +235,7 @@ async def home_get(request: Request, user: dict = Depends(require_user)):
         "user_points": user_points,
         "open_tips_24h": open_tips_24h,
         "open_tips_total": open_tips_total,
+        "first_open_match_id": first_open_match_id,
         "streaks_max": streaks_max,
         "streaks_current": streaks_current,
         "positions_top": positions_top,
