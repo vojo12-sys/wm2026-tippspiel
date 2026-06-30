@@ -170,7 +170,7 @@ def _sync_matches() -> int:
                     m.ht_home = ht_h
                     m.ht_away = ht_a
                 if duration == "PENALTY_SHOOTOUT" or (pen_home is not None and pen_away is not None):
-                    # Elfmeterschießen: ET-Score als offizielles Ergebnis (FIFA-Regel: Elfmeter zählen nicht)
+                    # Elfmeterschießen: ET-Score als offizielles Ergebnis (n.V.), Elfmeter separat
                     if extra_home is not None and extra_away is not None:
                         m.result_home = extra_home
                         m.result_away = extra_away
@@ -179,6 +179,9 @@ def _sync_matches() -> int:
                         m.result_away = away_goals
                     m.went_to_penalties = True
                     m.went_to_extra_time = True
+                    if pen_home is not None and pen_away is not None:
+                        m.penalty_home = pen_home
+                        m.penalty_away = pen_away
                 elif duration == "EXTRA_TIME" or (extra_home is not None and extra_away is not None):
                     # Verlängerung ohne Elfmeter
                     m.result_home = extra_home if extra_home is not None else home_goals

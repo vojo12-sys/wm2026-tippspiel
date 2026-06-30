@@ -139,10 +139,10 @@ async def uebersicht_get(request: Request, user: dict = Depends(require_user)):
             _result = None
             if jm.result_home is not None and jm.result_away is not None:
                 _result = f"{jm.result_home}:{jm.result_away}"
-                if jm.went_to_penalties:
-                    _result += " n.E."
-                elif jm.went_to_extra_time:
+                if jm.went_to_penalties or jm.went_to_extra_time:
                     _result += " n.V."
+                if jm.went_to_penalties and jm.penalty_home is not None:
+                    _result += f" ({jm.penalty_home}:{jm.penalty_away} n.E.)"
             joker_info.append({
                 "user":       str(u_raw.display_name),
                 "user_id":    int(u_raw.id),

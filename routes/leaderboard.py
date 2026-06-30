@@ -132,8 +132,10 @@ async def leaderboard_get(request: Request, user: dict = Depends(require_user)):
                 joker_phase_key_map[uid] = _phase_key(jm.phase, jm.match_number)
                 joker_match_map[uid] = f"{home} – {away}"
                 joker_phase_map[uid] = _phase_label.get(jm.phase, jm.phase)
-                pen = " n.E." if jm.went_to_penalties else ""
-                joker_result_map[uid] = f"{jm.result_home}:{jm.result_away}{pen}"
+                suffix = " n.V." if (jm.went_to_penalties or jm.went_to_extra_time) else ""
+                if jm.went_to_penalties and jm.penalty_home is not None:
+                    suffix += f" ({jm.penalty_home}:{jm.penalty_away} n.E.)"
+                joker_result_map[uid] = f"{jm.result_home}:{jm.result_away}{suffix}"
                 joker_pred_map[uid] = f"{jpred.pred_home}:{jpred.pred_away}"
 
     # ── Max. mögliche Punkte pro Nutzer ──

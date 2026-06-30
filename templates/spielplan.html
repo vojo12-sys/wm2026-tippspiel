@@ -146,8 +146,8 @@
   {% if _live %}<div class="bm-score" style="color:#dc3545">{{ _live.home }} : {{ _live.away }}</div>
   {% elif m.has_result %}
     <div class="bm-score">{{ m.result_home }} : {{ m.result_away }}
-      {% if m.went_to_penalties %}<div style="font-size:.6rem;line-height:1.2">n.E.</div>
-      {% elif m.went_to_extra_time %}<div style="font-size:.6rem;line-height:1.2">n.V.</div>{% endif %}
+      {% if m.went_to_penalties or m.went_to_extra_time %}<div style="font-size:.6rem;line-height:1.2">n.V.</div>{% endif %}
+      {% if m.went_to_penalties and m.penalty_home is not none %}<div style="font-size:.58rem;color:#6b7280;line-height:1.2">({{ m.penalty_home }}:{{ m.penalty_away }} n.E.)</div>{% endif %}
       {% if m.ht_home is not none %}<div style="font-size:.58rem;color:#6b7280;line-height:1.2">(HZ {{ m.ht_home }}:{{ m.ht_away }})</div>{% endif %}
     </div>
   {% else %}<div class="bm-sep">vs.</div>{% endif %}
@@ -185,7 +185,8 @@
                 <span style="display:block;color:#dc3545;font-size:.62rem;font-weight:700;line-height:1.3;animation:livepulse 1.2s infinite">●{% if _glive.status == 'PAUSED' %} HZ{% elif _glive.minute %} {{ _glive.minute }}'{% else %} LIVE{% endif %}</span>
                 <span style="display:block;color:#dc3545;font-weight:800;font-size:.95rem">{{ _glive.home }}:{{ _glive.away }}</span>
               {% elif m.has_result %}
-                <span style="display:block;font-weight:800;font-size:.95rem">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} <small>n.E.</small>{% elif m.went_to_extra_time %} <small>n.V.</small>{% endif %}</span>
+                <span style="display:block;font-weight:800;font-size:.95rem">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %} <small>n.V.</small>{% endif %}</span>
+                {% if m.went_to_penalties and m.penalty_home is not none %}<span style="display:block;font-size:.6rem;color:#6b7280">({{ m.penalty_home }}:{{ m.penalty_away }} n.E.)</span>{% endif %}
                 {% if m.ht_home is not none %}<span style="display:block;font-size:.6rem;color:#6b7280">(HZ {{ m.ht_home }}:{{ m.ht_away }})</span>{% endif %}
               {% else %}vs.{% endif %}
             </div>
@@ -269,7 +270,7 @@
               <span class="fw-semibold">{{ home }}</span>
             </div>
             <div class="fw-bold my-1" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1rem;color:#16202b">
-              {% if m.has_result %}{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties %} <span style="font-size:.7rem">n.E.</span>{% endif %}{% else %}<span class="text-muted" style="font-size:.85rem">vs.</span>{% endif %}
+              {% if m.has_result %}{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %} <span style="font-size:.7rem">n.V.</span>{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %}<div style="font-size:.62rem;color:#6b7280">({{ m.penalty_home }}:{{ m.penalty_away }} n.E.)</div>{% endif %}{% else %}<span class="text-muted" style="font-size:.85rem">vs.</span>{% endif %}
             </div>
             <div class="d-flex align-items-center justify-content-center gap-1 mt-1">
               {% if af %}<img src="https://flagcdn.com/20x15/{{ af }}.png" alt="" style="flex-shrink:0">{% endif %}
@@ -342,7 +343,7 @@
                 {% set hf = m.home_team.flag_code if m.home_team else '' %}
                 {% set af = m.away_team.flag_code if m.away_team else '' %}
                 <div class="bm-team">{% if hf %}<img src="https://flagcdn.com/16x12/{{ hf }}.png" alt="">{% endif %}<span>{{ home }}</span></div>
-                {% if m.has_result %}<div class="bm-score" style="color:var(--gold)">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties %}<div style="font-size:.6rem;line-height:1">n.E.</div>{% endif %}</div>
+                {% if m.has_result %}<div class="bm-score" style="color:var(--gold)">{{ m.result_home }} : {{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %}<div style="font-size:.6rem;line-height:1">n.V.</div>{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %}<div style="font-size:.58rem;color:#6b7280;line-height:1">({{ m.penalty_home }}:{{ m.penalty_away }} n.E.)</div>{% endif %}</div>
                 {% else %}<div class="bm-sep">vs.</div>{% endif %}
                 <div class="bm-team">{% if af %}<img src="https://flagcdn.com/16x12/{{ af }}.png" alt="">{% endif %}<span>{{ away }}</span></div>
               </div>
@@ -366,7 +367,7 @@
       <div class="match-card d-inline-flex align-items-center gap-3 px-4">
         <span class="text-muted small me-1">Sp.{{ m.match_number }}</span>
         <span class="fw-semibold">{{ home }}</span>
-        <span class="fw-bold">{% if m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}{% else %}vs.{% endif %}</span>
+        <span class="fw-bold">{% if m.has_result %}{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %} n.V.{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %} ({{ m.penalty_home }}:{{ m.penalty_away }} n.E.){% endif %}{% else %}vs.{% endif %}</span>
         <span class="fw-semibold">{{ away }}</span>
       </div>
       {% endfor %}

@@ -171,7 +171,7 @@
       {% endif %}
 
       {% if m.result_home is not none and m.result_away is not none and not _live %}
-      <strong class="ms-2">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% elif m.went_to_extra_time %} n.V.{% endif %}</strong>
+      <strong class="ms-2">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties or m.went_to_extra_time %} n.V.{% endif %}{% if m.went_to_penalties and m.penalty_home is not none %} ({{ m.penalty_home }}:{{ m.penalty_away }} n.E.){% endif %}</strong>
       {% endif %}
 
     </span>

@@ -19,7 +19,7 @@ from models import GroupPrediction, GroupResult, Match, Prediction, PredictionHi
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
 from scoring import recalculate_match, recalculate_everything
 from standings import compute_standings
-from knockout import get_thirds_state, set_third_slot, third_place_slots
+from knockout import get_thirds_state, set_third_slot, third_place_slots, propagate
 from qualification import compute_group_table, third_place_candidates, update_qualifications
 
 router = APIRouter(prefix="/admin")
@@ -69,6 +69,9 @@ async def save_result(
     result_home: int = Form(...),
     result_away: int = Form(...),
     went_to_penalties: bool = Form(False),
+    went_to_extra_time: bool = Form(False),
+    penalty_home: int | None = Form(None),
+    penalty_away: int | None = Form(None),
     user: dict = Depends(require_admin),
 ):
     with get_session() as s:
@@ -78,13 +81,23 @@ async def save_result(
             m.result_away = result_away
             m.is_finished = True
             m.went_to_penalties = went_to_penalties
-            if result_home > result_away:
+            m.went_to_extra_time = went_to_extra_time or went_to_penalties
+            if went_to_penalties and penalty_home is not None and penalty_away is not None:
+                m.penalty_home = penalty_home
+                m.penalty_away = penalty_away
+                # Sieger aus Elfmeter ableiten
+                if penalty_home > penalty_away:
+                    m.winner_team_id = m.home_team_id
+                elif penalty_away > penalty_home:
+                    m.winner_team_id = m.away_team_id
+            elif result_home > result_away:
                 m.winner_team_id = m.home_team_id
             elif result_away > result_home:
                 m.winner_team_id = m.away_team_id
             else:
                 m.winner_team_id = None
     recalculate_match(match_id)
+    propagate()
     request.session["flash"] = {"message": "Ergebnis gespeichert.", "type": "success"}
     return RedirectResponse("/admin", status_code=303)
 

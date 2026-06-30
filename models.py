@@ -122,6 +122,9 @@ class Match(Base):
     went_to_extra_time: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="0")
     ht_home: Mapped[int | None] = mapped_column(Integer, nullable=True)
     ht_away: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Elfmeterschießen-Ergebnis (nur gesetzt wenn went_to_penalties=True)
+    penalty_home: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    penalty_away: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     home_team: Mapped["Team | None"] = relationship(foreign_keys=[home_team_id])
     away_team: Mapped["Team | None"] = relationship(foreign_keys=[away_team_id])

@@ -47,15 +47,30 @@
               <td class="fw-semibold" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ home }}</td>
               <td>
                 <form method="post" action="/admin/result/{{ m.id }}" class="d-flex align-items-center gap-1 flex-wrap">
+                  <small class="text-muted">n.V.:</small>
                   <input type="number" name="result_home" class="form-control form-control-sm score-input"
                          value="{{ m.result_home if m.result_home is not none else '' }}" min="0" placeholder="—">
                   <span class="fw-bold">:</span>
                   <input type="number" name="result_away" class="form-control form-control-sm score-input"
                          value="{{ m.result_away if m.result_away is not none else '' }}" min="0" placeholder="—">
+                  <label class="d-flex align-items-center gap-1 small text-muted mb-0" title="Verlängerung">
+                    <input type="checkbox" name="went_to_extra_time" value="true"
+                           {% if m.went_to_extra_time %}checked{% endif %}>n.V.
+                  </label>
                   <label class="d-flex align-items-center gap-1 small text-muted mb-0" title="Elfmeterschießen">
-                    <input type="checkbox" name="went_to_penalties" value="true"
+                    <input type="checkbox" name="went_to_penalties" value="true" id="pen-cb-{{ m.id }}"
+                           onchange="togglePen({{ m.id }})"
                            {% if m.went_to_penalties %}checked{% endif %}>n.E.
                   </label>
+                  <span id="pen-fields-{{ m.id }}" {% if not m.went_to_penalties %}style="display:none"{% endif %}
+                        class="d-flex align-items-center gap-1">
+                    <small class="text-muted">E:</small>
+                    <input type="number" name="penalty_home" class="form-control form-control-sm score-input"
+                           value="{{ m.penalty_home if m.penalty_home is not none else '' }}" min="0" placeholder="—">
+                    <span>:</span>
+                    <input type="number" name="penalty_away" class="form-control form-control-sm score-input"
+                           value="{{ m.penalty_away if m.penalty_away is not none else '' }}" min="0" placeholder="—">
+                  </span>
                   <button type="submit" class="btn btn-accent btn-sm">✓</button>
                 </form>
               </td>
@@ -90,7 +105,7 @@
               <tr>
                 <td><small class="text-muted">{{ m.match_number }}</small></td>
                 <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ home }}</td>
-                <td class="fw-bold">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.E.{% endif %}</td>
+                <td class="fw-bold">{{ m.result_home }}:{{ m.result_away }}{% if m.went_to_penalties %} n.V.{% if m.penalty_home is not none %} ({{ m.penalty_home }}:{{ m.penalty_away }} n.E.){% endif %}{% elif m.went_to_extra_time %} n.V.{% endif %}</td>
                 <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ away }}</td>
                 <td>
                   <form method="post" action="/admin/result/{{ m.id }}/undo">
@@ -431,6 +446,12 @@
 </div><!-- tab-content -->
 
 <script>
+function togglePen(matchId) {
+  const cb = document.getElementById('pen-cb-' + matchId);
+  const fields = document.getElementById('pen-fields-' + matchId);
+  if (fields) fields.style.display = cb.checked ? '' : 'none';
+}
+
 /* Pool-Checkbox: bezahlt nur aktivierbar wenn "zahlt mit" aktiv */
 document.querySelectorAll('.pool-check').forEach(cb => {
   cb.addEventListener('change', function() {
