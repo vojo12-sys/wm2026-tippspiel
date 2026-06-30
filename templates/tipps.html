@@ -600,54 +600,36 @@ document.querySelectorAll('.tipp-form').forEach(form => {
 </script>
 
 <script>
-/* Hash-Navigation: #m-{id} → richtigen Tab aktivieren + zu Spiel scrollen */
+/* Hash-Navigation: #m-{id} → alle Tab-Ebenen von außen nach innen aktivieren + scrollen */
 (function () {
   var hash = location.hash;
   if (!hash || !hash.startsWith('#m-')) return;
   var target = document.getElementById(hash.slice(1));
   if (!target) return;
 
-  function activateTabFor(el) {
-    var pane = el.closest('.tab-pane');
-    if (!pane) return;
-    var paneId = pane.id;
-
-    /* äußeren Tab aktivieren */
-    var outerTab = document.querySelector('[data-bs-target="#' + paneId + '"]');
-    if (outerTab) {
-      var bsTab = bootstrap.Tab.getOrCreateInstance(outerTab);
-      bsTab.show();
-      return;
+  function activate() {
+    /* Alle tab-pane-Vorfahren sammeln (von innen nach außen) */
+    var panes = [];
+    var el = target.parentElement;
+    while (el) {
+      if (el.classList && el.classList.contains('tab-pane')) panes.unshift(el);
+      el = el.parentElement;
     }
-
-    /* Sub-Tab (Spieltage) – pane liegt in einem weiteren tab-content */
-    var subTab = document.querySelector('[data-bs-target="#' + paneId + '"]');
-    if (subTab) {
-      bootstrap.Tab.getOrCreateInstance(subTab).show();
-    }
-
-    /* äußeren Tab des Sub-Tab-Eltern-Panes aktivieren */
-    var parentPane = pane.closest('.tab-pane');
-    if (parentPane) {
-      var parentTab = document.querySelector('[data-bs-target="#' + parentPane.id + '"]');
-      if (parentTab) bootstrap.Tab.getOrCreateInstance(parentTab).show();
-    }
-  }
-
-  function scrollTo(el) {
+    /* Von außen nach innen aktivieren */
+    panes.forEach(function (pane) {
+      var btn = document.querySelector('[data-bs-target="#' + pane.id + '"]');
+      if (btn) bootstrap.Tab.getOrCreateInstance(btn).show();
+    });
+    /* Scrollen nach kurzem Delay damit Tabs fertig gerendert sind */
     setTimeout(function () {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      activateTabFor(target);
-      scrollTo(target);
-    });
+    document.addEventListener('DOMContentLoaded', activate);
   } else {
-    activateTabFor(target);
-    scrollTo(target);
+    activate();
   }
 })();
 </script>
