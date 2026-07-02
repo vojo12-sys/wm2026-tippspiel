@@ -88,11 +88,16 @@
 .overview-table thead .col-result { z-index: 11; }
 .overview-table tr:hover .col-result { background: #f8fbff; }
 
-/* Mobile: spieltag-table scrollt intern (wie Desktop) → sticky Header funktioniert */
+/* Mobile: spieltag-table + K.o.-Tabellen scrollen intern → sticky Header funktioniert */
 @media (max-width: 767px) {
   .spieltag-table {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
+  }
+  .collapse .overview-wrap {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 60vh;
   }
 }
 
