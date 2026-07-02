@@ -581,15 +581,30 @@ document.querySelectorAll('.tipp-form').forEach(form => {
 // Beim Laden zum ersten offenen Spiel (kein Tipp, nicht gesperrt) scrollen
 (function() {
   function scrollToFirstOpen() {
-    var activePane = document.querySelector('.tab-pane.show.active');
-    if (!activePane) return;
-    var subPane = activePane.querySelector('.tab-pane.show.active') || activePane;
-    var firstForm = Array.from(subPane.querySelectorAll('.tipp-form')).find(function(f) {
+    // Hash-Navigation hat Vorrang
+    if (location.hash && location.hash.startsWith('#m-')) return;
+
+    // Alle Forms über alle Tabs durchsuchen (nicht nur den aktiven Tab)
+    var allForms = Array.from(document.querySelectorAll('.tipp-form'));
+    var firstForm = allForms.find(function(f) {
       return f.dataset.tipped === 'false' && f.querySelector('.score-input:not([disabled])');
     });
     if (!firstForm) return;
+
+    // Alle Tab-Pane-Vorfahren finden und von außen nach innen aktivieren
+    var panes = [];
+    var el = firstForm.parentElement;
+    while (el) {
+      if (el.classList && el.classList.contains('tab-pane')) panes.unshift(el);
+      el = el.parentElement;
+    }
+    panes.forEach(function(pane) {
+      var btn = document.querySelector('[data-bs-target="#' + pane.id + '"]');
+      if (btn) bootstrap.Tab.getOrCreateInstance(btn).show();
+    });
+
     var card = firstForm.querySelector('.match-card');
-    if (card) setTimeout(function() { card.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 200);
+    if (card) setTimeout(function() { card.scrollIntoView({behavior: 'smooth', block: 'center'}); }, 350);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', scrollToFirstOpen);
