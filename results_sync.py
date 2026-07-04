@@ -160,6 +160,15 @@ def _sync_matches() -> int:
                 penalties = score.get("penalties") or {}
                 pen_home = penalties.get("home")
                 pen_away = penalties.get("away")
+                # football-data.org liefert seit einem Schema-Update zusätzlich "regularTime"
+                # (Spielstand nach 90 Min.); "extraTime" ist seitdem nur noch die ZUSÄTZLICH
+                # in der Verlängerung erzielten Tore (kein kumulierter Spielstand mehr).
+                # "fullTime" wird bei Elfmeterschießen nachträglich um die Elfmeter erhöht
+                # und ist daher NICHT mehr als Spielstand verwendbar.
+                # → Tatsächlicher Spielstand vor dem Elfmeterschießen = regularTime + extraTime.
+                regular = score.get("regularTime") or {}
+                regular_home = regular.get("home")
+                regular_away = regular.get("away")
                 extra = score.get("extraTime") or {}
                 extra_home = extra.get("home")
                 extra_away = extra.get("away")
@@ -171,7 +180,11 @@ def _sync_matches() -> int:
                     m.ht_away = ht_a
                 if duration == "PENALTY_SHOOTOUT" or (pen_home is not None and pen_away is not None):
                     # Elfmeterschießen: ET-Score als offizielles Ergebnis (n.V.), Elfmeter separat
-                    if extra_home is not None and extra_away is not None:
+                    if regular_home is not None and regular_away is not None:
+                        m.result_home = regular_home + (extra_home or 0)
+                        m.result_away = regular_away + (extra_away or 0)
+                    elif extra_home is not None and extra_away is not None:
+                        # Ältere API-Antworten ohne "regularTime": extraTime war kumuliert
                         m.result_home = extra_home
                         m.result_away = extra_away
                     else:
@@ -184,8 +197,12 @@ def _sync_matches() -> int:
                         m.penalty_away = pen_away
                 elif duration == "EXTRA_TIME" or (extra_home is not None and extra_away is not None):
                     # Verlängerung ohne Elfmeter
-                    m.result_home = extra_home if extra_home is not None else home_goals
-                    m.result_away = extra_away if extra_away is not None else away_goals
+                    if regular_home is not None and regular_away is not None:
+                        m.result_home = regular_home + (extra_home or 0)
+                        m.result_away = regular_away + (extra_away or 0)
+                    else:
+                        m.result_home = extra_home if extra_home is not None else home_goals
+                        m.result_away = extra_away if extra_away is not None else away_goals
                     m.went_to_penalties = False
                     m.went_to_extra_time = True
                 else:

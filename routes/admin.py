@@ -17,7 +17,7 @@ from database import get_session
 from deps import require_admin, templates
 from models import GroupPrediction, GroupResult, Match, Prediction, PredictionHistory, SpecialTip, Team, User, UserVisit
 from settings import get_pool, get_rules, get_scoring, set_pool, set_rules, set_scoring
-from scoring import recalculate_match, recalculate_everything
+from scoring import recalculate_match, recalculate_everything, update_total_goals
 from standings import compute_standings
 from knockout import get_thirds_state, set_third_slot, third_place_slots, propagate
 from qualification import compute_group_table, third_place_candidates, update_qualifications
@@ -97,6 +97,7 @@ async def save_result(
             else:
                 m.winner_team_id = None
     recalculate_match(match_id)
+    update_total_goals()
     propagate()
     request.session["flash"] = {"message": "Ergebnis gespeichert.", "type": "success"}
     return RedirectResponse("/admin", status_code=303)
@@ -114,6 +115,7 @@ async def undo_result(request: Request, match_id: int, user: dict = Depends(requ
             m.went_to_penalties = False
             for p in s.scalars(select(Prediction).where(Prediction.match_id == match_id)).all():
                 p.points_awarded = 0
+    update_total_goals()
     request.session["flash"] = {"message": "Ergebnis zurückgesetzt.", "type": "warning"}
     return RedirectResponse("/admin", status_code=303)
 
