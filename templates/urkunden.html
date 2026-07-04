@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Siegerurkunden – WM 2026 Tippspiel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
 
     /* ── Bildschirm-Ansicht ─────────────────────────────────────── */
@@ -12,7 +12,7 @@
 
     body {
       font-family: 'Hanken Grotesk', sans-serif;
-      background: #1a1a2e;
+      background: #0c0d1a;
       color: #fff;
       padding: 2rem;
     }
@@ -41,14 +41,15 @@
     }
     .btn-back:hover { background: rgba(255,255,255,.2); }
     .btn-print {
-      background: #c08a12; color: #fff;
+      background: linear-gradient(135deg, #e8c060, #c08a12);
+      color: #1a1204;
       border: none; border-radius: 10px;
       padding: .5rem 1.4rem; font-size: .88rem; font-weight: 700;
       cursor: pointer; font-family: inherit;
-      box-shadow: 0 3px 12px rgba(192,138,18,.35);
-      transition: background .15s;
+      box-shadow: 0 3px 12px rgba(192,138,18,.4);
+      transition: transform .15s;
     }
-    .btn-print:hover { background: #a07510; }
+    .btn-print:hover { transform: translateY(-1px); }
 
     .hint {
       max-width: 900px; margin: 0 auto 1.5rem;
@@ -66,39 +67,79 @@
       width: 100%;
       aspect-ratio: 0.707;          /* A4 Hochformat */
       margin-bottom: 2.5rem;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 8px 40px rgba(0,0,0,.5);
+      box-shadow: 0 12px 50px rgba(0,0,0,.55);
       page-break-after: always;
       break-after: page;
+      background: radial-gradient(ellipse at 50% -10%, #1b2650 0%, #0a0e22 45%, #05060f 100%);
     }
 
-    /* Hintergrundbild */
-    .cert-bg {
-      position: absolute; inset: 0;
-      background: url('/static/img/landing.jpg') center center / cover no-repeat;
-    }
-
-    /* Dunkles Overlay */
-    .cert-overlay {
+    /* Stadion-Flutlicht-Strahlen */
+    .cert-spotlights {
       position: absolute; inset: 0;
       background:
-        linear-gradient(to top, rgba(4,8,20,.92) 0%, rgba(4,8,20,.55) 45%, rgba(4,8,20,.45) 100%);
+        conic-gradient(from 210deg at 15% 0%, rgba(232,192,96,.16), transparent 28%),
+        conic-gradient(from 330deg at 85% 0%, rgba(126,200,227,.16), transparent 28%);
+      mix-blend-mode: screen;
     }
 
-    /* Goldener Rahmen */
-    .cert-border {
-      position: absolute; inset: 12px;
-      border: 2px solid rgba(192,138,18,.5);
-      border-radius: 6px;
+    /* Fußball-Sechseck-Textur (sehr dezent) */
+    .cert-texture {
+      position: absolute; inset: 0;
+      opacity: .05;
+      background-image:
+        radial-gradient(circle at 0 0, transparent 9%, rgba(255,255,255,.9) 9.5%, rgba(255,255,255,.9) 10.5%, transparent 11%),
+        radial-gradient(circle at 20px 20px, transparent 9%, rgba(255,255,255,.9) 9.5%, rgba(255,255,255,.9) 10.5%, transparent 11%);
+      background-size: 20px 20px;
+    }
+
+    /* Konfetti (Punkte per box-shadow-Trick) */
+    .cert-confetti {
+      position: absolute; top: 0; left: 0; width: 6px; height: 6px;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow:
+        6vw 3%   0 1px #e8c060,
+        14vw 7%  0 1px #7ec8e3,
+        23vw 2%  0 1px #e8c060,
+        33vw 6%  0 0px #d4966a,
+        42vw 3%  0 1px #7ec8e3,
+        52vw 8%  0 1px #e8c060,
+        61vw 2%  0 0px #7ec8e3,
+        70vw 5%  0 1px #e8c060,
+        79vw 3%  0 1px #d4966a,
+        88vw 7%  0 1px #7ec8e3,
+        5vw 90%  0 1px #7ec8e3,
+        15vw 95% 0 0px #e8c060,
+        90vw 92% 0 1px #e8c060,
+        95vw 88% 0 1px #7ec8e3;
+      opacity: .8;
+    }
+
+    /* Goldener Rahmen mit Eckornamenten */
+    .cert-frame {
+      position: absolute; inset: 14px;
+      border: 1.5px solid rgba(232,192,96,.55);
+      border-radius: 10px;
       pointer-events: none;
     }
-    .cert-border::before {
+    .cert-frame::before {
       content: '';
-      position: absolute; inset: 4px;
-      border: 1px solid rgba(192,138,18,.25);
-      border-radius: 4px;
+      position: absolute; inset: 6px;
+      border: 1px solid rgba(232,192,96,.28);
+      border-radius: 7px;
     }
+    .corner {
+      position: absolute;
+      width: 34px; height: 34px;
+      border: 2px solid #e8c060;
+      opacity: .85;
+    }
+    .corner-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; border-radius: 10px 0 0 0; }
+    .corner-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; border-radius: 0 10px 0 0; }
+    .corner-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; border-radius: 0 0 0 10px; }
+    .corner-br { bottom: 8px; right: 8px; border-left: none; border-top: none; border-radius: 0 0 10px 0; }
 
     /* Inhalt */
     .cert-content {
@@ -108,11 +149,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 5% 6% 4%;
+      padding: 4.5% 6% 3.5%;
       text-align: center;
     }
 
-    /* ── Oberer Bereich: Logo + Turniertitel ─────────────────────── */
+    /* ── Oberer Bereich ───────────────────────────────────────────── */
     .cert-top {
       display: flex;
       flex-direction: column;
@@ -120,26 +161,53 @@
     }
 
     .cert-logo {
-      height: 8%;
-      min-height: 56px;
-      opacity: .85;
-      margin-bottom: 2%;
+      height: 7%;
+      min-height: 42px;
+      opacity: .9;
+      margin-bottom: 3%;
       filter: brightness(0) invert(1);
       clip-path: inset(10% 0 0 0);
-      margin-top: -10%;
+      margin-top: -8%;
     }
 
-    .cert-tournament {
-      font-size: clamp(1.1rem, 2.4vw, 1.56rem);
+    .cert-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .4em;
+      font-size: clamp(.55rem, 1.1vw, .72rem);
       font-weight: 700;
-      letter-spacing: .1em;
+      letter-spacing: .22em;
       text-transform: uppercase;
       color: #e8c060;
-      line-height: 1.35;
+      margin-bottom: 2%;
+    }
+    .cert-eyebrow::before, .cert-eyebrow::after {
+      content: '';
+      width: 22px; height: 1px;
+      background: linear-gradient(to right, transparent, #e8c060);
+    }
+    .cert-eyebrow::after { background: linear-gradient(to left, transparent, #e8c060); }
+
+    .cert-tournament {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(1.15rem, 2.6vw, 1.7rem);
+      font-weight: 800;
+      letter-spacing: .01em;
+      color: #fff;
+      line-height: 1.25;
       text-align: center;
     }
+    .cert-tournament span {
+      display: block;
+      font-size: .56em;
+      font-weight: 600;
+      color: rgba(255,255,255,.55);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-top: .5em;
+    }
 
-    /* ── Mittlerer Bereich: Name + Rang + Stats ───────────────────── */
+    /* ── Mittlerer Bereich ─────────────────────────────────────────── */
     .cert-main {
       display: flex;
       flex-direction: column;
@@ -147,25 +215,96 @@
       flex: 1;
       justify-content: center;
       gap: 0;
+      width: 100%;
+    }
+
+    /* Medaille */
+    .medal-wrap {
+      position: relative;
+      margin-bottom: 2%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .medal-ribbons {
+      position: absolute;
+      top: 55%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: clamp(1.6rem, 5vw, 2.6rem);
+      z-index: -1;
+    }
+    .medal-ribbon {
+      width: clamp(16px, 3.4vw, 24px);
+      height: clamp(38px, 7vw, 54px);
+      clip-path: polygon(0 0, 100% 0, 100% 82%, 50% 100%, 0 82%);
+    }
+    .medal-ribbon.left  { background: linear-gradient(160deg, #9fd3ec, #5aa8c9); transform: rotate(-8deg); }
+    .medal-ribbon.right { background: linear-gradient(200deg, #9fd3ec, #5aa8c9); transform: rotate(8deg); }
+    .rank-1 .medal-ribbon { background: linear-gradient(160deg, #f6d98a, #c08a12); }
+    .rank-1 .medal-ribbon.right { background: linear-gradient(200deg, #f6d98a, #c08a12); }
+    .rank-2 .medal-ribbon { background: linear-gradient(160deg, #dfe6ec, #97a5b3); }
+    .rank-2 .medal-ribbon.right { background: linear-gradient(200deg, #dfe6ec, #97a5b3); }
+    .rank-3 .medal-ribbon { background: linear-gradient(160deg, #e3ac82, #a3673f); }
+    .rank-3 .medal-ribbon.right { background: linear-gradient(200deg, #e3ac82, #a3673f); }
+
+    .medal-disc {
+      width: clamp(60px, 11vw, 92px);
+      height: clamp(60px, 11vw, 92px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.4rem, 3.6vw, 2.3rem);
+      color: #1a1204;
+      border: 3px solid rgba(255,255,255,.5);
+      box-shadow: 0 0 0 3px rgba(0,0,0,.25), 0 6px 24px rgba(0,0,0,.4);
+      background: linear-gradient(145deg, #dfe6ec, #97a5b3);
+    }
+    .rank-1 .medal-disc { background: linear-gradient(145deg, #f6d98a, #c08a12); box-shadow: 0 0 0 3px rgba(0,0,0,.25), 0 0 40px rgba(240,192,64,.55), 0 6px 24px rgba(0,0,0,.4); }
+    .rank-2 .medal-disc { background: linear-gradient(145deg, #eef2f5, #b8c2cc); }
+    .rank-3 .medal-disc { background: linear-gradient(145deg, #e3ac82, #a3673f); }
+    .rank-other .medal-disc { background: linear-gradient(145deg, #9fd3ec, #5aa8c9); }
+
+    .medal-lbl {
+      margin-top: clamp(.4rem, 1.2vw, .7rem);
+      font-size: clamp(.5rem, 1vw, .68rem);
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.55);
     }
 
     .cert-title {
       font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: clamp(.9rem, 2.5vw, 1.5rem);
-      font-weight: 800;
-      letter-spacing: .05em;
+      font-size: clamp(.85rem, 2.2vw, 1.3rem);
+      font-weight: 700;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      color: rgba(255,255,255,.75);
-      margin-bottom: 3%;
+      color: rgba(255,255,255,.6);
+      margin-top: 3%;
+      margin-bottom: 1%;
     }
 
     .cert-name {
       font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: clamp(1.2rem, 3.5vw, 2.4rem);
+      font-size: clamp(1.3rem, 3.8vw, 2.6rem);
       font-weight: 800;
       color: #fff;
-      margin-bottom: 3%;
+      margin-bottom: 2%;
       letter-spacing: -.02em;
+      text-shadow: 0 2px 20px rgba(0,0,0,.4);
+    }
+
+    .cert-tagline {
+      font-size: clamp(.62rem, 1.3vw, .84rem);
+      font-style: italic;
+      color: #e8c060;
+      margin-bottom: 4%;
+      max-width: 80%;
     }
 
     /* Rang-Anzeige 3-spaltig */
@@ -176,16 +315,16 @@
       margin-bottom: 3%;
     }
     .rank-box {
-      background: rgba(255,255,255,.06);
+      background: rgba(255,255,255,.05);
       border: 1px solid rgba(255,255,255,.12);
       border-radius: 10px;
       padding: clamp(.3rem, 1vw, .6rem) clamp(.5rem, 1.2vw, .9rem);
-      min-width: clamp(55px, 9vw, 80px);
+      min-width: clamp(58px, 9vw, 82px);
       text-align: center;
     }
     .rank-box-highlight {
-      background: rgba(192,138,18,.12);
-      border: 1px solid rgba(192,138,18,.4);
+      background: rgba(232,192,96,.1);
+      border: 1px solid rgba(232,192,96,.4);
     }
     .rank-box-num {
       font-family: 'Bricolage Grotesque', sans-serif;
@@ -193,93 +332,89 @@
       display: block;
       line-height: 1;
       margin-bottom: 3px;
+      color: rgba(255,255,255,.85);
     }
-    .rank-box-num-main {
-      font-size: clamp(1.8rem, 5vw, 3.5rem);
-    }
-    .rank-box-num-side {
-      font-size: clamp(1rem, 2.5vw, 1.8rem);
-      color: rgba(255,255,255,.8);
-    }
+    .rank-box-num-main { font-size: clamp(1.6rem, 4.2vw, 2.8rem); color: #e8c060; }
+    .rank-box-num-side { font-size: clamp(1rem, 2.5vw, 1.7rem); }
     .rank-box-lbl {
       font-size: clamp(.4rem, .82vw, .58rem);
       color: rgba(255,255,255,.5);
       text-transform: uppercase;
       letter-spacing: .06em;
     }
-    .rank-box-highlight .rank-box-lbl { color: rgba(240,192,64,.7); }
-
-    .rank-1 { color: #f0c040; text-shadow: 0 0 30px rgba(240,192,64,.4); }
-    .rank-2 { color: #d0d8e0; text-shadow: 0 0 20px rgba(200,215,225,.3); }
-    .rank-3 { color: #d4966a; text-shadow: 0 0 20px rgba(212,150,106,.3); }
-    .rank-other { color: rgba(255,255,255,.85); }
+    .rank-box-highlight .rank-box-lbl { color: rgba(232,192,96,.75); }
 
     .cert-stats {
       display: flex;
-      gap: clamp(.5rem, 2vw, 1.5rem);
+      gap: clamp(.4rem, 1.6vw, 1rem);
       justify-content: center;
       flex-wrap: wrap;
-      margin-bottom: 2%;
+      margin-bottom: 2.5%;
     }
     .stat-box {
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.14);
       border-radius: 10px;
-      padding: clamp(.4rem, 1.2vw, .8rem) clamp(.6rem, 1.5vw, 1.1rem);
-      min-width: clamp(60px, 10vw, 90px);
+      padding: clamp(.4rem, 1.2vw, .75rem) clamp(.55rem, 1.4vw, 1rem);
+      min-width: clamp(58px, 9.5vw, 86px);
       text-align: center;
     }
+    .stat-icon { font-size: clamp(.7rem, 1.5vw, .95rem); display: block; margin-bottom: 2px; }
     .stat-num {
       font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: clamp(.9rem, 2.2vw, 1.5rem);
+      font-size: clamp(.88rem, 2.1vw, 1.4rem);
       font-weight: 800;
       display: block;
       line-height: 1;
       color: #fff;
     }
-    .stat-num.gold { color: #f0c040; }
+    .stat-num.gold { color: #e8c060; }
     .stat-lbl {
-      font-size: clamp(.45rem, .9vw, .65rem);
-      color: rgba(255,255,255,.55);
+      font-size: clamp(.42rem, .88vw, .62rem);
+      color: rgba(255,255,255,.5);
       text-transform: uppercase;
-      letter-spacing: .07em;
+      letter-spacing: .06em;
       margin-top: 3px;
     }
 
     .cert-expert {
-      font-size: clamp(.48rem, .95vw, .68rem);
-      color: rgba(255,255,255,.55);
+      font-size: clamp(.46rem, .92vw, .66rem);
+      color: rgba(255,255,255,.5);
       letter-spacing: .04em;
       margin-bottom: 2%;
     }
-    .cert-expert strong {
-      color: rgba(255,255,255,.8);
-    }
+    .cert-expert strong { color: rgba(232,192,96,.85); }
 
     .cert-divider {
-      width: 60%; height: 1px;
-      background: linear-gradient(to right, transparent, rgba(192,138,18,.4), transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .6em;
+      width: 70%;
       margin-bottom: 2%;
+      color: rgba(232,192,96,.6);
+      font-size: .7rem;
     }
+    .cert-divider::before, .cert-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(232,192,96,.45));
+    }
+    .cert-divider::after { background: linear-gradient(to left, transparent, rgba(232,192,96,.45)); }
 
     .cert-footer {
-      font-size: clamp(.45rem, .9vw, .65rem);
-      color: rgba(255,255,255,.4);
-      letter-spacing: .12em;
+      font-size: clamp(.44rem, .88vw, .62rem);
+      color: rgba(255,255,255,.38);
+      letter-spacing: .1em;
       text-transform: uppercase;
     }
 
     /* ── Druckmodus ─────────────────────────────────────────────── */
     @media print {
-      body {
-        background: #000;
-        padding: 0;
-        margin: 0;
-      }
+      body { background: #000; padding: 0; margin: 0; }
 
-      .screen-header,
-      .screen-actions,
-      .hint { display: none !important; }
+      .screen-header, .screen-actions, .hint { display: none !important; }
 
       .certificates { max-width: 100%; }
 
@@ -294,31 +429,13 @@
         break-after: page;
       }
 
-      /* Hintergrunddruck erzwingen */
-      .cert-bg {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        background: url('/static/img/landing.jpg') center center / cover no-repeat !important;
-      }
-      .cert-overlay {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .cert-border {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
       * {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
     }
 
-    @page {
-      size: A4 portrait;
-      margin: 0;
-    }
+    @page { size: A4 portrait; margin: 0; }
   </style>
 </head>
 <body>
@@ -341,26 +458,55 @@
 <div class="certificates">
   {% for row in rows %}
   <div class="cert">
-    <div class="cert-bg"></div>
-    <div class="cert-overlay"></div>
-    <div class="cert-border"></div>
+    <div class="cert-spotlights"></div>
+    <div class="cert-texture"></div>
+    <div class="cert-confetti"></div>
+    <div class="cert-frame"></div>
+    <span class="corner corner-tl"></span>
+    <span class="corner corner-tr"></span>
+    <span class="corner corner-bl"></span>
+    <span class="corner corner-br"></span>
+
     <div class="cert-content">
 
       <!-- Oberer Bereich: Logo + Turniertitel -->
       <div class="cert-top">
         <img src="/static/img/lew_logo.png" class="cert-logo" alt="LEW Automotive">
+        <div class="cert-eyebrow">Tippspiel {{ 2026 }}</div>
         <div class="cert-tournament">
-          FIFA Weltmeisterschaft 2026<br>
-          Tippspiel der LEW Automotive GmbH
+          FIFA Weltmeisterschaft 2026
+          <span>Tippspiel der LEW Automotive GmbH</span>
         </div>
       </div>
 
       <!-- Mittlerer Bereich -->
       <div class="cert-main">
 
-        <div class="cert-title">Siegerurkunde</div>
+        <div class="medal-wrap {% if row.rank == 1 %}rank-1{% elif row.rank == 2 %}rank-2{% elif row.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+          <div class="medal-ribbons">
+            <div class="medal-ribbon left"></div>
+            <div class="medal-ribbon right"></div>
+          </div>
+          <div class="medal-disc">{{ row.rank }}.</div>
+          <div class="medal-lbl">
+            {% if row.rank == 1 %}Gesamtsieger{% elif row.rank == 2 %}2. Platz Gesamt{% elif row.rank == 3 %}3. Platz Gesamt{% else %}Platz {{ row.rank }} Gesamt{% endif %}
+          </div>
+        </div>
 
+        <div class="cert-title">Siegerurkunde</div>
         <div class="cert-name">{{ row.display_name }}</div>
+
+        <div class="cert-tagline">
+          {% if row.rank == 1 %}
+            „Von der ersten Gruppenpartie bis zum letzten Elfmeter – niemand hat schärfer getippt."
+          {% elif row.rank == 2 %}
+            „Hauchdünn am Titel vorbei – aber mit einem Blick für das richtige Ergebnis."
+          {% elif row.rank == 3 %}
+            „Nervenstark bis zum Schlusspfiff und immer für eine Überraschung gut."
+          {% else %}
+            „Mitgefiebert, mitgetippt, mitgewonnen – dabei sein war hier der Sieg."
+          {% endif %}
+        </div>
 
         <!-- Rang-Anzeige 3-spaltig: Gruppenphase | Gesamt (hervorgehoben) | K.o.-Phase -->
         <div class="cert-ranks">
@@ -369,7 +515,7 @@
             <div class="rank-box-lbl">Gruppenphase</div>
           </div>
           <div class="rank-box rank-box-highlight">
-            <span class="rank-box-num rank-box-num-main {% if row.rank == 1 %}rank-1{% elif row.rank == 2 %}rank-2{% elif row.rank == 3 %}rank-3{% else %}rank-other{% endif %}">{{ row.rank }}.</span>
+            <span class="rank-box-num rank-box-num-main">{{ row.rank }}.</span>
             <div class="rank-box-lbl">Gesamt</div>
           </div>
           <div class="rank-box">
@@ -381,26 +527,32 @@
         <!-- Statistiken -->
         <div class="cert-stats">
           <div class="stat-box">
+            <span class="stat-icon">🏆</span>
             <span class="stat-num gold">{{ row.total_points }}</span>
             <div class="stat-lbl">Punkte</div>
           </div>
           <div class="stat-box">
+            <span class="stat-icon">📝</span>
             <span class="stat-num">{{ row.tips_total }} / {{ total_matches }}</span>
             <div class="stat-lbl">Tipps</div>
           </div>
           <div class="stat-box">
+            <span class="stat-icon">🎯</span>
             <span class="stat-num">{{ row.exact_count }}</span>
             <div class="stat-lbl">Exakt</div>
           </div>
           <div class="stat-box">
+            <span class="stat-icon">⚖️</span>
             <span class="stat-num">{{ row.goal_diff_count }}</span>
             <div class="stat-lbl">Tordiff.</div>
           </div>
           <div class="stat-box">
+            <span class="stat-icon">📈</span>
             <span class="stat-num">{{ row.tendency_count }}</span>
             <div class="stat-lbl">Tendenz</div>
           </div>
           <div class="stat-box">
+            <span class="stat-icon">⭐</span>
             <span class="stat-num">{{ row.longterm_points }}</span>
             <div class="stat-lbl">Bonus</div>
           </div>
@@ -413,7 +565,7 @@
 
       </div><!-- end cert-main -->
 
-      <div class="cert-divider"></div>
+      <div class="cert-divider">⚽</div>
 
       <div class="cert-footer">
         Kanada · Mexiko · USA &nbsp;·&nbsp; 11. Juni – 19. Juli 2026
