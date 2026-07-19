@@ -77,6 +77,7 @@ $env:DATABASE_URL="<external-db-url>"; python import_schedule.py
 | `GET /teams` | `teams.html` | ja |
 | `GET /admin` | `admin.html` | Admin |
 | `GET /admin/urkunden` | `urkunden.html` | Admin |
+| `GET /admin/qualifikation` | `admin_qualifikation.html` | Admin |
 
 ---
 
@@ -181,6 +182,13 @@ Danach in Edge: Rechtsklick → Untersuchen → Anwendung → Service Worker →
 ### Admin
 - Passwort-Reset: Pro Nutzer „Passwort"-Button → aufklappbares Formular → neues Passwort setzen
 - Route: `POST /admin/user/{user_id}/reset-password`
+
+### Turnier-Endergebnis (Bonuspunkte Weltmeister/Torschützenkönig)
+- `TournamentResult` (id=1) speichert das **tatsächliche** Endergebnis (`champion_team_id`, `top_scorer`, `total_goals`)
+- `total_goals` wird automatisch aus den Spielergebnissen berechnet (`scoring.py: update_total_goals()`)
+- `champion_team_id` und `top_scorer` müssen **manuell vom Admin** gesetzt werden – ohne diesen Eintrag bleiben die Bonuspunkte für Weltmeister/Torschützenkönig bei 0, egal was Nutzer getippt haben
+- Eingabe: `/admin/qualifikation` → Karte „Turnier-Endergebnis" → Route `POST /admin/qualifikation/tournament-result` (ruft danach `recalculate_everything()` auf)
+- Zu unterscheiden von `/admin/bonus`: dort werden nur die **Tipps einzelner Nutzer** (`SpecialTip`) erfasst, nicht das tatsächliche Ergebnis
 
 ### Siegerurkunden (`/admin/urkunden`)
 - A4 Hochformat mit Landing-Page-Hintergrundbild
