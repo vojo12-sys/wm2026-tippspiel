@@ -677,10 +677,19 @@ async def admin_nutzung(request: Request, user: dict = Depends(require_admin)):
 
 @router.get("/qualifikation")
 async def qualifikation_get(request: Request, user: dict = Depends(require_admin)):
+    from models import TournamentResult
+
     with get_session() as s:
         teams_by_group: dict[str, list[Team]] = {}
         for t in s.scalars(select(Team).order_by(Team.group_letter, Team.name)).all():
             teams_by_group.setdefault(t.group_letter, []).append(t)
+
+        tr = s.get(TournamentResult, 1)
+        tournament_result = {
+            "champion_team_id": tr.champion_team_id if tr else None,
+            "top_scorer": tr.top_scorer if tr else None,
+            "total_goals": tr.total_goals if tr else None,
+        }
 
         results = {gr.group_letter: gr for gr in s.scalars(select(GroupResult)).all()}
         groups_view = []
@@ -728,8 +737,34 @@ async def qualifikation_get(request: Request, user: dict = Depends(require_admin
         "groups": groups_view,
         "all_complete": all_complete,
         "thirds": thirds_view,
+        "teams_by_group": teams_by_group,
+        "tournament_groups": sorted(GROUPS.keys()),
+        "tournament_result": tournament_result,
+        "scorer_opts": dropdown_options(),
         "flash": request.session.pop("flash", None),
     })
+
+
+@router.post("/qualifikation/tournament-result")
+async def qualifikation_save_tournament_result(
+    request: Request,
+    champion: str = Form(""),
+    scorer: str = Form(""),
+    user: dict = Depends(require_admin),
+):
+    from models import TournamentResult
+
+    with get_session() as s:
+        tr = s.get(TournamentResult, 1)
+        if not tr:
+            tr = TournamentResult(id=1)
+            s.add(tr)
+        tr.champion_team_id = int(champion) if champion else None
+        tr.top_scorer = option_to_name(scorer) if scorer else None
+
+    recalculate_everything()
+    request.session["flash"] = {"message": "Turnier-Endergebnis gespeichert.", "type": "success"}
+    return RedirectResponse("/admin/qualifikation", status_code=303)
 
 
 @router.post("/qualifikation/group/{letter}")

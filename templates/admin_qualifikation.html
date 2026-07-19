@@ -22,6 +22,54 @@
 
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
+    <h6 class="fw-bold mb-3">Turnier-Endergebnis (Weltmeister / Torschützenkönig)</h6>
+    <p class="text-muted small mb-3">
+      <i class="bi bi-info-circle"></i>
+      Wird für die Bonus-Punkte „Weltmeister" und „Torschützenkönig" benötigt — ohne Eintrag hier gibt es dafür keine Punkte.
+    </p>
+    <form method="post" action="/admin/qualifikation/tournament-result" class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label fw-semibold">Weltmeister</label>
+        <select name="champion" class="form-select">
+          <option value="">— auswählen —</option>
+          {% for letter in tournament_groups %}
+          {% set grp_teams = teams_by_group.get(letter, []) %}
+          <optgroup label="Gruppe {{ letter }}">
+            {% for t in grp_teams %}
+            <option value="{{ t.id }}" {% if tournament_result.champion_team_id == t.id %}selected{% endif %}>
+              {{ t.name }}
+            </option>
+            {% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label fw-semibold">Torschützenkönig</label>
+        <select name="scorer" class="form-select">
+          <option value="">— auswählen —</option>
+          {% for opt in scorer_opts %}
+          <option value="{{ opt }}"
+            {% if tournament_result.top_scorer and opt.startswith(tournament_result.top_scorer + ' (') %}selected{% endif %}>
+            {{ opt }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-accent w-100">Speichern</button>
+      </div>
+    </form>
+    {% if tournament_result.total_goals is not none %}
+    <p class="text-muted small mt-3 mb-0">
+      Gesamttore (automatisch aus Spielergebnissen): <strong>{{ tournament_result.total_goals }}</strong>
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
     <h6 class="fw-bold mb-3">Gruppensieger / -zweiter</h6>
     <div class="table-responsive">
       <table class="table table-sm align-middle">
