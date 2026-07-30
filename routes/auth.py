@@ -137,10 +137,24 @@ async def login_post(
     return RedirectResponse("/home", status_code=303)
 
 
+_REGISTRATION_CLOSED_MSG = "Die Anmeldung ist geschlossen – es können keine neuen Konten mehr erstellt werden."
+
+
+def _registration_closed(request: Request) -> RedirectResponse | None:
+    """Redirect auf /login wenn Neu-Registrierung deaktiviert ist."""
+    from config import REGISTRATION_OPEN
+    if REGISTRATION_OPEN:
+        return None
+    _flash(request, _REGISTRATION_CLOSED_MSG, "warning")
+    return RedirectResponse("/login", status_code=303)
+
+
 @router.get("/register")
 async def register_get(request: Request):
     if request.session.get("user"):
         return RedirectResponse("/home", status_code=302)
+    if (closed := _registration_closed(request)) is not None:
+        return closed
     return templates.TemplateResponse(request, "register.html", {
         "flash": _get_flash(request), "user": None,
     })
@@ -155,6 +169,8 @@ async def register_post(
     password2: str = Form(...),
     is_spectator: str = Form(default=""),
 ):
+    if (closed := _registration_closed(request)) is not None:
+        return closed
     if password != password2:
         _flash(request, "Passwörter stimmen nicht überein.")
         return RedirectResponse("/register", status_code=303)

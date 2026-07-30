@@ -39,6 +39,14 @@ _env = Environment(
 _env.globals["get_pool"] = get_pool
 _env.globals["get_pot_info"] = get_pot_info
 
+
+def registration_open() -> bool:
+    """Neu-Registrierung freigeschaltet? (config.REGISTRATION_OPEN)"""
+    from config import REGISTRATION_OPEN
+    return REGISTRATION_OPEN
+
+_env.globals["registration_open"] = registration_open
+
 def get_bonus_tips_incomplete(user_id: int | None) -> bool:
     """True wenn Turnier noch nicht gestartet UND User noch keine Bonus Tipps abgegeben hat."""
     if user_id is None:

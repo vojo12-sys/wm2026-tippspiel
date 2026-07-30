@@ -119,6 +119,12 @@ Danach in Edge: Rechtsklick → Untersuchen → Anwendung → Service Worker →
 - Pott-Anmeldung (`/profil`) ebenfalls gesperrt sobald das erste Spiel gesperrt ist (`routes/profil.py: _pool_locked()`)
 - Hinweis „Tippschluss: 10 Minuten vor Anpfiff" auf der Tipp-Seite
 
+### Registrierung (Neu-Anmeldung)
+- `config.py: REGISTRATION_OPEN` steuert, ob neue Konten erstellt werden können (Default: **aus**)
+- Wieder öffnen: Umgebungsvariable `REGISTRATION_OPEN=1` setzen (Render → Environment)
+- Bei `False`: `GET/POST /register` → Redirect auf `/login` mit Hinweis; alle Registrieren-Links in `landing.html`, `login.html`, `regeln_public.html` ausgeblendet (Jinja2-Global `registration_open()` aus `deps.py`)
+- Login bestehender Nutzer bleibt unberührt
+
 ### Joker
 - Jeder Nutzer hat einen einmaligen Joker (verdoppelt Punkte für ein Spiel)
 - **Bug-Fix**: Joker-Form darf NICHT in die Tipp-Form verschachtelt sein (HTML5 `form`-Attribut verwenden)

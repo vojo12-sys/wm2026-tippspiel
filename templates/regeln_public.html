@@ -202,7 +202,7 @@
 
     <a href="/login" class="btn-ghost">Anmelden</a>
 
-    <a href="/register" class="btn-fill">Registrieren</a>
+    {% if registration_open() %}<a href="/register" class="btn-fill">Registrieren</a>{% endif %}
 
   </div>
 
@@ -312,11 +312,19 @@
 
   <div class="cta-banner">
 
+    {% if registration_open() %}
     <h2>Bereit mitzumachen?</h2>
 
     <p>Kostenlos registrieren und alle 104 WM-Spiele tippen.</p>
 
     <a href="/register">Jetzt registrieren →</a>
+    {% else %}
+    <h2>Anmeldung geschlossen</h2>
+
+    <p>Es können keine neuen Konten mehr erstellt werden.</p>
+
+    <a href="/login">Zum Login →</a>
+    {% endif %}
 
   </div>
 

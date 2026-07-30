@@ -29,7 +29,11 @@
       </div>
     </div>
     <p class="text-center mt-3 text-muted small">
+      {% if registration_open() %}
       Noch kein Konto? <a href="/register">Registrieren</a>
+      {% else %}
+      Die Anmeldung neuer Teilnehmer ist geschlossen.
+      {% endif %}
     </p>
   </div>
 </div>

@@ -32,6 +32,10 @@ DISPLAY_TIMEZONE = ZoneInfo("Europe/Berlin")
 # Mexiko – Südafrika, 11.06.2026, 15:00 ET (EDT = UTC-4) = 19:00 UTC = 21:00 MESZ
 TOURNAMENT_START_UTC = "2026-06-11T19:00:00+00:00"
 
+# Neu-Registrierung offen? False = /register gesperrt, Registrieren-Links
+# werden ausgeblendet. Bestehende Nutzer können sich weiterhin einloggen.
+REGISTRATION_OPEN = os.getenv("REGISTRATION_OPEN", "0") == "1"
+
 # flagcdn-Bildgröße (laut Prompt: w320)
 FLAG_SIZE = "w320"
 FLAG_BASE_URL = "https://flagcdn.com"  # -> {base}/{size}/{code}.png
